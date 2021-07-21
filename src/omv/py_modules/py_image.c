@@ -108,6 +108,123 @@ py_img_torgb24(PyObject *self, PyObject *args)
 	return data1;
 }
 
+
+
+static PyObject *
+py_image_print(PyObject *self, PyObject *args)
+{
+    switch(self_image_img.bpp) {
+        case IMAGE_BPP_BINARY: {
+            printf("{\"w\":%d, \"h\":%d, \"type\"=\"binary\", \"size\":%d}",
+                      self_image_img.w, self_image_img.h,
+                      ((self_image_img.w + UINT32_T_MASK) >> UINT32_T_SHIFT) * self_image_img.h);
+            break;
+        }
+        case IMAGE_BPP_GRAYSCALE: {
+            printf("{\"w\":%d, \"h\":%d, \"type\"=\"grayscale\", \"size\":%d}",
+                      self_image_img.w, self_image_img.h,
+                      (self_image_img.w * self_image_img.h) * sizeof(uint8_t));
+            break;
+        }
+        case IMAGE_BPP_RGB565: {
+            printf("{\"w\":%d, \"h\":%d, \"type\"=\"rgb565\", \"size\":%d}",
+                      self_image_img.w, self_image_img.h,
+                      (self_image_img.w * self_image_img.h) * sizeof(uint16_t));
+            break;
+        }
+        case IMAGE_BPP_BAYER: {
+            printf("{\"w\":%d, \"h\":%d, \"type\"=\"bayer\", \"size\":%d}",
+                      self_image_img.w, self_image_img.h,
+                      (self_image_img.w * self_image_img.h) * sizeof(uint8_t));
+            break;
+        }
+        default: {
+            if((self_image_img.data[0] == 0xFE) && (self_image_img.data[self_image_img.bpp-1] == 0xFE)) { // for ide
+                print->print_strn(print->data, (const char *) self_image_img.data, self_image_img.bpp);
+            } else { // not for ide
+                printf("{\"w\":%d, \"h\":%d, \"type\"=\"jpeg\", \"size\":%d}",
+                          self_image_img.w, self_image_img.h,
+                          self_image_img.bpp);
+            }
+            break;
+        }
+    }
+}
+
+
+static PyObject *
+py_image_binary_to_grayscale(PyObject *self, PyObject *args, PyObject *keywds)
+{
+    int8_t b;
+	static char *kwlist[] = {"binary_image_value", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "i", kwlist,
+                                     &b))return NULL;
+    return Py_BuildValue("i", COLOR_BINARY_TO_GRAYSCALE(b));
+}
+
+
+
+
+// static PyObject *
+// keywdarg_parrot(PyObject *self, PyObject *args, PyObject *keywds)
+// {
+//     int voltage;
+//     const char *state = "a stiff";
+//     const char *action = "voom";
+//     const char *type = "Norwegian Blue";
+
+//     static char *kwlist[] = {"voltage", "state", "action", "type", NULL};
+
+//     if (!PyArg_ParseTupleAndKeywords(args, keywds, "i|sss", kwlist,
+//                                      &voltage, &state, &action, &type))
+//         return NULL;
+
+//     printf("-- This parrot wouldn't %s if you put %i Volts through it.\n",
+//            action, voltage);
+//     printf("-- Lovely plumage, the %s -- It's %s!\n", type, state);
+
+    // Py_RETURN_NONE;
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 static PyObject *
 py_image_draw_line(PyObject *self, PyObject *args, PyObject *keywds)
 {
