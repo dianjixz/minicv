@@ -1574,12 +1574,22 @@ py_image_width(PyObject *self, PyObject *args, PyObject *keywds)
 }
 
 static PyObject *
-py_image_height(mp_obj_t img_obj)
+py_image_height(PyObject *self, PyObject *args, PyObject *keywds)
 {
     return Py_BuildValue("i",self_image_img.h);
 }
 
-
+static PyObject *
+py_image_format(PyObject *self, PyObject *args, PyObject *keywds)
+{
+    switch (self_image_img.bpp) {
+        case IMAGE_BPP_BINARY: return  Py_BuildValue("i",PIXFORMAT_BINARY);
+        case IMAGE_BPP_GRAYSCALE: return  Py_BuildValue("i",PIXFORMAT_GRAYSCALE);
+        case IMAGE_BPP_RGB565: return  Py_BuildValue("i",PIXFORMAT_RGB565);
+        case IMAGE_BPP_BAYER: return  Py_BuildValue("i",PIXFORMAT_BAYER);
+        default: return  Py_BuildValue("i",PIXFORMAT_JPEG);
+    }
+}
 
 
 // static PyObject *
