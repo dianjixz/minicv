@@ -3317,122 +3317,137 @@ py_image_midpoint(PyObject *self, PyObject *args, PyObject* keywds)
 //     fb_alloc_free_till_mark();
 //     return args[0];
 // }
-static PyObject * py_image_bilateral(uint n_args, const mp_obj_t *args, mp_map_t *kw_args)
-{
-    image_t *arg_img =
-        &self_image_img;
-    int arg_ksize =
-        py_helper_arg_to_ksize(args[1]);
-    float arg_color_sigma =
-        py_helper_keyword_float(n_args, args, 2, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_color_sigma), 0.1);
-    float arg_space_sigma =
-        py_helper_keyword_float(n_args, args, 3, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_space_sigma), 1);
-    bool arg_threshold =
-        py_helper_keyword_int(n_args, args, 4, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_threshold), false);
-    int arg_offset =
-        py_helper_keyword_int(n_args, args, 5, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_offset), 0);
-    bool arg_invert =
-        py_helper_keyword_int(n_args, args, 6, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_invert), false);
-    image_t *arg_msk =
-        py_helper_keyword_to_image_mutable_mask(n_args, args, 7, kw_args);
+static PyObject * py_image_bilateral(PyObject *self, PyObject *args, PyObject* keywds)
+    image_t *arg_img =&self_image_img;
+    int arg_ksize =0;
+    float arg_color_sigma =0.1;
+    float arg_space_sigma =1;
+    bool arg_threshold =0;
+    int arg_offset =0;
+    bool arg_invert =0;
+    image_t *arg_msk =NULL;
+
+    PyObject *msk;
+
+    static char *kwlist[] = {"size","color_sigma","space_sigma","threshold","offset","invert","mask",NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "i|ffiiiO", kwlist,
+                              &arg_ksize,&arg_color_sigma,&arg_space_sigma,&arg_threshold,&arg_offset,&arg_invert,&msk)) return NULL;
+
+
 
     fb_alloc_mark();
     imlib_bilateral_filter(arg_img, arg_ksize, arg_color_sigma, arg_space_sigma, arg_threshold, arg_offset, arg_invert, arg_msk);
     fb_alloc_free_till_mark();
-    return args[0];
+    return PyLong_FromLong(0);
 }
-static PyObject * py_image_cartoon(uint n_args, const mp_obj_t *args, mp_map_t *kw_args)
-{
-    image_t *arg_img =
-        &self_image_img;
-    float arg_seed_threshold =
-        py_helper_keyword_float(n_args, args, 1, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_seed_threshold), 0.05);
-    PY_ASSERT_TRUE_MSG((0.0f <= arg_seed_threshold) && (arg_seed_threshold <= 1.0f),
-                       "Error: 0.0 <= seed_threshold <= 1.0!");
-    float arg_floating_threshold =
-        py_helper_keyword_float(n_args, args, 2, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_floating_threshold), 0.05);
-    PY_ASSERT_TRUE_MSG((0.0f <= arg_floating_threshold) && (arg_floating_threshold <= 1.0f),
-                       "Error: 0.0 <= floating_threshold <= 1.0!");
-    image_t *arg_msk =
-        py_helper_keyword_to_image_mutable_mask(n_args, args, 3, kw_args);
+static PyObject *
+py_image_cartoon(PyObject *self, PyObject *args, PyObject* keywds)
+    image_t *arg_img =&self_image_img;
+    float arg_seed_threshold =0.05;
+    // PY_ASSERT_TRUE_MSG((0.0f <= arg_seed_threshold) && (arg_seed_threshold <= 1.0f),
+    //                    "Error: 0.0 <= seed_threshold <= 1.0!");
+    float arg_floating_threshold =0.05;
+    // PY_ASSERT_TRUE_MSG((0.0f <= arg_floating_threshold) && (arg_floating_threshold <= 1.0f),
+    //                    "Error: 0.0 <= floating_threshold <= 1.0!");
+    image_t *arg_msk =NULL;
+
+    PyObject *msk;
+
+    static char *kwlist[] = {"seed_threshold","floating_threshold","mask",NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "|ffO", kwlist,
+                              &arg_seed_threshold,&arg_floating_threshold,&msk)) return NULL;
+
+
 
     fb_alloc_mark();
     imlib_cartoon_filter(arg_img, arg_seed_threshold, arg_floating_threshold, arg_msk);
     fb_alloc_free_till_mark();
-    return args[0];
+    return PyLong_FromLong(0);
 }
-static PyObject * py_image_linpolar(uint n_args, const mp_obj_t *args, mp_map_t *kw_args)
+static PyObject *
+py_image_linpola(PyObject *self, PyObject *args, PyObject* keywds)
 {
-    image_t *arg_img =
-        &self_image_img;
-    PY_ASSERT_FALSE_MSG(arg_img->w % 2, "Width must be even!");
-    PY_ASSERT_FALSE_MSG(arg_img->h % 2, "Height must be even!");
-    bool arg_reverse =
-        py_helper_keyword_int(n_args, args, 1, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_reverse), false);
+    image_t *arg_img =&self_image_img;
+    // PY_ASSERT_FALSE_MSG(arg_img->w % 2, "Width must be even!");
+    // PY_ASSERT_FALSE_MSG(arg_img->h % 2, "Height must be even!");
+    bool arg_reverse =0;
+
+
+
+
+    static char *kwlist[] = {"reverse",NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "|i", kwlist,
+                              &arg_reverse)) return NULL;
+
 
     fb_alloc_mark();
     imlib_logpolar(arg_img, true, arg_reverse);
     fb_alloc_free_till_mark();
-    return args[0];
+    return PyLong_FromLong(0);
 }
-static PyObject * py_image_logpolar(uint n_args, const mp_obj_t *args, mp_map_t *kw_args)
+
+static PyObject *
+py_image_logpolar(PyObject *self, PyObject *args, PyObject* keywds)
 {
-    image_t *arg_img =
-        &self_image_img;
-    PY_ASSERT_FALSE_MSG(arg_img->w % 2, "Width must be even!");
-    PY_ASSERT_FALSE_MSG(arg_img->h % 2, "Height must be even!");
-    bool arg_reverse =
-        py_helper_keyword_int(n_args, args, 1, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_reverse), false);
+    image_t *arg_img =&self_image_img;
+    // PY_ASSERT_FALSE_MSG(arg_img->w % 2, "Width must be even!");
+    // PY_ASSERT_FALSE_MSG(arg_img->h % 2, "Height must be even!");
+    bool arg_reverse =0;
+    static char *kwlist[] = {"reverse",NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "|i", kwlist,
+                              &arg_reverse)) return NULL;
+
 
     fb_alloc_mark();
     imlib_logpolar(arg_img, false, arg_reverse);
     fb_alloc_free_till_mark();
-    return args[0];
+    return PyLong_FromLong(0);
 }
-static PyObject * py_image_lens_corr(uint n_args, const mp_obj_t *args, mp_map_t *kw_args)
-{
-    image_t *arg_img =
-        &self_image_img;
-    PY_ASSERT_FALSE_MSG(arg_img->w % 2, "Width must be even!");
-    PY_ASSERT_FALSE_MSG(arg_img->h % 2, "Height must be even!");
-    float arg_strength =
-        py_helper_keyword_float(n_args, args, 1, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_strength), 1.8f);
-    PY_ASSERT_TRUE_MSG(arg_strength > 0.0f, "Strength must be > 0!");
-    float arg_zoom =
-        py_helper_keyword_float(n_args, args, 2, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_zoom), 1.0f);
-    PY_ASSERT_TRUE_MSG(arg_zoom > 0.0f, "Zoom must be > 0!");
+// static PyObject * py_image_lens_corr(uint n_args, const mp_obj_t *args, mp_map_t *kw_args)
+// {
+//     image_t *arg_img =
+//         &self_image_img;
+//     PY_ASSERT_FALSE_MSG(arg_img->w % 2, "Width must be even!");
+//     PY_ASSERT_FALSE_MSG(arg_img->h % 2, "Height must be even!");
+//     float arg_strength =
+//         py_helper_keyword_float(n_args, args, 1, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_strength), 1.8f);
+//     PY_ASSERT_TRUE_MSG(arg_strength > 0.0f, "Strength must be > 0!");
+//     float arg_zoom =
+//         py_helper_keyword_float(n_args, args, 2, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_zoom), 1.0f);
+//     PY_ASSERT_TRUE_MSG(arg_zoom > 0.0f, "Zoom must be > 0!");
 
-    float arg_x_corr =
-        py_helper_keyword_float(n_args, args, 3, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_x_corr), 0.0f);
-    float arg_y_corr =
-        py_helper_keyword_float(n_args, args, 4, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_y_corr), 0.0f);
+//     float arg_x_corr =
+//         py_helper_keyword_float(n_args, args, 3, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_x_corr), 0.0f);
+//     float arg_y_corr =
+//         py_helper_keyword_float(n_args, args, 4, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_y_corr), 0.0f);
 
-    fb_alloc_mark();
-    imlib_lens_corr(arg_img, arg_strength, arg_zoom, arg_x_corr, arg_y_corr);
-    fb_alloc_free_till_mark();
-    return args[0];
-}
-static PyObject * py_image_rotation_corr(uint n_args, const mp_obj_t *args, mp_map_t *kw_args)
+//     fb_alloc_mark();
+//     imlib_lens_corr(arg_img, arg_strength, arg_zoom, arg_x_corr, arg_y_corr);
+//     fb_alloc_free_till_mark();
+//     return args[0];
+// }
+static PyObject *
+py_image_rotation_corr(PyObject *self, PyObject *args, PyObject* keywds)
 {
-    image_t *arg_img =
-        &self_image_img;
-    float arg_x_rotation =
-        IM_DEG2RAD(py_helper_keyword_float(n_args, args, 1, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_x_rotation), 0.0f));
-    float arg_y_rotation =
-        IM_DEG2RAD(py_helper_keyword_float(n_args, args, 2, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_y_rotation), 0.0f));
-    float arg_z_rotation =
-        IM_DEG2RAD(py_helper_keyword_float(n_args, args, 3, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_z_rotation), 0.0f));
-    float arg_x_translation =
-        py_helper_keyword_float(n_args, args, 4, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_x_translation), 0.0f);
-    float arg_y_translation =
-        py_helper_keyword_float(n_args, args, 5, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_y_translation), 0.0f);
-    float arg_zoom =
-        py_helper_keyword_float(n_args, args, 6, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_zoom), 1.0f);
-    PY_ASSERT_TRUE_MSG(arg_zoom > 0.0f, "Zoom must be > 0!");
-    float arg_fov =
-        IM_DEG2RAD(py_helper_keyword_float(n_args, args, 7, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_fov), 60.0f));
-    PY_ASSERT_TRUE_MSG((0.0f < arg_fov) && (arg_fov < 180.0f), "FOV must be > 0 and < 180!");
-    float *arg_corners = py_helper_keyword_corner_array(n_args, args, 8, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_corners));
+    image_t *arg_img =&self_image_img;
+    float arg_x_rotation =0.0f;
+    float arg_y_rotation =0.0f;
+    float arg_z_rotation =0.0f;
+    float arg_x_translation =0.0f;
+    float arg_y_translation =0.0f;
+    float arg_zoom =1.0f;
+    // PY_ASSERT_TRUE_MSG(arg_zoom > 0.0f, "Zoom must be > 0!");
+    float arg_fov =60.0f;
+    // PY_ASSERT_TRUE_MSG((0.0f < arg_fov) && (arg_fov < 180.0f), "FOV must be > 0 and < 180!");
+    float *arg_corners = 0;
+
+
+
+    static char *kwlist[] = {"x_rotation","y_rotation","z_rotation","x_translation","y_translation","zoom",NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "|ffffff", kwlist,
+                              &arg_x_rotation,&arg_y_rotation,&arg_z_rotation,&arg_x_translation,&arg_y_translation,&arg_zoom)) return NULL;
+
+
 
     fb_alloc_mark();
     imlib_rotation_corr(arg_img,
@@ -3440,36 +3455,103 @@ static PyObject * py_image_rotation_corr(uint n_args, const mp_obj_t *args, mp_m
                         arg_x_translation, arg_y_translation,
                         arg_zoom, arg_fov, arg_corners);
     fb_alloc_free_till_mark();
-    return args[0];
+    return PyLong_FromLong(0);
 }
-static PyObject * py_image_get_similarity(mp_obj_t img_obj, mp_obj_t other_obj)
-{
-    image_t *arg_img = py_helper_arg_to_image_mutable(img_obj);
-    float avg, std, min, max;
+// static PyObject *
+// py_image_get_similarity(PyObject *self, PyObject *args, PyObject* keywds)
+// {
+//     image_t *arg_img = &self_image_img;
+//     float avg, std, min, max;
 
-    fb_alloc_mark();
+//     fb_alloc_mark();
 
-    if (MP_OBJ_IS_STR(other_obj)) {
-        imlib_get_similarity(arg_img, mp_obj_str_get_str(other_obj), NULL, 0, &avg, &std, &min, &max);
-    } else if (MP_OBJ_IS_TYPE(other_obj, &py_image_type)) {
-        imlib_get_similarity(arg_img, NULL, py_helper_arg_to_image_mutable(other_obj), 0, &avg, &std, &min, &max);
-    } else {
-        imlib_get_similarity(arg_img, NULL, NULL,
-                             py_helper_keyword_color(arg_img, 1, &other_obj, 0, NULL, 0),
-                             &avg, &std, &min, &max);
-    }
+//     if (MP_OBJ_IS_STR(other_obj))
+//     {
+//         imlib_get_similarity(arg_img, mp_obj_str_get_str(other_obj), NULL, 0, &avg, &std, &min, &max);
+//     }
+//     else if (MP_OBJ_IS_TYPE(other_obj, &py_image_type))
+//     {
+//         imlib_get_similarity(arg_img, NULL, py_helper_arg_to_image_mutable(other_obj), 0, &avg, &std, &min, &max);
+//     }
+//     else
+//     {
+//         imlib_get_similarity(arg_img, NULL, NULL,
+//                              py_helper_keyword_color(arg_img, 1, &other_obj, 0, NULL, 0),
+//                              &avg, &std, &min, &max);
+//     }
 
-    fb_alloc_free_till_mark();
+//     fb_alloc_free_till_mark();
 
-    py_similarity_obj_t *o = m_new_obj(py_similarity_obj_t);
-    o->base.type = &py_similarity_type;
-    o->avg = mp_obj_new_float(avg);
-    o->std = mp_obj_new_float(std);
-    o->min = mp_obj_new_float(min);
-    o->max = mp_obj_new_float(max);
-    return o;
-}
-static PyObject * py_image_get_histogram(uint n_args, const mp_obj_t *args, mp_map_t *kw_args)
+//     py_similarity_obj_t *o = m_new_obj(py_similarity_obj_t);
+//     o->base.type = &py_similarity_type;
+//     o->avg = mp_obj_new_float(avg);
+//     o->std = mp_obj_new_float(std);
+//     o->min = mp_obj_new_float(min);
+//     o->max = mp_obj_new_float(max);
+//     return o;
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+static PyObject *
+py_image_get_histogram(PyObject *self, PyObject *args, PyObject* keywds)
 {
     image_t *arg_img = &self_image_img;
 
