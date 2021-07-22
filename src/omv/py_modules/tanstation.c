@@ -5,7 +5,16 @@
 
 
 
-
+PyObject *back_img(image_t *img)
+{
+    PyObject *th_tup;
+    th_tup = PyTuple_New(4);
+    PyTuple_SetItem(th_tup,0,PyBytes_FromStringAndSize(img->data,img->w * img->h * 3));
+    PyTuple_SetItem(th_tup,0,PyLong_FromLong(img->w));
+    PyTuple_SetItem(th_tup,0,PyLong_FromLong(img->h));
+    PyTuple_SetItem(th_tup,0,PyLong_FromLong(img->bpp));
+    return th_tup;
+}
 
 int thresholds_tan(PyObject *thr,list_t *pt)
 {
@@ -45,7 +54,7 @@ int thresholds_tan(PyObject *thr,list_t *pt)
     return thr_len;
 }
 
-int thresholds_tan(PyObject *roi,rectangle_t *pt,int w,int h)
+int roi_tan(PyObject *roi,rectangle_t *pt,int w,int h)
 {
     int thr_len;
 	thr_len = PyList_Size(roi);
