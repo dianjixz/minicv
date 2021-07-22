@@ -924,6 +924,8 @@ py_image_get_statistics(PyObject *self, PyObject *args, PyObject *keywds)
 
 #if IMLIB_ENABLE_FIND_BLOBS
 
+
+
 static PyObject *
 py_image_find_blobs(PyObject *self, PyObject *args, PyObject *keywds)
 {
@@ -3949,6 +3951,7 @@ py_image_get_statistics(PyObject *self, PyObject *args, PyObject* keywds)
 // }
 
 
+#endif
 
 static PyObject *
 py_image_find_blobs(PyObject *self, PyObject *args, PyObject *keywds)
@@ -4000,7 +4003,7 @@ py_image_find_blobs(PyObject *self, PyObject *args, PyObject *keywds)
         return PyList_New(0);
     }
 
-    thresholds_tan(rece_sta.roi,&roi,arg_img.w,arg_img.h);
+    roi_tan(rece_sta.roi,&roi,arg_img->w,arg_img->h);
 
 
 	if (rece_sta.invert == Py_True)
@@ -4027,8 +4030,8 @@ py_image_find_blobs(PyObject *self, PyObject *args, PyObject *keywds)
 		PyDict_SetItemString(thr2, "w", PyLong_FromLong(lnk_blob.rect.w));
 		PyDict_SetItemString(thr2, "h", PyLong_FromLong(lnk_blob.rect.h));
 		PyDict_SetItemString(thr2, "pixels", PyLong_FromLong(lnk_blob.pixels));
-		PyDict_SetItemString(thr2, "cx", PyLong_FromLong(lnk_blob.centroid.x));
-		PyDict_SetItemString(thr2, "cy", PyLong_FromLong(lnk_blob.centroid.y));
+		PyDict_SetItemString(thr2, "cx", PyLong_FromLong(lnk_blob.centroid_x));
+		PyDict_SetItemString(thr2, "cy", PyLong_FromLong(lnk_blob.centroid_y));
 		PyDict_SetItemString(thr2, "rotation", PyFloat_FromDouble(lnk_blob.rotation));
 		PyDict_SetItemString(thr2, "code", PyLong_FromLong(lnk_blob.code));
 		PyDict_SetItemString(thr2, "count", PyLong_FromLong(lnk_blob.count));
@@ -4036,6 +4039,7 @@ py_image_find_blobs(PyObject *self, PyObject *args, PyObject *keywds)
 	}
 	return thr;
 }
+#ifdef WORK_THIS
 // static PyObject *
 // py_image_find_blobs(PyObject *self, PyObject *args, PyObject* keywds)
 // {
@@ -4910,7 +4914,7 @@ static PyMethodDef imageMethods[] = {
 
 
 
-	// {"find_blobs", (PyCFunction)py_find_blobs, METH_VARARGS | METH_KEYWORDS, "find blob !"},
+	{"find_blobs", (PyCFunction)py_image_find_blobs, METH_VARARGS | METH_KEYWORDS, "find blob !"},
 	
 	// {"draw_line", (PyCFunction)py_draw_line, METH_VARARGS | METH_KEYWORDS, "img draw line"},
 
