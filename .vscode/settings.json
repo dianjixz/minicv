@@ -1,6 +1,10 @@
 {
 	"files.associations": {
 		"type_traits": "c",
-		"random": "c"
+		"random": "c",
+		"imlib.h": "c",
+		"collections.h": "c",
+		"minicvconfig.h": "c",
+		"string.h": "c"
 	}
 }

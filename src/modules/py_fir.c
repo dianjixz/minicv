@@ -11,7 +11,7 @@
 #include "py/runtime.h"
 #include "py/objlist.h"
 
-#include "omv_boardconfig.h"
+#include "minicvconfig.h"
 #include "cambus.h"
 #if (OMV_ENABLE_FIR_MLX90621 == 1)
 #include "MLX90621_API.h"

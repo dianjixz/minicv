@@ -17,7 +17,7 @@
 // #include "py/runtime.h"
 // #include "py/mphal.h"
 #include "dma_alloc.h"
-#include "omv_boardconfig.h"
+// #include "minicvconfig.h"
 #include "common.h"
 #include "minicvconfig.h"
 

@@ -27,7 +27,7 @@
 #if defined(IMLIB_ENABLE_IMAGE_FILE_IO)
 #include "ff_wrapper.h"
 #endif
-#include "omv_boardconfig.h"
+#include "minicvconfig.h"
 
 typedef enum image_io_stream_type {
     IMAGE_IO_FILE_STREAM,

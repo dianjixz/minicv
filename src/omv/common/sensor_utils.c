@@ -29,7 +29,7 @@
 #include "paj6100.h"
 #include "gc2145.h"
 #include "framebuffer.h"
-#include "omv_boardconfig.h"
+#include "minicvconfig.h"
 
 #if (OMV_ENABLE_PAJ6100 == 1)
 #define OMV_ENABLE_NONI2CIS

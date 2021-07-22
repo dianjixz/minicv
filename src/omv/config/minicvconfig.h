@@ -15,8 +15,10 @@ void __STREXW();
 void __WFI();
 void mp_hal_ticks_ms();
 
+// #define __UXTB_RORn(a,b) 
 
-
+// #define IMAGE_LBP_API
+// #define IMAGE_ORB_API
 
 
 

@@ -14,7 +14,7 @@
 
 #include "ff_wrapper.h"
 #include "imlib.h"
-#include "omv_boardconfig.h"
+#include "minicvconfig.h"
 
 #define TIME_JPEG   (0)
 #if (TIME_JPEG == 1)

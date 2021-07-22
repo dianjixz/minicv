@@ -17,6 +17,7 @@
 // #include "cmsis_gcc.h"
 // #include "py/mphal.h"
 #include "minicvconfig.h"
+#include <stdbool.h>
 void mutex_init0(omv_mutex_t *mutex)
 {
     __DMB();

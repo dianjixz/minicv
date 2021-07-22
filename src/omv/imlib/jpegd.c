@@ -10,7 +10,7 @@
  */
 #include "ff_wrapper.h"
 #include "imlib.h"
-#include "omv_boardconfig.h"
+#include "minicvconfig.h"
 
 /* Defines and variables */
 #define FILE_HIGHWATER      1536

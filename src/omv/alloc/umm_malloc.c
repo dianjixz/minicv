@@ -9,17 +9,19 @@
  * UMM memory allocator.
  */
 #include <string.h>
-#include "py/runtime.h"
-#include "py/mphal.h"
+// #include "py/runtime.h"
+// #include "py/mphal.h"
 #include "fb_alloc.h"
 #include "umm_malloc.h"
-#include "omv_boardconfig.h"
-
+// #include "minicvconfig.h"
+#include "minicvconfig.h"
 NORETURN  void umm_alloc_fail()
 {
-    mp_raise_msg(&mp_type_MemoryError,
-        MP_ERROR_TEXT("Out of temporary Frame Buffer Heap Memory!"
-        " Please reduce the resolution of the image you are running this algorithm on to bypass this issue!"));
+    // mp_raise_msg(&mp_type_MemoryError,
+    //     MP_ERROR_TEXT("Out of temporary Frame Buffer Heap Memory!"
+    //     " Please reduce the resolution of the image you are running this algorithm on to bypass this issue!"));
+        DBGLOG_ERROR("Out of temporary Frame Buffer Heap Memory!"
+        " Please reduce the resolution of the image you are running this algorithm on to bypass this issue!");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

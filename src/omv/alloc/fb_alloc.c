@@ -10,8 +10,8 @@
 // #include "py/runtime.h"
 #include "fb_alloc.h"
 #include "framebuffer.h"
-#include "omv_boardconfig.h"
 #include "minicvconfig.h"
+
 
 #ifndef __DCACHE_PRESENT
 #define FB_ALLOC_ALIGNMENT 32 // Use 32-byte alignment on MCUs with no cache for DMA buffer alignment.

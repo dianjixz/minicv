@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include "mpprint.h"
 #include "framebuffer.h"
-#include "omv_boardconfig.h"
+#include "minicvconfig.h"
 
 #define FB_ALIGN_SIZE_ROUND_DOWN(x) (((x) / FRAMEBUFFER_ALIGNMENT) * FRAMEBUFFER_ALIGNMENT)
 #define FB_ALIGN_SIZE_ROUND_UP(x)   FB_ALIGN_SIZE_ROUND_DOWN(((x) + FRAMEBUFFER_ALIGNMENT - 1))

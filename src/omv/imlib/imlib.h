@@ -20,15 +20,16 @@
 #include <math.h>
 // #include <arm_math.h>
 #include <math.h>
-#include <ff.h>
+// #include <ff.h>
 #include "fb_alloc.h"
 #include "umm_malloc.h"
 #include "xalloc.h"
 #include "array.h"
 #include "fmath.h"
 #include "collections.h"
-#include "imlib_config.h"
-#include "omv_boardconfig.h"
+// #include "imlib_config.h"
+#include "minicvconfig.h"
+// #include "minicvconfig.h"
 
 #define IM_LOG2_2(x)    (((x) &                0x2ULL) ? ( 2                        ) :             1) // NO ({ ... }) !
 #define IM_LOG2_4(x)    (((x) &                0xCULL) ? ( 2 +  IM_LOG2_2((x) >>  2)) :  IM_LOG2_2(x)) // NO ({ ... }) !
@@ -969,7 +970,7 @@ int8_t imlib_rgb565_to_a(uint16_t pixel);
 int8_t imlib_rgb565_to_b(uint16_t pixel);
 uint16_t imlib_lab_to_rgb(uint8_t l, int8_t a, int8_t b);
 uint16_t imlib_yuv_to_rgb(uint8_t y, int8_t u, int8_t v);
-
+#ifdef IMAGE_PPM_API
 /* Image file functions */
 void ppm_read_geometry(FIL *fp, image_t *img, const char *path, ppm_read_settings_t *rs);
 void ppm_read_pixels(FIL *fp, image_t *img, int n_lines, ppm_read_settings_t *rs);
@@ -979,11 +980,13 @@ bool bmp_read_geometry(FIL *fp, image_t *img, const char *path, bmp_read_setting
 void bmp_read_pixels(FIL *fp, image_t *img, int n_lines, bmp_read_settings_t *rs);
 void bmp_read(image_t *img, const char *path);
 void bmp_write_subimg(image_t *img, const char *path, rectangle_t *r);
+#endif
 #if (OMV_HARDWARE_JPEG == 1)
 void imlib_jpeg_compress_init();
 void imlib_jpeg_compress_deinit();
 void jpeg_mdma_irq_handler();
 #endif
+#ifdef IMAGE_JPEG_API
 void jpeg_decompress_image_to_binary(image_t *dst, image_t *src);
 void jpeg_decompress_image_to_grayscale(image_t *dst, image_t *src);
 void jpeg_decompress_image_to_rgb565(image_t *dst, image_t *src);
@@ -997,17 +1000,19 @@ bool imlib_read_geometry(FIL *fp, image_t *img, const char *path, img_read_setti
 void imlib_image_operation(image_t *img, const char *path, image_t *other, int scalar, line_op_t op, void *data);
 void imlib_load_image(image_t *img, const char *path);
 void imlib_save_image(image_t *img, const char *path, rectangle_t *roi, int quality);
-
+#endif
+#ifdef IMAGE_GIF_API
 /* GIF functions */
 void gif_open(FIL *fp, int width, int height, bool color, bool loop);
 void gif_add_frame(FIL *fp, image_t *img, uint16_t delay);
 void gif_close(FIL *fp);
-
+#endif
+#ifdef IMAGE_MJPEG_API
 /* MJPEG functions */
 void mjpeg_open(FIL *fp, int width, int height);
 void mjpeg_add_frame(FIL *fp, uint32_t *frames, uint32_t *bytes, image_t *img, int quality);
 void mjpeg_close(FIL *fp, uint32_t *frames, uint32_t *bytes, float fps);
-
+#endif
 /* Point functions */
 point_t *point_alloc(int16_t x, int16_t y);
 bool point_equal(point_t *p1, point_t *p2);
@@ -1065,6 +1070,7 @@ array_t *imlib_detect_objects(struct image *image, struct cascade *cascade, stru
 void fast_detect(image_t *image, array_t *keypoints, int threshold, rectangle_t *roi);
 void agast_detect(image_t *image, array_t *keypoints, int threshold, rectangle_t *roi);
 
+#ifdef IMAGE_ORB_API
 /* ORB descriptor */
 array_t *orb_find_keypoints(image_t *image, bool normalized, int threshold,
         float scale_factor, int max_keypoints, corner_detector_t corner_detector, rectangle_t *roi);
@@ -1073,13 +1079,14 @@ int orb_filter_keypoints(array_t *kpts, rectangle_t *r, point_t *c);
 int orb_save_descriptor(FIL *fp, array_t *kpts);
 int orb_load_descriptor(FIL *fp, array_t *kpts);
 float orb_cluster_dist(int cx, int cy, void *kp);
-
+#endif
+#ifdef IMAGE_LBP_API
 /* LBP Operator */
 uint8_t *imlib_lbp_desc(image_t *image, rectangle_t *roi);
 int imlib_lbp_desc_distance(uint8_t *d0, uint8_t *d1);
 int imlib_lbp_desc_save(FIL *fp, uint8_t *desc);
 int imlib_lbp_desc_load(FIL *fp, uint8_t **desc);
-
+#endif
 /* Iris detector */
 void imlib_find_iris(image_t *src, point_t *iris, rectangle_t *roi);
 

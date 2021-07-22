@@ -11,7 +11,7 @@
 #ifndef __SENSOR_H__
 #define __SENSOR_H__
 #include <stdarg.h>
-#include "cambus.h"
+// #include "cambus.h"
 #include "imlib.h"
 
 #define OV2640_SLV_ADDR     (0x60)

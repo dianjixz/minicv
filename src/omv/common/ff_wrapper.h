@@ -4,7 +4,7 @@
  * This work is licensed under the MIT license, see the file LICENSE for details.
  *
  * File System Helper Functions
- *
+ *该文件用于包装各个平台的文件接口
  */
 #ifndef __FF_WRAPPER_H__
 #define __FF_WRAPPER_H__

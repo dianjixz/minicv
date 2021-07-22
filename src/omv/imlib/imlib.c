@@ -17,7 +17,7 @@
 #include "ff_wrapper.h"
 #include "imlib.h"
 #include "common.h"
-#include "omv_boardconfig.h"
+#include "minicvconfig.h"
 
 void imlib_init_all()
 {

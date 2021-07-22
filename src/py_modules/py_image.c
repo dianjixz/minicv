@@ -1,22 +1,24 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
-#include "collections.h"
-#include "imdefs.h"
+// #include "collections.h"
+// #include "imdefs.h"
 #include "imlib.h"
 #include "tanstation.h"
 
-image_t self_image_img; //获得图片指针
+image_t self_image_img ;
 
-// image.img_data_load(data,w,h,bpp)
+
+
 
 static PyObject *
-py_image_img_data_load(PyObject *self, PyObject *args, PyObject *keywds)
+py_image_img_data_load(PyObject *self,PyObject *args,PyObject *keywds)
 {
-	PyObject *o_data;
-	PyObject *o_w;
-	PyObject *o_h;
-	PyObject *o_bpp;
+	PyObject *o_data ;
+	PyObject *o_w ;
+	PyObject *o_h ;
+	PyObject *o_bpp ;
+
 
 	static char *kwlist[] = {"img_data", "w", "h", "bpp", NULL};
 
@@ -51,8 +53,9 @@ py_image_img_data_load(PyObject *self, PyObject *args, PyObject *keywds)
 	switch (self_image_img.bpp)
 	{
 	case IMAGE_BPP_RGB565:
-		self_image_img.data = (uint8_t *)malloc(w * h * 2);
-		r16_pixel = (uint16_t *)self_image_img.data for (int i = 0; i < w * h * 3; i += 3)
+		self_image_img.data = (uint8_t *)malloc(self_image_img.w * self_image_img.h * 2);
+		r16_pixel = (uint16_t *)self_image_img.data ;
+        for (int i = 0; i < self_image_img.w * self_image_img.h * 3; i += 3)
 		{
 			*r16_pixel = COLOR_R8_G8_B8_TO_RGB565(r24_pixel[i], r24_pixel[i + 1], r24_pixel[i + 2]);
 			r16_pixel++;
@@ -65,6 +68,7 @@ py_image_img_data_load(PyObject *self, PyObject *args, PyObject *keywds)
 	}
 	return Py_BuildValue("i", 0);
 }
+
 
 static PyObject *
 py_image_img_data_free(PyObject *self, PyObject *args)
@@ -139,7 +143,7 @@ py_image_print(PyObject *self, PyObject *args)
         }
         default: {
             if((self_image_img.data[0] == 0xFE) && (self_image_img.data[self_image_img.bpp-1] == 0xFE)) { // for ide
-                print->print_strn(print->data, (const char *) self_image_img.data, self_image_img.bpp);
+                // print->print_strn(print->data, (const char *) self_image_img.data, self_image_img.bpp);
             } else { // not for ide
                 printf("{\"w\":%d, \"h\":%d, \"type\"=\"jpeg\", \"size\":%d}",
                           self_image_img.w, self_image_img.h,
@@ -174,6 +178,8 @@ py_image_binary_to_rgb(PyObject *self, PyObject *args, PyObject *keywds)
 	
 	return Py_BuildValue("iii", COLOR_RGB565_TO_R8(rgb565), COLOR_RGB565_TO_G8(rgb565), COLOR_RGB565_TO_B8(rgb565));
 }
+
+#ifdef WORK_THIS
 
 static PyObject *
 py_image_binary_to_lab(PyObject *self, PyObject *args, PyObject *keywds)
@@ -457,6 +463,11 @@ py_image_yuv_to_lab(PyObject *self, PyObject *args, PyObject *keywds)
     return Py_BuildValue("iii",COLOR_RGB565_TO_L(rgb565),COLOR_RGB565_TO_A(rgb565),COLOR_RGB565_TO_B(rgb565));
 
 }
+
+
+
+
+
 
 
 //////////////
@@ -4887,14 +4898,21 @@ py_image_draw_line(PyObject *self, PyObject *args, PyObject *keywds)
 	return PyLong_FromLong(0);
 }
 
-
+#endif
 
 static PyMethodDef imageMethods[] = {
-	{"send_to_image", python_send_to_c_image, METH_VARARGS, "python to c module image!"},
+	{"img_data_load", py_image_img_data_load, METH_VARARGS, "python to c module image!"},
+    {"img_free", py_image_img_data_free, METH_VARARGS, "free img !"},
+    {"img_torgb24", (PyCFunction)py_img_torgb24, METH_VARARGS, "back an rgb888 img !"},
+    {"image_print", py_image_print, METH_VARARGS, "print img !"},
+    {"binary_to_grayscale", (PyCFunction)py_image_binary_to_grayscale, METH_VARARGS | METH_KEYWORDS, "img draw line"},
+    {"binary_to_rgb", (PyCFunction)py_image_binary_to_rgb, METH_VARARGS | METH_KEYWORDS, "img draw line"},
 
-	{"find_blobs", (PyCFunction)py_find_blobs, METH_VARARGS | METH_KEYWORDS, "find blob !"},
-	{"img_back", (PyCFunction)py_img_back, METH_VARARGS, "back an rgb888 img !"},
-	{"draw_line", (PyCFunction)py_draw_line, METH_VARARGS | METH_KEYWORDS, "img draw line"},
+
+
+	// {"find_blobs", (PyCFunction)py_find_blobs, METH_VARARGS | METH_KEYWORDS, "find blob !"},
+	
+	// {"draw_line", (PyCFunction)py_draw_line, METH_VARARGS | METH_KEYWORDS, "img draw line"},
 
 	{NULL, NULL, 0, NULL} /* Sentinel */
 };

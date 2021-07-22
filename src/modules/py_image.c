@@ -30,7 +30,7 @@
 #include "py_assert.h"
 #include "py_helper.h"
 #include "py_image.h"
-#include "omv_boardconfig.h"
+#include "minicvconfig.h"
 #if defined(IMLIB_ENABLE_IMAGE_IO)
 #include "py_imageio.h"
 #endif

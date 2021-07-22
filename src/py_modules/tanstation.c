@@ -1,7 +1,7 @@
 #include "tanstation.h"
 
-#include "imdefs.h"
-#include "imlib.h"
+// #include "imdefs.h"
+// #include "imlib.h"
 
 
 
