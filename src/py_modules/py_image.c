@@ -9,8 +9,6 @@
 image_t self_image_img ;
 
 
-
-
 static PyObject *
 py_image_img_data_load(PyObject *self,PyObject *args,PyObject *keywds)
 {
