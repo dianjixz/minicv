@@ -23,6 +23,9 @@ CPP_SRC =
 # CPP_OBJ = $(patsubst %cpp, %o, $(CPP_SRC))  
 CPP_OBJ =  
 
+
+
+
 $(project): $(C_OBJ)
 	$(CC) -o $@ $(notdir $(C_OBJ)) $(LIBS) $(LIBDIR) $(LDFLAGS)
 	make clean_o
@@ -36,3 +39,4 @@ clean_o:
 	rm *.o
 clean:  
 	rm *~ *.o -f $(project) 
+	make -f omv/Makefile clean

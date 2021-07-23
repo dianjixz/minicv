@@ -1,5 +1,18 @@
 #ifndef __MINICVCONFIG_H__
 #define __MINICVCONFIG_H__
+#include <stdio.h>
+
+#define FIL FILE
+
+
+
+
+
+
+
+
+
+
 
 #define DBGLOG_TRACE(format, ...)
 

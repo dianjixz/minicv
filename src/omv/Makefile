@@ -1,13 +1,15 @@
 CFLAGS=  
 LIBS = -lm
 CC=gcc
+mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
+MY_DIR := $(dir $(mkfile_path))
 # OBJDIR=./build
-project=./libminiimg.so
+project=$(MY_DIR)libminiimg.so
 # C_SRC = $(wildcard *.c)  
-C_SRC += imlib/blob.c
-C_SRC += imlib/bayer.c
-C_SRC += imlib/collections.c
-C_SRC += 
+C_SRC += $(MY_DIR)imlib/blob.c
+C_SRC += $(MY_DIR)imlib/bayer.c
+C_SRC += $(MY_DIR)imlib/collections.c
+C_SRC += $(MY_DIR)imlib/sincos_tab.c
 C_SRC += 
 C_SRC += 
 C_SRC += 
@@ -58,7 +60,7 @@ C_SRC +=
 
 
 
-INCLUDE =  -I./imlib -I./alloc -I./common -I./config
+INCLUDE =  -I$(MY_DIR)imlib -I$(MY_DIR)alloc -I$(MY_DIR)common -I$(MY_DIR)config
 
 LDFLAGS += -fPIC -shared
 CFLAGS += -fPIC -Wall
