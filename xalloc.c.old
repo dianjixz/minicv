@@ -1,23 +1,24 @@
 /*
  * This file is part of the OpenMV project.
- * Copyright (c) 2013/2014 Ibrahim Abdelkader <i.abdalkader@gmail.com>
+ *
+ * Copyright (c) 2013-2021 Ibrahim Abdelkader <iabdalkader@openmv.io>
+ * Copyright (c) 2013-2021 Kwabena W. Agyeman <kwagyeman@openmv.io>
+ *
  * This work is licensed under the MIT license, see the file LICENSE for details.
  *
  * Memory allocation functions.
- *
  */
-//#include <mp.h>
-#include<stdlib.h>
-#include<stdio.h>
+#include <string.h>
+// #include "py/runtime.h"
+// #include "py/gc.h"
+// #include "py/mphal.h"
 #include "xalloc.h"
+#include "minicvconfig.h"
+#include <stdio.h>
 
-#ifndef NORETURN
-#define NORETURN __attribute__((noreturn))
-#endif
-
-NORETURN static void xalloc_fail()
+NORETURN static void xalloc_fail(uint32_t size)
 {
-    sprintf(stderr, "Out of normal MicroPython Heap Memory! Please reduce the resolution of the image you are running this algorithm on to bypass this issue!\r\n");
+    DBGLOG_ERROR(("memory allocation failed, allocating %u bytes"), (uint)size);
 }
 
 // returns null pointer without error if size==0
@@ -25,7 +26,7 @@ void *xalloc(uint32_t size)
 {
     void *mem = malloc(size);
     if (size && (mem == NULL)) {
-        xalloc_fail();
+        xalloc_fail(size);
     }
     return mem;
 }
@@ -41,7 +42,7 @@ void *xalloc0(uint32_t size)
 {
     void *mem = malloc(size);
     if (size && (mem == NULL)) {
-        xalloc_fail();
+        xalloc_fail(size);
     }
     memset(mem, 0, size);
     return mem;
@@ -60,7 +61,7 @@ void *xrealloc(void *mem, uint32_t size)
 {
     mem = realloc(mem, size);
     if (size && (mem == NULL)) {
-        xalloc_fail();
+        xalloc_fail(size);
     }
     return mem;
 }

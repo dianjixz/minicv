@@ -1,8 +1,50 @@
 #ifndef __MINICVCONFIG_H__
 #define __MINICVCONFIG_H__
 #include <stdio.h>
+#include <sys/types.h>   
+#include <dirent.h>
 
 #define FIL FILE
+
+#define NORETURN
+#define FATFS
+#define FA_READ
+#define FA_OPEN_EXISTING
+
+
+
+
+
+
+
+
+
+
+
+typedef FILE FIL;
+typedef DIR FF_DIR;
+typedef char TCHAR;
+typedef uint8_t BYTE;
+typedef uint32_t UINT;
+#define FR_OK 0
+typedef int FRESULT;//FR_OK
+typedef struct stat FILINFO;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

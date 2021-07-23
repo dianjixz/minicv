@@ -22,6 +22,7 @@ extern "C" {
 #endif
 
 #include "ff_wrapper.h"
+#include "minicvconfig.h"
 
 /* Nonzero if ini_handler callback should accept lineno parameter. */
 #ifndef INI_HANDLER_LINENO

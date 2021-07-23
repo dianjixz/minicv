@@ -6,6 +6,7 @@
 		"collections.h": "c",
 		"minicvconfig.h": "c",
 		"string.h": "c",
-		"ff_wrapper.h": "c"
+		"ff_wrapper.h": "c",
+		"*.old": "cpp"
 	}
 }

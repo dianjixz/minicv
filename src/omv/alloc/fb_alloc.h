@@ -56,7 +56,7 @@
 #define FB_ALLOC_PREFER_SPEED 1
 #define FB_ALLOC_PREFER_SIZE 2
 #define FB_ALLOC_CACHE_ALIGN 4
-char *fb_alloc_stack_pointer();
+// char *fb_alloc_stack_pointer();
 void fb_alloc_fail();
 void fb_alloc_init0();
 uint32_t fb_avail();

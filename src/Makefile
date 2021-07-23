@@ -40,3 +40,6 @@ clean_o:
 clean:  
 	rm *~ *.o -f $(project) 
 	make -f omv/Makefile clean
+
+test:
+	python3 test.py

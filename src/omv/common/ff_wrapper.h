@@ -9,10 +9,10 @@
 #ifndef __FF_WRAPPER_H__
 #define __FF_WRAPPER_H__
 #include <stdint.h>
-#include <ff.h>
+#include "minicvconfig.h"
 extern const char *ffs_strerror(FRESULT res);
 
-//OOFATFS wrappers
+//OOFATFS wrappers      fresult
 FRESULT f_open_helper(FIL *fp, const TCHAR *path, BYTE mode);
 FRESULT f_opendir_helper(FF_DIR *dp, const TCHAR *path);
 FRESULT f_stat_helper(const TCHAR *path, FILINFO *fno);

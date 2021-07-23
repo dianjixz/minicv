@@ -6,7 +6,6 @@
  * File System Helper Functions
  *
  */
-#include "minicvconfig.h"
 #if defined(IMLIB_ENABLE_IMAGE_FILE_IO)
 
 #include <string.h>
