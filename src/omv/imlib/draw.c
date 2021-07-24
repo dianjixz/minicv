@@ -10,7 +10,7 @@
  */
 #include "font.h"
 #include "imlib.h"
-#include "unaligned_memcpy.h"
+// #include "unaligned_memcpy.h"
 
 #ifdef IMLIB_ENABLE_DMA2D
 #include STM32_HAL_H
@@ -1454,7 +1454,7 @@ void imlib_draw_row(int x_start, int x_end, int y_row, imlib_draw_row_data_t *da
                         }
                     } else if (data->alpha == 256) {
                         if (!data->color_palette) {
-                            unaligned_memcpy(dst8 , src8, (x_end - x_start) * sizeof(uint8_t));
+                            memcpy(dst8, src8,  (x_end - x_start) * sizeof(uint8_t));
                         } else {
                             const uint16_t *color_palette = data->color_palette;
                             for (int x = x_start; x < x_end; x++) {
@@ -2090,7 +2090,7 @@ void imlib_draw_row(int x_start, int x_end, int y_row, imlib_draw_row_data_t *da
                             }
                         } else if (data->alpha == 256) {
                             if (!data->color_palette) {
-                                unaligned_memcpy(dst16, src16, (x_end - x_start) * sizeof(uint16_t));
+                                memcpy(dst16, src16, (x_end - x_start) * sizeof(uint16_t));
                             } else {
                                 const uint16_t *color_palette = data->color_palette;
                                 for (int x = x_start; x < x_end; x++) {
@@ -2440,7 +2440,7 @@ void imlib_draw_row(int x_start, int x_end, int y_row, imlib_draw_row_data_t *da
                 ? ((uint8_t *) data->dst_row_override)
                 : IMAGE_COMPUTE_GRAYSCALE_PIXEL_ROW_PTR(data->dst_img, y_row)) + x_start;
             uint8_t *src8 = ((uint8_t *) data->row_buffer[!data->toggle]) + x_start;
-            unaligned_memcpy(dst8, src8, (x_end - x_start) * sizeof(uint8_t));
+            memcpy(dst8, src8, (x_end - x_start) * sizeof(uint8_t));
             break;
         }
         default: {

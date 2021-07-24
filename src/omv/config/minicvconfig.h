@@ -11,8 +11,8 @@
 #define FA_READ
 #define FA_OPEN_EXISTING
 
-
-
+#define OMV_FB_ALLOC_SIZE               2048       // minimum fb alloc size
+#define OMV_FB_ALLOC_SIZE_END			2047
 
 
 
