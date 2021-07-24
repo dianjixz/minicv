@@ -18,6 +18,10 @@
 // #include "py/mphal.h"
 #include "minicvconfig.h"
 #include <stdbool.h>
+#include <time.h>
+#include <sys/time.h>
+
+
 void mutex_init0(omv_mutex_t *mutex)
 {
     __DMB();
@@ -81,10 +85,25 @@ int mutex_try_lock_alternate(omv_mutex_t *mutex, uint32_t tid)
     return 0;
 }
 
+
+
+
+long getTimems()
+{
+    long tic;
+    struct timeval t;
+    gettimeofday(&t, 0);
+     
+    tic = (long)((long)t.tv_sec * 1000 * 1000 + t.tv_usec);
+    return tic/1000;
+}
+
+
+
 int mutex_lock_timeout(omv_mutex_t *mutex, uint32_t tid, uint32_t timeout)
 {
-    mp_uint_t tick_start = mp_hal_ticks_ms();
-    while ((mp_hal_ticks_ms() - tick_start) >= timeout) {
+    long tick_start = getTimems();
+    while ((getTimems() - tick_start) >= timeout) {
         if (mutex_try_lock(mutex, tid)) {
             return 1;
         }

@@ -217,7 +217,7 @@ typedef struct _sensor {
     bool auto_rotation;         // Rotate Image Automatically
     bool detected;              // Set to true when the sensor is initialized.
 
-    cambus_t bus;               // SCCB/I2C bus.
+    // cambus_t bus;               // SCCB/I2C bus.
 
     // Sensor function pointers
     int  (*reset)               (sensor_t *sensor);

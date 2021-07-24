@@ -18,52 +18,52 @@
 #include "ff_wrapper.h"
 #define FF_MIN(x,y) (((x)<(y))?(x):(y))
 
-NORETURN static void ff_fail(FIL *fp, FRESULT res)
+static void ff_fail(FIL *fp, FRESULT res)
 {
     if (fp) f_close(fp);
-    mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT(ffs_strerror(res)));
+    // mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT(ffs_strerror(res)));
 }
 
-NORETURN static void ff_read_fail(FIL *fp)
+static void ff_read_fail(FIL *fp)
 {
     if (fp) f_close(fp);
-    mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT("Failed to read requested bytes!"));
+    // mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT("Failed to read requested bytes!"));
 }
 
-NORETURN static void ff_write_fail(FIL *fp)
+static void ff_write_fail(FIL *fp)
 {
     if (fp) f_close(fp);
-    mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT("Failed to write requested bytes!"));
+    // mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT("Failed to write requested bytes!"));
 }
 
-NORETURN static void ff_expect_fail(FIL *fp)
+static void ff_expect_fail(FIL *fp)
 {
     if (fp) f_close(fp);
-    mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT("Unexpected value read!"));
+    // mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT("Unexpected value read!"));
 }
 
-NORETURN void ff_unsupported_format(FIL *fp)
+void ff_unsupported_format(FIL *fp)
 {
     if (fp) f_close(fp);
-    mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT("Unsupported format!"));
+    // mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT("Unsupported format!"));
 }
 
-NORETURN void ff_file_corrupted(FIL *fp)
+void ff_file_corrupted(FIL *fp)
 {
     if (fp) f_close(fp);
-    mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT("File corrupted!"));
+    // mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT("File corrupted!"));
 }
 
-NORETURN void ff_not_equal(FIL *fp)
+void ff_not_equal(FIL *fp)
 {
     if (fp) f_close(fp);
-    mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT("Images not equal!"));
+    // mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT("Images not equal!"));
 }
 
-NORETURN void ff_no_intersection(FIL *fp)
+void ff_no_intersection(FIL *fp)
 {
     if (fp) f_close(fp);
-    mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT("No intersection!"));
+    // mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT("No intersection!"));
 }
 
 void file_read_open(FIL *fp, const char *path)
