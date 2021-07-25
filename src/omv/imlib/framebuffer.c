@@ -9,7 +9,7 @@
  * Framebuffer functions.
  */
 #include <stdio.h>
-#include "mpprint.h"
+// #include "mpprint.h"
 #include "framebuffer.h"
 #include "minicvconfig.h"
 
@@ -147,7 +147,9 @@ void framebuffer_update_jpeg_buffer()
                 fb_alloc_mark();
                 uint8_t *temp = fb_alloc(new_size, FB_ALLOC_NO_HINT);
                 fb_encode_for_ide(temp, src);
-                (MP_PYTHON_PRINTER)->print_strn((MP_PYTHON_PRINTER)->data, (const char *) temp, new_size);
+
+                // (MP_PYTHON_PRINTER)->print_strn((MP_PYTHON_PRINTER)->data, (const char *) temp, new_size);
+
                 fb_alloc_free_till_mark();
             }
         } else if (src->bpp >= 0) {

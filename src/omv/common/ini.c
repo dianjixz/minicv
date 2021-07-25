@@ -180,10 +180,12 @@ ini_fgetc(FIL *fp)
 {
     char c;
     UINT b;
-
+    debug_line;
     if (f_read (fp, &c, 1, &b) != FR_OK || b != 1)
         return (EOF);
     return (c);
+
+    // return "c";
 }
 
 /*
@@ -457,20 +459,22 @@ int ini_parse_file(FIL* file, ini_handler handler, void* user)
     return ini_parse_stream((ini_reader)ini_fgets, file, handler, user);
 }
 
+//-----------------------------------------------------------dianjixz-chage
 /* See documentation in header file. */
 int ini_parse(FATFS *fs, const char* filename, ini_handler handler, void* user)
 {
-    FIL file;
-    int error;
-
-    FRESULT res = f_open(fs, &file, filename, FA_READ | FA_OPEN_EXISTING);
-    if (res != FR_OK)
-        return -1;
-    error = ini_parse_file(&file, handler, user);
-    res = f_close(&file);
-    if (res != FR_OK)
-        return -1;
-    return error;
+    // FIL file;
+    // int error;
+    debug_line;
+    // FRESULT res = f_open(fs, &file, filename, FA_READ | FA_OPEN_EXISTING);
+    // if (res != FR_OK)
+    //     return -1;
+    // error = ini_parse_file(&file, handler, user);
+    // res = f_close(&file);
+    // if (res != FR_OK)
+    //     return -1;
+    // return error;
+    return 0;
 }
 
 /* An ini_reader function to read the next line from a string buffer. This

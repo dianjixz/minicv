@@ -10,6 +10,7 @@
 #include<stdlib.h>
 #include<stdio.h>
 #include "xalloc.h"
+#include <string.h>
 
 #ifndef NORETURN
 #define NORETURN __attribute__((noreturn))

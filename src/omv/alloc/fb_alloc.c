@@ -43,7 +43,7 @@ char *fb_alloc_stack_pointer()
 
 void fb_alloc_fail()
 {
-    DBGLOG_ERROR("Out of fast Frame Buffer Stack Memory! Please reduce the resolution of the image you are running this algorithm on to bypass this issue!"));
+    DBGLOG_ERROR("Out of fast Frame Buffer Stack Memory! Please reduce the resolution of the image you are running this algorithm on to bypass this issue!");
 }
 
 void fb_alloc_init0()
@@ -66,7 +66,7 @@ void fb_alloc_mark()
 
     // Check if allocation overwrites the framebuffer pixels
     if (new_pointer < framebuffer_get_buffers_end()) {
-        DBGLOG_ERROR("Out of fast Frame Buffer Stack Memory! Please reduce the resolution of the image you are running this algorithm on to bypass this issue!")));
+        DBGLOG_ERROR("Out of fast Frame Buffer Stack Memory! Please reduce the resolution of the image you are running this algorithm on to bypass this issue!");
     }
 
     // fb_alloc does not allow regions which are a size of 0 to be alloced,

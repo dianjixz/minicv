@@ -553,7 +553,8 @@ void fft2d_alloc(fft2d_controller_t *controller, image_t *img, rectangle_t *r)
 {
     controller->img = img;
     if (!rectangle_subimg(controller->img, r, &controller->r)) {
-        mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT("No intersection!"));
+        // mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT("No intersection!"));
+        DBGLOG_ERROR("No intersection!");
     }
 
     controller->w_pow2 = int_clog2(controller->r.w);

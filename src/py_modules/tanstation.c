@@ -119,7 +119,7 @@ int roi_tan(PyObject *roi, rectangle_t *pt, int w, int h)
     return 0;
 }
 
-int r24to_imgr16(PyObject *img_or_data, PyObject *w, PyObject *h, PyObject *bpp, image_t *pt);
+int r24to_imgr16(PyObject *img_or_data, PyObject *w, PyObject *h, PyObject *bpp, image_t *pt)
 {
     image_t *arg_img = pt;
     uint8_t *r24_pixel;

@@ -26,14 +26,14 @@ py_image_img_data_load(PyObject *self, PyObject *args, PyObject *keywds)
         return NULL;
 
 
-	return Py_BuildValue("i", r24to_imgr16(o_data,o_w,o_h,o_bpp,&self_image_img););
+	return Py_BuildValue("i", r24to_imgr16(o_data,o_w,o_h,o_bpp,&self_image_img));
 }
 
 static PyObject *
 py_image_img_data_free(PyObject *self, PyObject *args)
 {
 	free(self_image_img.data);
-    self_image_img.data = NULL；
+    self_image_img.data = NULL;
 }
 
 static PyObject *
@@ -120,6 +120,9 @@ py_image_print(PyObject *self, PyObject *args)
     }
 }
 
+
+
+
 static PyObject *
 py_image_binary_to_grayscale(PyObject *self, PyObject *args, PyObject *keywds)
 {
@@ -144,7 +147,7 @@ py_image_binary_to_rgb(PyObject *self, PyObject *args, PyObject *keywds)
 	
 	return Py_BuildValue("iii", COLOR_RGB565_TO_R8(rgb565), COLOR_RGB565_TO_G8(rgb565), COLOR_RGB565_TO_B8(rgb565));
 }
-
+#ifdef WORK_THIS
 
 
 static PyObject *
@@ -433,7 +436,7 @@ py_image_yuv_to_lab(PyObject *self, PyObject *args, PyObject *keywds)
 
 
 
-#ifdef WORK_THIS
+
 
 
 //////////////
@@ -995,6 +998,8 @@ py_image_find_blobs(PyObject *self, PyObject *args, PyObject *keywds)
 
 #endif
 
+#ifdef WORK_THIS
+
 #ifdef IMLIB_ENABLE_FIND_LINES
 static mp_obj_t py_image_find_lines(PyObject *self, PyObject *args, PyObject *keywds)
 {
@@ -1493,7 +1498,7 @@ py_image_find_apriltags(PyObject *self, PyObject *args, PyObject *keywds)
 
 
 
-#if IMLIB_ENABLE_DATAMATRICES
+#ifndef IMLIB_ENABLE_DATAMATRICES
 static PyObject *
 py_image_find_datamatrices(PyObject *self, PyObject *args, PyObject *keywds)
 {
@@ -1586,7 +1591,7 @@ py_image_find_datamatrices(PyObject *self, PyObject *args, PyObject *keywds)
 
 
 
-#if IMLIB_ENABLE_BARCODES
+#ifndef IMLIB_ENABLE_BARCODES
 static PyObject *
 py_image_find_barcodes(PyObject *self, PyObject *args, PyObject *keywds)
 {
@@ -2504,7 +2509,7 @@ py_image_draw_edges(PyObject *self, PyObject *args, PyObject* keywds)
 
     return PyLong_FromLong(0);
 }
-#ifdef WORK_THIS
+
 
 
 
@@ -4961,7 +4966,7 @@ py_image_find_lbp(PyObject *self, PyObject *args, PyObject *keywds)
     uint8_t *hist = imlib_lbp_desc(arg_img, &roi);
     return lbp_obj;
 }
-#endif
+
 static PyObject *
 py_image_find_keypoints(PyObject *self, PyObject *args, PyObject *keywds)
 {
@@ -5089,7 +5094,7 @@ py_image_find_hog(PyObject *self, PyObject *args, PyObject *keywds)
     return PyLong_FromLong(0);
 }
 
-
+#endif
 
 
 
@@ -5120,7 +5125,7 @@ py_image_find_hog(PyObject *self, PyObject *args, PyObject *keywds)
 
 
 static PyMethodDef imageMethods[] = {
-	{"img_data_load", py_image_img_data_load, METH_VARARGS, "python to c module image!"},
+	{"img_bytes_load", py_image_img_data_load, METH_VARARGS, "python to c module image!"},
     {"img_free", py_image_img_data_free, METH_VARARGS, "free img !"},
     {"img_torgb24", (PyCFunction)py_img_torgb24, METH_VARARGS, "back an rgb888 img !"},
     {"image_print", py_image_print, METH_VARARGS, "print img !"},

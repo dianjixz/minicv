@@ -16,7 +16,7 @@
 
 #include "imlib.h"
 #include "xalloc.h"
-#include "ff.h"
+// #include "ff.h"
 #ifdef IMLIB_ENABLE_FIND_LBP
 
 #define LBP_HIST_SIZE   (59)    //58 uniform hist + 1

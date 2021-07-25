@@ -41,8 +41,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "fmath.h"
-#include "arm_math.h"
-#include "ff.h"
+// #include "arm_math.h"
+// #include "ff.h"
 #include "imlib.h"
 #include "xalloc.h"
 #include "fb_alloc.h"
