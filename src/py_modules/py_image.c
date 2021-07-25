@@ -13,9 +13,9 @@ static PyObject *
 py_image_img_data_load(PyObject *self, PyObject *args, PyObject *keywds)
 {
     PyObject *o_data;
-    PyObject *o_w;
-    PyObject *o_h;
-    PyObject *o_bpp;
+    PyObject *o_w = Py_None;
+    PyObject *o_h = Py_None;
+    PyObject *o_bpp = Py_None;
     uint8_t *r24_pixel;
     uint16_t *r16_pixel;
 
@@ -25,106 +25,58 @@ py_image_img_data_load(PyObject *self, PyObject *args, PyObject *keywds)
                                      &o_data, &o_w, &o_h, &o_bpp))
         return NULL;
 
-    if (!PyBytes_Check(o_data))
-        return NULL;
 
-    if (PyTuple_Check(o_data))
-    {
-
-        r24_pixel = PyBytes_AsString(PyTuple_GetItem(o_data, 0));
-        self_image_img.w = PyLong_AsLong(PyTuple_GetItem(o_data, 1));
-        self_image_img.h = PyLong_AsLong(PyTuple_GetItem(o_data, 2));
-        self_image_img.bpp = PyLong_AsLong(PyTuple_GetItem(o_data, 3));
-    }
-    else if (PyTuple_Check(o_w))
-    {
-        self_image_img.w = PyLong_AsLong(PyTuple_GetItem(o_w, 0));
-        self_image_img.h = PyLong_AsLong(PyTuple_GetItem(o_w, 1));
-        r24_pixel = PyBytes_AsString(o_data);
-        if (PyLong_Check(o_bpp))
-        {
-            self_image_img.bpp = PyLong_AsLong(o_bpp);
-        }
-        else
-        {
-            self_image_img.bpp = IMAGE_BPP_RGB565;
-        }
-    }
-    else
-    {
-        self_image_img.w = PyLong_AsLong(o_w);
-        self_image_img.h = PyLong_AsLong(o_h);
-        r24_pixel = PyBytes_AsString(o_data);
-        if (PyLong_Check(o_bpp))
-        {
-            self_image_img.bpp = PyLong_AsLong(o_bpp);
-        }
-        else
-        {
-            self_image_img.bpp = IMAGE_BPP_RGB565;
-        }
-    }
-
-    switch (self_image_img.bpp)
-    {
-	case IMAGE_BPP_RGB565:
-		self_image_img.data = (uint8_t *)malloc(self_image_img.w * self_image_img.h * 2);
-		r16_pixel = (uint16_t *)self_image_img.data ;
-        for (int i = 0; i < self_image_img.w * self_image_img.h * 3; i += 3)
-		{
-			*r16_pixel = COLOR_R8_G8_B8_TO_RGB565(r24_pixel[i], r24_pixel[i + 1], r24_pixel[i + 2]);
-			r16_pixel++;
-		}
-		break;
-
-	default:
-		return NULL;
-		break;
-	}
-	return Py_BuildValue("i", 0);
+	return Py_BuildValue("i", r24to_imgr16(o_data,o_w,o_h,o_bpp,&self_image_img););
 }
 
 static PyObject *
 py_image_img_data_free(PyObject *self, PyObject *args)
 {
 	free(self_image_img.data);
+    self_image_img.data = NULL；
 }
 
 static PyObject *
 py_img_torgb24(PyObject *self, PyObject *args)
 {
-	PyObject *data1;
-	uint8_t *_888_data;
-	_888_data = (uint8_t *)malloc(self_image_img.w * self_image_img.h * 3);
-	if (self_image_img.bpp != IMAGE_BPP_RGB565)
-		return NULL;
-	uint16_t *r16_pixel;
-	r16_pixel = (uint16_t *)self_image_img.data;
-	for (int i = 0; i < self_image_img.w * self_image_img.h * 3; i += 3)
-	{
-		_888_data[i] = COLOR_RGB565_TO_R8(*r16_pixel);
 
-		_888_data[i + 1] = COLOR_RGB565_TO_G8(*r16_pixel);
+    return back_img(&self_image_img);
 
-		_888_data[i + 2] = COLOR_RGB565_TO_B8(*r16_pixel);
 
-		r16_pixel++;
-	}
-#if _BIG
-	uint8_t cha;
-	unsigned short *nihao;
-	nihao = (unsigned short *)arg_img.data;
-	for (int i = 0; i < arg_img.w * arg_img.h; i++)
-	{
-		cha = nihao[i];
-		nihao[i] = nihao[i] >> 8;
-		nihao[i] |= cha << 8;
-	}
-#endif
-	data1 = PyBytes_FromStringAndSize(_888_data, self_image_img.w * self_image_img.h * 3);
-	free(_888_data);
-	// Py_INCREF(data1);
-	return data1;
+
+
+// 	PyObject *data1;
+// 	uint8_t *_888_data;
+// 	_888_data = (uint8_t *)malloc(self_image_img.w * self_image_img.h * 3);
+// 	if (self_image_img.bpp != IMAGE_BPP_RGB565)
+// 		return NULL;
+// 	uint16_t *r16_pixel;
+// 	r16_pixel = (uint16_t *)self_image_img.data;
+// 	for (int i = 0; i < self_image_img.w * self_image_img.h * 3; i += 3)
+// 	{
+// 		_888_data[i] = COLOR_RGB565_TO_R8(*r16_pixel);
+
+// 		_888_data[i + 1] = COLOR_RGB565_TO_G8(*r16_pixel);
+
+// 		_888_data[i + 2] = COLOR_RGB565_TO_B8(*r16_pixel);
+
+// 		r16_pixel++;
+// 	}
+// #if _BIG
+// 	uint8_t cha;
+// 	unsigned short *nihao;
+// 	nihao = (unsigned short *)arg_img.data;
+// 	for (int i = 0; i < arg_img.w * arg_img.h; i++)
+// 	{
+// 		cha = nihao[i];
+// 		nihao[i] = nihao[i] >> 8;
+// 		nihao[i] |= cha << 8;
+// 	}
+// #endif
+// 	data1 = PyBytes_FromStringAndSize(_888_data, self_image_img.w * self_image_img.h * 3);
+// 	free(_888_data);
+// 	// Py_INCREF(data1);
+// 	return data1;
 }
 
 static PyObject *
@@ -5009,7 +4961,7 @@ py_image_find_lbp(PyObject *self, PyObject *args, PyObject *keywds)
     uint8_t *hist = imlib_lbp_desc(arg_img, &roi);
     return lbp_obj;
 }
-
+#endif
 static PyObject *
 py_image_find_keypoints(PyObject *self, PyObject *args, PyObject *keywds)
 {
@@ -5068,6 +5020,8 @@ py_image_find_keypoints(PyObject *self, PyObject *args, PyObject *keywds)
 
     return PyLong_FromLong(0);
 }
+
+
 static PyObject *
 py_image_find_edges(PyObject *self, PyObject *args, PyObject *keywds)
 {
@@ -5113,14 +5067,16 @@ py_image_find_edges(PyObject *self, PyObject *args, PyObject *keywds)
 
     return PyLong_FromLong(0);
 }
+
+
+
+
 static PyObject *
 py_image_find_hog(PyObject *self, PyObject *args, PyObject *keywds)
     image_t *arg_img = &self_image_img;
-
     rectangle_t roi;
     PyObject *py_roi;
     int size = 8;
-
 	static char *kwlist[] = {"roi", "size", NULL};
 	if (!PyArg_ParseTupleAndKeywords(args, keywds, "|Oi", kwlist,
 									 &roi, &size)) return NULL;
@@ -5160,26 +5116,8 @@ py_image_find_hog(PyObject *self, PyObject *args, PyObject *keywds)
     // Py_RETURN_NONE;
 // }
 
-static PyObject *
-py_image_draw_line(PyObject *self, PyObject *args, PyObject *keywds)
-{
-	int x0;
-	int y0;
-	int x1;
-	int y1;
-	int c = 0xffffff;
-	int thickness = 1;
 
-	static char *kwlist[] = {"x0", "y0", "x1", "y1", "c", "thickness", NULL};
-	if (!PyArg_ParseTupleAndKeywords(args, keywds, "iiii|ii", kwlist,
-									 &x0, &y0, &x1, &y1, &c, &thickness))
-		return NULL;
-	printf("thickness:%d\r\n", thickness);
-	imlib_draw_line(&arg_img, x0, y0, x1, y1, c, thickness);
-	return PyLong_FromLong(0);
-}
 
-#endif
 
 static PyMethodDef imageMethods[] = {
 	{"img_data_load", py_image_img_data_load, METH_VARARGS, "python to c module image!"},
@@ -5209,5 +5147,6 @@ static struct PyModuleDef spammodule = {
 PyMODINIT_FUNC
 PyInit_minicv(void)
 {
+    self_image_img.data = NULL;
 	return PyModule_Create(&spammodule);
 }

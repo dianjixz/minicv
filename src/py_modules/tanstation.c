@@ -3,20 +3,65 @@
 // #include "imdefs.h"
 // #include "imlib.h"
 
-
-
 PyObject *back_img(image_t *img)
 {
     PyObject *th_tup;
+    uint8_t *_888_data;
+    if(img->data == NULL)
+    {
+        return Py_None;
+    }
     th_tup = PyTuple_New(4);
-    PyTuple_SetItem(th_tup,0,PyBytes_FromStringAndSize(img->data,img->w * img->h * 3));
-    PyTuple_SetItem(th_tup,0,PyLong_FromLong(img->w));
-    PyTuple_SetItem(th_tup,0,PyLong_FromLong(img->h));
-    PyTuple_SetItem(th_tup,0,PyLong_FromLong(img->bpp));
+    switch (img->bpp)
+    {
+    case IMAGE_BPP_BINARY:
+    {
+
+        break;
+    }
+    case IMAGE_BPP_GRAYSCALE:
+    {
+
+        break;
+    }
+    case IMAGE_BPP_RGB565:
+    {
+        _888_data = (uint8_t *)malloc(img->w * img->h * 3);
+        uint16_t *r16_pixel;
+        r16_pixel = (uint16_t *)img->data;
+
+        for (int i = 0; i < img->w * img->h * 3; i += 3)
+        {
+            _888_data[i] = COLOR_RGB565_TO_R8(*r16_pixel);
+
+            _888_data[i + 1] = COLOR_RGB565_TO_G8(*r16_pixel);
+
+            _888_data[i + 2] = COLOR_RGB565_TO_B8(*r16_pixel);
+
+            r16_pixel++;
+        }
+        PyTuple_SetItem(th_tup, 0, PyBytes_FromStringAndSize(_888_data, img->w * img->h * 3));
+        free(_888_data);
+    }
+    case IMAGE_BPP_BAYER:
+    {
+
+        break;
+    }
+    default:
+    {
+        return Py_None;
+        break;
+    }
+    }
+
+    PyTuple_SetItem(th_tup, 1, PyLong_FromLong(img->w));
+    PyTuple_SetItem(th_tup, 2, PyLong_FromLong(img->h));
+    PyTuple_SetItem(th_tup, 3, PyLong_FromLong(img->bpp));
     return th_tup;
 }
 
-int thresholds_tan(PyObject *thr,list_t *pt)
+int thresholds_tan(PyObject *thr, list_t *pt)
 {
     PyObject *thr0;
     int thr_len;
@@ -49,33 +94,89 @@ int thresholds_tan(PyObject *thr,list_t *pt)
         default:
             break;
         }
-
     }
     return thr_len;
 }
 
-int roi_tan(PyObject *roi,rectangle_t *pt,int w,int h)
+int roi_tan(PyObject *roi, rectangle_t *pt, int w, int h)
 {
     int thr_len;
-	thr_len = PyList_Size(roi);
-	if (thr_len == 0)
-	{
-		pt->x = 0;
-		pt->y = 0;
-		pt->w = w;
-		pt->h = h;
-
-	}
-	else if (thr_len == 4)
-	{
-		pt->x = PyLong_AsLong(PyList_GetItem(roi, 0));
-		pt->y = PyLong_AsLong(PyList_GetItem(roi, 1));
-		pt->w = PyLong_AsLong(PyList_GetItem(roi, 2));
-		pt->h = PyLong_AsLong(PyList_GetItem(roi, 3));
-	}
+    thr_len = PyList_Size(roi);
+    if (thr_len == 0)
+    {
+        pt->x = 0;
+        pt->y = 0;
+        pt->w = w;
+        pt->h = h;
+    }
+    else if (thr_len == 4)
+    {
+        pt->x = PyLong_AsLong(PyList_GetItem(roi, 0));
+        pt->y = PyLong_AsLong(PyList_GetItem(roi, 1));
+        pt->w = PyLong_AsLong(PyList_GetItem(roi, 2));
+        pt->h = PyLong_AsLong(PyList_GetItem(roi, 3));
+    }
     return 0;
 }
 
+int r24to_imgr16(PyObject *img_or_data, PyObject *w, PyObject *h, PyObject *bpp, image_t *pt);
+{
+    image_t *arg_img = pt;
+    uint8_t *r24_pixel;
+    uint16_t *r16_pixel;
+    // arg_img = malloc(sizeof(image_t));
 
+    if (PyTuple_Check(img_or_data))
+    {
+        arg_img->w = PyLong_AsLong(PyTuple_GetItem(img_or_data, 1));
+        arg_img->h = PyLong_AsLong(PyTuple_GetItem(img_or_data, 2));
+        arg_img->bpp = PyLong_AsLong(PyTuple_GetItem(img_or_data, 3));
+    }
+    else
+    {
+        arg_img->w = PyLong_AsLong(w);
+        arg_img->h = PyLong_AsLong(h);
+        arg_img->bpp = PyLong_AsLong(bpp);
+    }
 
+    r24_pixel = PyBytes_AsString(PyTuple_GetItem(img_or_data, 0));
 
+    switch (arg_img->bpp)
+    {
+    case IMAGE_BPP_BINARY:
+    {
+
+        break;
+    }
+    case IMAGE_BPP_GRAYSCALE:
+    {
+
+        break;
+    }
+    case IMAGE_BPP_RGB565:
+    {
+        if (arg_img->data == NULL)
+        {
+            arg_img->data = (uint8_t *)malloc(arg_img->w * arg_img->h * 2);
+        }
+        r16_pixel = (uint16_t *)arg_img->data;
+        for (int i = 0; i < arg_img->w * arg_img->h * 3; i += 3)
+        {
+            *r16_pixel = COLOR_R8_G8_B8_TO_RGB565(r24_pixel[i], r24_pixel[i + 1], r24_pixel[i + 2]);
+            r16_pixel++;
+        }
+        break;
+    }
+    case IMAGE_BPP_BAYER:
+    {
+
+        break;
+    }
+    default:
+    {
+        return -1;
+        break;
+    }
+    }
+    return 1;
+}
