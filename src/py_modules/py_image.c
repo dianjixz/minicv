@@ -115,10 +115,14 @@ py_image_binary_to_grayscale(PyObject *self, PyObject *args, PyObject *keywds)
 {
     int b;
     debug_line;
-    static char *kwlist[] = {"binary_image_value", NULL};
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "i", kwlist,
-                                     &b))
+    bool nihao = 0;
+    static char *kwlist[] = {"binary_image_value", "nihao",NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "ii", kwlist,
+                                     &b,&nihao))
         return NULL;
+
+
+    printf("nihao:%d\r\n",nihao);
     return Py_BuildValue("i", b ? 255 : 0);
 }
 
@@ -1043,7 +1047,7 @@ static mp_obj_t py_image_find_lines(PyObject *self, PyObject *args, PyObject *ke
     PyObject *py_roi;
 
     static char *kwlist[] = {"roi", "x_stride", "y_stride", "threshold", "theta_margin", "rho_margin", NULL};
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "O|iiiiii", kwlist,
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "|Oiiiii", kwlist,
                                      &py_roi, &x_stride, &y_stride, &threshold, &theta_margin, &rho_margin))
         return NULL;
 
@@ -1848,11 +1852,12 @@ py_image_get_pixel(PyObject *self, PyObject *args, PyObject *keywds)
     int arg_y = 0;
 
     bool arg_rgbtuple = 0;
-
+    debug_line;
     static char *kwlist[] = {"x", "y", "rgbtuple", NULL};
     if (!PyArg_ParseTupleAndKeywords(args, keywds, "O|OO", kwlist,
                                      &py_arg_x, &py_arg_y, &py_rgbtuple))
         return NULL;
+    debug_line;
     if (PyTuple_Check(py_arg_x))
     {
         arg_x = PyLong_AsLong(PyTuple_GetItem(py_arg_x, 0));
@@ -1863,25 +1868,32 @@ py_image_get_pixel(PyObject *self, PyObject *args, PyObject *keywds)
         arg_x = PyLong_AsLong(py_arg_x);
         arg_y = PyLong_AsLong(py_arg_y);
     }
-    if (PyBool_Check(py_rgbtuple))
-    {
+    debug_line;
+    // if (PyBool_Check(py_rgbtuple))
+    // {
+
         if (py_rgbtuple == Py_True)
             arg_rgbtuple = 1;
         else
             arg_rgbtuple = 0;
-    }
-    else
-    {
-        if (PyLong_AsLong(py_rgbtuple) == 1)
-            arg_rgbtuple = 1;
-        else
-            arg_rgbtuple = 0;
-    }
+    // }
+    // else
+    // {debug_line;
+
+        debug_line;
+
+    //     if (PyLong_AsLong(py_rgbtuple) == 1)
+    //         arg_rgbtuple = 1;
+    //     else
+    //         arg_rgbtuple = 0;
+    //     debug_line;
+    // }
+    debug_line;
     if ((!IM_X_INSIDE(arg_img, arg_x)) || (!IM_Y_INSIDE(arg_img, arg_y)))
     {
         return Py_None;
     }
-
+debug_line;
     switch (arg_img->bpp)
     {
     case IMAGE_BPP_BINARY:
@@ -1911,13 +1923,16 @@ py_image_get_pixel(PyObject *self, PyObject *args, PyObject *keywds)
     }
     case IMAGE_BPP_RGB565:
     {
+        debug_line;
         if (arg_rgbtuple)
         {
+            debug_line;
             int pixel = IMAGE_GET_RGB565_PIXEL(arg_img, arg_x, arg_y);
             return Py_BuildValue("iii", COLOR_RGB565_TO_R8(pixel), COLOR_RGB565_TO_G8(pixel), COLOR_RGB565_TO_B8(pixel));
         }
         else
         {
+            debug_line;
             return Py_BuildValue("i", IMAGE_GET_RGB565_PIXEL(arg_img, arg_x, arg_y));
         }
     }
@@ -2300,6 +2315,7 @@ py_image_set_pixel(PyObject *self, PyObject *args, PyObject *keywds)
 //     return py_image_from_struct(&out);
 // }
 
+
 static PyObject *
 py_image_draw_line(PyObject *self, PyObject *args, PyObject *keywds)
 {
@@ -2311,11 +2327,13 @@ py_image_draw_line(PyObject *self, PyObject *args, PyObject *keywds)
     int thickness = 1;
 
     static char *kwlist[] = {"x0", "y0", "x1", "y1", "c", "thickness", NULL};
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "(iiii)|ii", kwlist,
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "iiii|ii", kwlist,
                                      &x0, &y0, &x1, &y1, &c, &thickness))
         return NULL;
     // printf("thickness:%d\r\n",thickness);
-    imlib_draw_line(&self_image_img, x0, y0, x1, y1, c, thickness);
+    // printf("--------------x:%d,y:%d,x1:%d,y1:%d\r\n",x0,y0,x1,y1);
+
+    imlib_draw_line(&self_image_img, x0, y0, x1, y1, COLOR_R8_G8_B8_TO_RGB565((c & 0xff0000) >> 16,(c & 0xff00) >> 8,(c & 0xff)), thickness);
     return PyLong_FromLong(0);
 }
 
@@ -2331,7 +2349,7 @@ py_image_draw_rectangle(PyObject *self, PyObject *args, PyObject *keywds)
     int thickness = 1;
     bool fill = 0;
     static char *kwlist[] = {"rx", "ry", "rw", "rh", "c", "thickness", "fill", NULL};
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "(iiii)|iiO", kwlist,
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "iiii|iiO", kwlist,
                                      &rx, &ry, &rw, &rh, &c, &thickness, &fil))
         return NULL;
 
@@ -2358,7 +2376,7 @@ py_image_draw_circle(PyObject *self, PyObject *args, PyObject *keywds)
     bool arg_fill = 0;
 
     static char *kwlist[] = {"cx", "cy", "cr", "c", "thickness", "fill", NULL};
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "(iii)|iiO", kwlist,
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "iii|iiO", kwlist,
                                      &arg_cx, &arg_cy, &arg_cr, &arg_c, &arg_thickness, &fil))
         return NULL;
 
@@ -2386,7 +2404,7 @@ py_image_draw_ellipse(PyObject *self, PyObject *args, PyObject *keywds)
     bool arg_fill = 0;
 
     static char *kwlist[] = {"cx", "cy", "rx", "ry", "r", "c", "thickness", "fill", NULL};
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "(iiii)i|iiO", kwlist,
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "iiiii|iiO", kwlist,
                                      &arg_cx, &arg_cy, &arg_rx, &arg_ry, &arg_r, &arg_c, &arg_thickness, &fil))
         return NULL;
     if (fil == Py_True)
@@ -2441,7 +2459,7 @@ py_image_draw_cross(PyObject *self, PyObject *args, PyObject *keywds)
     int arg_thickness = 1;
 
     static char *kwlist[] = {"x", "y", "c", "size", "thickness", NULL};
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "(ii)|iii", kwlist,
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "ii|iii", kwlist,
                                      &arg_x, &arg_y, &arg_c, &arg_s, &arg_thickness))
         return NULL;
 
@@ -5075,5 +5093,20 @@ PyMODINIT_FUNC
 PyInit_minicv(void)
 {
     self_image_img.data = NULL;
-    return PyModule_Create(&spammodule);
+    PyObject *module = PyModule_Create(&spammodule);
+
+
+
+    PyModule_AddIntConstant(module, "IMAGE_BPP_BINARY", IMAGE_BPP_BINARY);  
+    PyModule_AddIntConstant(module, "IMAGE_BPP_GRAYSCALE", IMAGE_BPP_GRAYSCALE);
+    PyModule_AddIntConstant(module, "IMAGE_BPP_RGB565", IMAGE_BPP_RGB565);
+    PyModule_AddIntConstant(module, "IMAGE_BPP_BAYER", IMAGE_BPP_BAYER);
+    PyModule_AddIntConstant(module, "IMAGE_BPP_JPEG", IMAGE_BPP_JPEG);
+
+    // PyModule_AddIntMacro(module, FPUTS_MACRO);
+
+
+
+    return module;
 }
+

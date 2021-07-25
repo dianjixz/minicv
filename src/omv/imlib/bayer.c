@@ -9,7 +9,7 @@
  * Debayering Functions
  */
 #include "imlib.h"
-#ifdef NO_WORK
+
 void imlib_debayer_line_to_binary(int x_start, int x_end, int y_row, uint32_t *dst_row_ptr, image_t *src)
 {
     int src_w = src->w, w_limit = src_w - 1, w_limit_m_1 = w_limit - 1;
@@ -572,7 +572,7 @@ void imlib_debayer_line_to_grayscale(int x_start, int x_end, int y_row, uint8_t 
         }
     }
 }
-#endif
+
 // Does no bounds checking on the destination.
 void imlib_debayer_image_to_grayscale(image_t *dst, image_t *src)
 {

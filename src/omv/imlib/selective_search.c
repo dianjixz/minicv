@@ -15,6 +15,8 @@
 #include "imlib.h"
 #include "fb_alloc.h"
 #include "xalloc.h"
+
+#define IMLIB_ENABLE_SELECTIVE_SEARCH
 #ifdef IMLIB_ENABLE_SELECTIVE_SEARCH
 
 #define THRESHOLD(size, c) (c/size)

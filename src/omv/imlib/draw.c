@@ -625,7 +625,7 @@ void imlib_draw_row_put_row_buffer(imlib_draw_row_data_t *data, void *row_buffer
 
 
 
-#ifdef NO_WORK
+
 // Draws (x_end - x_start) pixels.
 // src width must be equal to dst width.
 void imlib_draw_row(int x_start, int x_end, int y_row, imlib_draw_row_data_t *data)
@@ -2462,8 +2462,6 @@ void imlib_draw_row(int x_start, int x_end, int y_row, imlib_draw_row_data_t *da
 }
 
 
-#endif
-
 // False == Image is black, True == rect valid
 bool imlib_draw_image_rectangle(image_t *dst_img, image_t *src_img, int dst_x_start, int dst_y_start, float x_scale, float y_scale, rectangle_t *roi,
                                 int alpha, const uint8_t *alpha_palette, image_hint_t hint,
@@ -2541,7 +2539,7 @@ bool imlib_draw_image_rectangle(image_t *dst_img, image_t *src_img, int dst_x_st
 }
 
 
-
+#define IMLIB_DRAW_IMAGE
 #ifdef IMLIB_DRAW_IMAGE
 
 void imlib_draw_image(image_t *dst_img, image_t *src_img, int dst_x_start, int dst_y_start, float x_scale, float y_scale, rectangle_t *roi,
