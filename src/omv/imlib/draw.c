@@ -623,6 +623,9 @@ void imlib_draw_row_put_row_buffer(imlib_draw_row_data_t *data, void *row_buffer
 #endif
 }
 
+
+
+#ifdef NO_WORK
 // Draws (x_end - x_start) pixels.
 // src width must be equal to dst width.
 void imlib_draw_row(int x_start, int x_end, int y_row, imlib_draw_row_data_t *data)
@@ -2458,6 +2461,9 @@ void imlib_draw_row(int x_start, int x_end, int y_row, imlib_draw_row_data_t *da
     #undef BLEND_RGB566
 }
 
+
+#endif
+
 // False == Image is black, True == rect valid
 bool imlib_draw_image_rectangle(image_t *dst_img, image_t *src_img, int dst_x_start, int dst_y_start, float x_scale, float y_scale, rectangle_t *roi,
                                 int alpha, const uint8_t *alpha_palette, image_hint_t hint,
@@ -2533,6 +2539,10 @@ bool imlib_draw_image_rectangle(image_t *dst_img, image_t *src_img, int dst_x_st
 
     return true;
 }
+
+
+
+#ifdef IMLIB_DRAW_IMAGE
 
 void imlib_draw_image(image_t *dst_img, image_t *src_img, int dst_x_start, int dst_y_start, float x_scale, float y_scale, rectangle_t *roi,
                       int rgb_channel, int alpha, const uint16_t *color_palette, const uint8_t *alpha_palette, image_hint_t hint,
@@ -4800,6 +4810,14 @@ void imlib_draw_image(image_t *dst_img, image_t *src_img, int dst_x_start, int d
     imlib_draw_row_teardown(&imlib_draw_row_data);
     if (&new_src_img == src_img) fb_free();
 }
+
+
+
+
+
+#endif
+
+
 
 #ifdef IMLIB_ENABLE_FLOOD_FILL
 void imlib_flood_fill(image_t *img, int x, int y,

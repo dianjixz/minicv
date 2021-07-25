@@ -26,7 +26,7 @@
 
 #define OMV_JPEG_BUF_SIZE               (1024*1024) // IDE JPEG buffer (header + data).
 #define JPEG_QUALITY_THRESH             (1920*1080*2)
-
+#define OMV_FB_SIZE                     (32*1024)       // FB memory: header + VGA/GS image
 
 #define OMV_RAW_BUF_SIZE        (4*1024*1024)
 
@@ -39,6 +39,8 @@ typedef uint32_t UINT;
 typedef int FRESULT;//FR_OK
 typedef struct stat FILINFO;
 
+
+// char _fballoc[OMV_FB_ALLOC_SIZE];
 
 
 
@@ -79,6 +81,9 @@ void __STREXW();
 void __WFI();
 void mp_hal_ticks_ms();
 
+
+
+
 // #define __UXTB_RORn(a,b) 
 
 // #define IMAGE_LBP_API
@@ -115,7 +120,7 @@ void mp_hal_ticks_ms();
 
 // #define IMLIB_ENABLE_FIND_DISPLACEMENT 1
 
-
+// #define IMLIB_DRAW_IMAGE 1
 
 
 

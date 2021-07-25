@@ -125,7 +125,7 @@ void array_resize(array_t *array, int num)
 // see micropython quicksort (objlist.c -> mp_quicksort)
 static void quicksort(void **head, void **tail, array_comp_t comp)
 {
-    MP_STACK_CHECK();
+    // MP_STACK_CHECK();
     while (head < tail) {
         void **h = head - 1;
         void **t = tail;

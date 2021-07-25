@@ -38,7 +38,7 @@ C_SRC += $(MY_DIR)imlib/edge.c
 C_SRC += $(MY_DIR)imlib/fmath.c        
 C_SRC += $(MY_DIR)imlib/fsort.c  
 C_SRC += $(MY_DIR)imlib/imlib.c        
-C_SRC += $(MY_DIR)imlib/kmeans.c   
+# C_SRC += $(MY_DIR)imlib/kmeans.c   
 C_SRC += $(MY_DIR)imlib/mjpeg.c             
 C_SRC += $(MY_DIR)imlib/qrcode.c            
 C_SRC += $(MY_DIR)imlib/stats.c
@@ -48,18 +48,18 @@ C_SRC += $(MY_DIR)imlib/eye.c
 C_SRC += $(MY_DIR)imlib/lab_tab.c  
 C_SRC += $(MY_DIR)imlib/orb.c               
 C_SRC += $(MY_DIR)imlib/qsort.c             
-C_SRC += $(MY_DIR)imlib/bayer.c     
+# C_SRC += $(MY_DIR)imlib/bayer.c     
 C_SRC += $(MY_DIR)imlib/collections.c  
 C_SRC += $(MY_DIR)imlib/fast.c    
 C_SRC += $(MY_DIR)imlib/font.c         
 C_SRC += $(MY_DIR)imlib/gif.c    
 C_SRC += $(MY_DIR)imlib/integral.c     
 C_SRC += $(MY_DIR)imlib/lbp.c      
-C_SRC += $(MY_DIR)imlib/phasecorrelation.c  
+# C_SRC += $(MY_DIR)imlib/phasecorrelation.c  
 C_SRC += $(MY_DIR)imlib/rainbow_tab.c       
 C_SRC += $(MY_DIR)imlib/template.c
 C_SRC += $(MY_DIR)imlib/binary.c    
-C_SRC += $(MY_DIR)imlib/fft.c          
+# C_SRC += $(MY_DIR)imlib/fft.c          
 C_SRC += $(MY_DIR)imlib/haar.c   
 C_SRC += $(MY_DIR)imlib/integral_mw.c  
 C_SRC += $(MY_DIR)imlib/line.c     
@@ -70,23 +70,23 @@ C_SRC += $(MY_DIR)imlib/blob.c
 C_SRC += $(MY_DIR)imlib/dmtx.c         
 C_SRC += $(MY_DIR)imlib/framebuffer.c  
 C_SRC += $(MY_DIR)imlib/hog.c    
-C_SRC += $(MY_DIR)imlib/jpeg.c         
+# C_SRC += $(MY_DIR)imlib/jpeg.c         
 C_SRC += $(MY_DIR)imlib/lsd.c      
 C_SRC += $(MY_DIR)imlib/pool.c              
-C_SRC += $(MY_DIR)imlib/selective_search.c  
+# C_SRC += $(MY_DIR)imlib/selective_search.c  
 C_SRC += $(MY_DIR)imlib/zbar.c
 C_SRC += $(MY_DIR)imlib/bmp.c       
 C_SRC += $(MY_DIR)imlib/draw.c         
 C_SRC += $(MY_DIR)imlib/filter.c  
 C_SRC += $(MY_DIR)imlib/hough.c  
-C_SRC += $(MY_DIR)imlib/jpegd.c        
+# C_SRC += $(MY_DIR)imlib/jpegd.c        
 C_SRC += $(MY_DIR)imlib/mathop.c   
 C_SRC += $(MY_DIR)imlib/ppm.c               
 C_SRC += $(MY_DIR)imlib/sincos_tab.c
 
 
 
-
+C_SRC += $(MY_DIR)config/mini.c
 
 
 

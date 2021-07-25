@@ -331,77 +331,77 @@ const int kernel_high_pass_3[3*3] = {
 
 // This function fills a grayscale image from an array of floating point numbers that are scaled
 // between min and max. The image w*h must equal the floating point array w*h.
-void imlib_fill_image_from_float(image_t *img, int w, int h, float *data, float min, float max,
-                                 bool mirror, bool flip, bool dst_transpose, bool src_transpose)
-{
-    float tmp = min;
-    min = (min < max) ? min : max;
-    max = (max > tmp) ? max : tmp;
+// void imlib_fill_image_from_float(image_t *img, int w, int h, float *data, float min, float max,
+//                                  bool mirror, bool flip, bool dst_transpose, bool src_transpose)
+// {
+//     float tmp = min;
+//     min = (min < max) ? min : max;
+//     max = (max > tmp) ? max : tmp;
 
-    float diff = 255.f / (max - min);
-    int w_1 = w - 1;
-    int h_1 = h - 1;
+//     float diff = 255.f / (max - min);
+//     int w_1 = w - 1;
+//     int h_1 = h - 1;
 
-    if (!src_transpose) {
-        for (int y = 0; y < h; y++) {
-            int y_dst = flip ? (h_1 - y) : y;
-            float *raw_row = data + (y * w);
-            uint8_t *row_pointer = ((uint8_t *) img->data) + (y_dst * w);
-            uint8_t *t_row_pointer = ((uint8_t *) img->data) + y_dst;
+//     if (!src_transpose) {
+//         for (int y = 0; y < h; y++) {
+//             int y_dst = flip ? (h_1 - y) : y;
+//             float *raw_row = data + (y * w);
+//             uint8_t *row_pointer = ((uint8_t *) img->data) + (y_dst * w);
+//             uint8_t *t_row_pointer = ((uint8_t *) img->data) + y_dst;
 
-            for (int x = 0; x < w; x++) {
-                int x_dst = mirror ? (w_1 - x) : x;
-                float raw = raw_row[x];
+//             for (int x = 0; x < w; x++) {
+//                 int x_dst = mirror ? (w_1 - x) : x;
+//                 float raw = raw_row[x];
 
-                if (raw < min) {
-                    raw = min;
-                }
+//                 if (raw < min) {
+//                     raw = min;
+//                 }
 
-                if (raw > max) {
-                    raw = max;
-                }
+//                 if (raw > max) {
+//                     raw = max;
+//                 }
 
-                int pixel = fast_roundf((raw - min) * diff);
-                pixel = __USAT(pixel, 8);
+//                 int pixel = fast_roundf((raw - min) * diff);
+//                 pixel = __USAT(pixel, 8);
 
-                if (!dst_transpose) {
-                    row_pointer[x_dst] = pixel;
-                } else {
-                    t_row_pointer[x_dst * h] = pixel;
-                }
-            }
-        }
-    } else {
-        for (int x = 0; x < w; x++) {
-            int x_dst = mirror ? (w_1 - x) : x;
-            float *raw_row = data + (x * h);
-            uint8_t *t_row_pointer = ((uint8_t *) img->data) + (x_dst * h);
-            uint8_t *row_pointer = ((uint8_t *) img->data) + x_dst;
+//                 if (!dst_transpose) {
+//                     row_pointer[x_dst] = pixel;
+//                 } else {
+//                     t_row_pointer[x_dst * h] = pixel;
+//                 }
+//             }
+//         }
+//     } else {
+//         for (int x = 0; x < w; x++) {
+//             int x_dst = mirror ? (w_1 - x) : x;
+//             float *raw_row = data + (x * h);
+//             uint8_t *t_row_pointer = ((uint8_t *) img->data) + (x_dst * h);
+//             uint8_t *row_pointer = ((uint8_t *) img->data) + x_dst;
 
-            for (int y = 0; y < h; y++) {
-                int y_dst = flip ? (h_1 - y) : y;
-                float raw = raw_row[y];
+//             for (int y = 0; y < h; y++) {
+//                 int y_dst = flip ? (h_1 - y) : y;
+//                 float raw = raw_row[y];
 
-                if (raw < min) {
-                    raw = min;
-                }
+//                 if (raw < min) {
+//                     raw = min;
+//                 }
 
-                if (raw > max) {
-                    raw = max;
-                }
+//                 if (raw > max) {
+//                     raw = max;
+//                 }
 
-                int pixel = fast_roundf((raw - min) * diff);
-                pixel = __USAT(pixel, 8);
+//                 int pixel = fast_roundf((raw - min) * diff);
+//                 pixel = __USAT(pixel, 8);
 
-                if (!dst_transpose) {
-                    row_pointer[y_dst * w] = pixel;
-                } else {
-                    t_row_pointer[y_dst] = pixel;
-                }
-            }
-        }
-    }
-}
+//                 if (!dst_transpose) {
+//                     row_pointer[y_dst * w] = pixel;
+//                 } else {
+//                     t_row_pointer[y_dst] = pixel;
+//                 }
+//             }
+//         }
+//     }
+// }
 
 int8_t imlib_rgb565_to_l(uint16_t pixel)
 {
@@ -1066,65 +1066,65 @@ int imlib_image_mean(image_t *src, int *r_mean, int *g_mean, int *b_mean)
     return 0;
 }
 
-// One pass standard deviation.
-int imlib_image_std(image_t *src)
-{
-    int w=src->w;
-    int h=src->h;
-    int n=w*h;
-    uint8_t *data=src->pixels;
+// // One pass standard deviation.
+// int imlib_image_std(image_t *src)
+// {
+//     int w=src->w;
+//     int h=src->h;
+//     int n=w*h;
+//     uint8_t *data=src->pixels;
 
-    uint32_t s=0, sq=0;
-    for (int i=0; i<n; i+=2) {
-        s += data[i+0]+data[i+1];
-        uint32_t tmp = __PKHBT(data[i+0], data[i+1], 16);
-        sq = __SMLAD(tmp, tmp, sq);
-    }
+//     uint32_t s=0, sq=0;
+//     for (int i=0; i<n; i+=2) {
+//         s += data[i+0]+data[i+1];
+//         uint32_t tmp = __PKHBT(data[i+0], data[i+1], 16);
+//         sq = __SMLAD(tmp, tmp, sq);
+//     }
 
-    if (n%2) {
-        s += data[n-1];
-        sq += data[n-1]*data[n-1];
-    }
+//     if (n%2) {
+//         s += data[n-1];
+//         sq += data[n-1]*data[n-1];
+//     }
 
-    /* mean */
-    int m = s/n;
+//     /* mean */
+//     int m = s/n;
 
-    /* variance */
-    uint32_t v = sq/n-(m*m);
+//     /* variance */
+//     uint32_t v = sq/n-(m*m);
 
-    /* std */
-    return fast_sqrtf(v);
-}
+//     /* std */
+//     return fast_sqrtf(v);
+// }
 
-void imlib_sepconv3(image_t *img, const int8_t *krn, const float m, const int b)
-{
-    int ksize = 3;
-    // TODO: Support RGB
-    int *buffer = fb_alloc(img->w * sizeof(*buffer) * 2, FB_ALLOC_NO_HINT);
+// void imlib_sepconv3(image_t *img, const int8_t *krn, const float m, const int b)
+// {
+//     int ksize = 3;
+//     // TODO: Support RGB
+//     int *buffer = fb_alloc(img->w * sizeof(*buffer) * 2, FB_ALLOC_NO_HINT);
 
-    // NOTE: This doesn't deal with borders right now. Adding if
-    // statements in the inner loop will slow it down significantly.
-    for (int y=0; y<img->h-ksize; y++) {
-        for (int x=0; x<img->w; x++) {
-            int acc=0;
-            //if (IM_X_INSIDE(img, x+k) && IM_Y_INSIDE(img, y+j))
-            acc = __SMLAD(krn[0], IM_GET_GS_PIXEL(img, x, y + 0), acc);
-            acc = __SMLAD(krn[1], IM_GET_GS_PIXEL(img, x, y + 1), acc);
-            acc = __SMLAD(krn[2], IM_GET_GS_PIXEL(img, x, y + 2), acc);
-            buffer[((y%2)*img->w) + x] = acc;
-        }
-        if (y > 0) {
-            // flush buffer
-            for (int x=0; x<img->w-ksize; x++) {
-                int acc = 0;
-                acc = __SMLAD(krn[0], buffer[((y-1)%2) * img->w + x + 0], acc);
-                acc = __SMLAD(krn[1], buffer[((y-1)%2) * img->w + x + 1], acc);
-                acc = __SMLAD(krn[2], buffer[((y-1)%2) * img->w + x + 2], acc);
-                acc = (acc * m) + b; // scale, offset, and clamp
-                acc = IM_MAX(IM_MIN(acc, IM_MAX_GS), 0);
-                IM_SET_GS_PIXEL(img, (x+1), (y), acc);
-            }
-        }
-    }
-    fb_free();
-}
+//     // NOTE: This doesn't deal with borders right now. Adding if
+//     // statements in the inner loop will slow it down significantly.
+//     for (int y=0; y<img->h-ksize; y++) {
+//         for (int x=0; x<img->w; x++) {
+//             int acc=0;
+//             //if (IM_X_INSIDE(img, x+k) && IM_Y_INSIDE(img, y+j))
+//             acc = __SMLAD(krn[0], IM_GET_GS_PIXEL(img, x, y + 0), acc);
+//             acc = __SMLAD(krn[1], IM_GET_GS_PIXEL(img, x, y + 1), acc);
+//             acc = __SMLAD(krn[2], IM_GET_GS_PIXEL(img, x, y + 2), acc);
+//             buffer[((y%2)*img->w) + x] = acc;
+//         }
+//         if (y > 0) {
+//             // flush buffer
+//             for (int x=0; x<img->w-ksize; x++) {
+//                 int acc = 0;
+//                 acc = __SMLAD(krn[0], buffer[((y-1)%2) * img->w + x + 0], acc);
+//                 acc = __SMLAD(krn[1], buffer[((y-1)%2) * img->w + x + 1], acc);
+//                 acc = __SMLAD(krn[2], buffer[((y-1)%2) * img->w + x + 2], acc);
+//                 acc = (acc * m) + b; // scale, offset, and clamp
+//                 acc = IM_MAX(IM_MIN(acc, IM_MAX_GS), 0);
+//                 IM_SET_GS_PIXEL(img, (x+1), (y), acc);
+//             }
+//         }
+//     }
+//     fb_free();
+// }

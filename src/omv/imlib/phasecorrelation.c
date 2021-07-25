@@ -9,7 +9,7 @@
  * Phase correlation.
  */
 #include "imlib.h"
-#include "fft.h"
+// #include "fft.h"
 
 void imlib_logpolar_int(image_t *dst, image_t *src, rectangle_t *roi, bool linear, bool reverse)
 {

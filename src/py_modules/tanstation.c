@@ -3,11 +3,17 @@
 // #include "imdefs.h"
 // #include "imlib.h"
 
+// #define debug_line printf("[%s %s] %s:%d: %s\n", __DATE__, __TIME__, __FILE__, __LINE__, __func__)
+
+#define debug_line 
+
+
+
 PyObject *back_img(image_t *img)
 {
     PyObject *th_tup;
     uint8_t *_888_data;
-    if(img->data == NULL)
+    if (img->data == NULL)
     {
         return Py_None;
     }
@@ -125,22 +131,31 @@ int r24to_imgr16(PyObject *img_or_data, PyObject *w, PyObject *h, PyObject *bpp,
     uint8_t *r24_pixel;
     uint16_t *r16_pixel;
     // arg_img = malloc(sizeof(image_t));
-
+    if (arg_img->data != NULL)
+    {
+        free(arg_img->data);
+        arg_img->data = NULL;
+    }
+    debug_line;
     if (PyTuple_Check(img_or_data))
     {
+        debug_line;
+        r24_pixel = PyBytes_AsString(PyTuple_GetItem(img_or_data, 0));
         arg_img->w = PyLong_AsLong(PyTuple_GetItem(img_or_data, 1));
         arg_img->h = PyLong_AsLong(PyTuple_GetItem(img_or_data, 2));
         arg_img->bpp = PyLong_AsLong(PyTuple_GetItem(img_or_data, 3));
     }
     else
     {
+        debug_line;
+        r24_pixel = PyBytes_AsString(img_or_data);
         arg_img->w = PyLong_AsLong(w);
         arg_img->h = PyLong_AsLong(h);
         arg_img->bpp = PyLong_AsLong(bpp);
     }
-
-    r24_pixel = PyBytes_AsString(PyTuple_GetItem(img_or_data, 0));
-
+    
+    
+    debug_line;
     switch (arg_img->bpp)
     {
     case IMAGE_BPP_BINARY:

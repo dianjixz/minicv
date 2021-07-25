@@ -1059,13 +1059,13 @@ static void jpeg_writeBits(jpeg_buf_t *jpeg_buf, const uint16_t *bs)
 
 //Huffman-encoded magnitude value
 static void jpeg_calcBits(int val, uint16_t bits[2]) {
-    int t1=val;
-    if (val<0) {
-        t1 = -val;
-        val = val-1;
-    }
-    bits[1] = 32-__CLZ(t1);
-    bits[0] = val & ((1<<bits[1])-1);
+    // int t1=val;
+    // if (val<0) {
+    //     t1 = -val;
+    //     val = val-1;
+    // }
+    // bits[1] = 32-__CLZ(t1);
+    // bits[0] = val & ((1<<bits[1])-1);
 }
 
 static int jpeg_processDU(jpeg_buf_t *jpeg_buf, int8_t *CDU, float *fdtbl, int DC, const uint16_t (*HTDC)[2], const uint16_t (*HTAC)[2])

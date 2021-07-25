@@ -178,14 +178,14 @@ bool ini_is_true(const char *value)
 int
 ini_fgetc(FIL *fp)
 {
-    char c;
-    UINT b;
-    debug_line;
-    if (f_read (fp, &c, 1, &b) != FR_OK || b != 1)
-        return (EOF);
-    return (c);
+    // char c;
+    // UINT b;
+    // debug_line;
+    // if (f_read (fp, &c, 1, &b) != FR_OK || b != 1)
+    //     return (EOF);
+    // return (c);
 
-    // return "c";
+    return -1;
 }
 
 /*
