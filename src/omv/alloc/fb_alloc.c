@@ -18,8 +18,11 @@
 #define FB_ALLOC_ALIGNMENT __SCB_DCACHE_LINE_SIZE
 #endif
 
-extern char _fballoc[];
-static char *pointer = _fballoc;
+#define debug_line printf("[%s %s] %s:%d: %s\n", __DATE__, __TIME__, __FILE__, __LINE__, __func__)
+
+
+extern char *_fballoc;
+static char *pointer ;
 
 #if defined(FB_ALLOC_STATS)
 static uint32_t alloc_bytes;

@@ -1220,5 +1220,5 @@ void imlib_find_barcodes(list_t *out, image_t *ptr, rectangle_t *roi);
 array_t *imlib_selective_search(image_t *src, float t, int min_size, float a1, float a2, float a3);
 
 
-void imlib_init();
+
 #endif //__IMLIB_H__

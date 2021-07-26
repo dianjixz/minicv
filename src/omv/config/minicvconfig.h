@@ -14,8 +14,7 @@
 #define FA_READ
 #define FA_OPEN_EXISTING
 
-#define OMV_FB_ALLOC_SIZE  (1024 * 1024 * 4)// minimum fb alloc size
-#define OMV_FB_ALLOC_SIZE_END 1677215
+#define OMV_FB_ALLOC_SIZE  (1024 * 1024)// minimum fb alloc size
 
 #define OMV_UMM_BLOCK_SIZE 256
 
@@ -27,20 +26,7 @@
 #define OMV_FB_SIZE (32 * 1024) // FB memory: header + VGA/GS image
 
 #define OMV_RAW_BUF_SIZE (4 * 1024 * 1024)
-
-
-
-char _fballoc[OMV_FB_ALLOC_SIZE];
-
-char _jpeg_buf[OMV_JPEG_BUF_SIZE];
-
-char _fb_base[OMV_FB_SIZE];
-
-
-
-
-
-
+void imlib_init();
 
 
 
@@ -224,6 +210,7 @@ __STATIC_FORCEINLINE uint32_t __USAT16(int32_t val, uint32_t sat)
 
 #define IMLIB_ENABLE_FIND_LINES 1
 #define IMLIB_ENABLE_FIND_LINE_SEGMENTS 1
+#define IMLIB_ENABLE_GET_STATISTICS 1
 
 // #define IMLIB_ENABLE_GET_REGRESSION 1
 

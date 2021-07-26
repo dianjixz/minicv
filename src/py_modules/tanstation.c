@@ -6,10 +6,9 @@
 // #define debug_line printf("[%s %s] %s:%d: %s\n", __DATE__, __TIME__, __FILE__, __LINE__, __func__)
 
 #define debug_line
-
 PyObject *back_img(image_t *img)
 {
-    PyObject *th_tup;
+    PyObject *th_tup = Py_None;
     uint8_t *_888_data;
     if (img->data == NULL)
     {
@@ -67,60 +66,42 @@ PyObject *back_img(image_t *img)
 
 int thresholds_tan(PyObject *thr, list_t *pt)
 {
-    PyObject *thr0;
+    PyObject *thr0 = Py_None;
     int thr_len;
     int thrs;
     color_thresholds_list_lnk_data_t thrm;
     list_init(pt, sizeof(color_thresholds_list_lnk_data_t)); //列表初始化
-    thr_len = PyList_Size(thr);
-    if (thr_len == 0)
+    if (PyList_Check(thr))
     {
-        return 0;
-    }
-    for (int i = 0; i < thr_len; i++)
-    {
-        thr0 = PyList_GetItem(thr, i);
-        thrs = PyTuple_Size(thr0);
-        switch (thrs)
+        thr_len = PyList_Size(thr);
+        if (thr_len == 0)
         {
-        case 6:
-            thrm.LMin = PyLong_AsLong(PyTuple_GetItem(thr0, 0));
-            thrm.LMax = PyLong_AsLong(PyTuple_GetItem(thr0, 1));
-            thrm.AMin = PyLong_AsLong(PyTuple_GetItem(thr0, 2));
-            thrm.AMax = PyLong_AsLong(PyTuple_GetItem(thr0, 3));
-            thrm.BMin = PyLong_AsLong(PyTuple_GetItem(thr0, 4));
-            thrm.BMax = PyLong_AsLong(PyTuple_GetItem(thr0, 5));
-            list_push_back(pt, &thrm);
-            break;
-        case 2:
+            return 0;
+        }
+        for (int i = 0; i < thr_len; i++)
+        {
+            thr0 = PyList_GetItem(thr, i);
+            thrs = PyTuple_Size(thr0);
+            switch (thrs)
+            {
+            case 6:
+                thrm.LMin = PyLong_AsLong(PyTuple_GetItem(thr0, 0));
+                thrm.LMax = PyLong_AsLong(PyTuple_GetItem(thr0, 1));
+                thrm.AMin = PyLong_AsLong(PyTuple_GetItem(thr0, 2));
+                thrm.AMax = PyLong_AsLong(PyTuple_GetItem(thr0, 3));
+                thrm.BMin = PyLong_AsLong(PyTuple_GetItem(thr0, 4));
+                thrm.BMax = PyLong_AsLong(PyTuple_GetItem(thr0, 5));
+                list_push_back(pt, &thrm);
+                break;
+            case 2:
 
-            break;
-        default:
-            break;
+                break;
+            default:
+                break;
+            }
         }
     }
     return thr_len;
-}
-
-int roi_tan(PyObject *roi, rectangle_t *pt, int w, int h)
-{
-    int thr_len;
-    thr_len = PyList_Size(roi);
-    if (thr_len == 4)
-    {
-        pt->x = PyLong_AsLong(PyList_GetItem(roi, 0));
-        pt->y = PyLong_AsLong(PyList_GetItem(roi, 1));
-        pt->w = PyLong_AsLong(PyList_GetItem(roi, 2));
-        pt->h = PyLong_AsLong(PyList_GetItem(roi, 3));
-    }
-    else
-    {
-        pt->x = 0;
-        pt->y = 0;
-        pt->w = w;
-        pt->h = h;
-    }
-    return 0;
 }
 
 int r24to_imgr16(PyObject *img_or_data, PyObject *w, PyObject *h, PyObject *bpp, image_t *pt)
@@ -191,4 +172,39 @@ int r24to_imgr16(PyObject *img_or_data, PyObject *w, PyObject *h, PyObject *bpp,
     }
     }
     return 1;
+}
+
+int roi_tan(PyObject *roi, rectangle_t *pt, int w, int h)
+{
+    int thr_len;
+    debug_line;
+    if (PyTuple_Check(roi))
+    {
+        debug_line;
+
+        thr_len = PyTuple_Size(roi);
+        if (thr_len == 4)
+        {
+            pt->x = PyLong_AsLong(PyTuple_GetItem(roi, 0));
+            pt->y = PyLong_AsLong(PyTuple_GetItem(roi, 1));
+            pt->w = PyLong_AsLong(PyTuple_GetItem(roi, 2));
+            pt->h = PyLong_AsLong(PyTuple_GetItem(roi, 3));
+        }
+        else
+        {
+            pt->x = 0;
+            pt->y = 0;
+            pt->w = w;
+            pt->h = h;
+        }
+    }
+    else
+    {
+        debug_line;
+        pt->x = 0;
+        pt->y = 0;
+        pt->w = w;
+        pt->h = h;
+    }
+    return 0;
 }

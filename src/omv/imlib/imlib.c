@@ -1128,11 +1128,3 @@ int imlib_image_mean(image_t *src, int *r_mean, int *g_mean, int *b_mean)
 //     }
 //     fb_free();
 // }
-void imlib_init()
-{
-    fb_alloc_init0();
-    framebuffer_init0();
-
-
-
-}
