@@ -11,8 +11,8 @@ C_SRC +=
 INCLUDE =  -Iomv/imlib -Iomv/alloc -Iomv/common -Iomv/config -I/usr/include/python3.8
 LIBDIR = -L./omv
 
-LDFLAGS += -fPIC  -shared -Wl,-rpath=./omv
-CFLAGS += -fPIC -Wall
+LDFLAGS += -fPIC  -shared -Wl,-rpath=./omv -g
+CFLAGS += -fPIC -Wall -g
 
 
 

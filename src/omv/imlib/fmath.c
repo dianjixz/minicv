@@ -36,13 +36,17 @@ int OMV_ATTR_ALWAYS_INLINE fast_floorf(float x)
 
 int OMV_ATTR_ALWAYS_INLINE fast_ceilf(float x)
 {
-    return ceilf(x);
+    return (int)ceilf(x);
 }
-
 int OMV_ATTR_ALWAYS_INLINE fast_roundf(float x)
 {
-    return roundf(x);
+    return (int)roundf(x);
 }
+
+// int OMV_ATTR_ALWAYS_INLINE fast_roundf(float x)
+// {
+//     return ((x + 0.5) > ceilf(x)) ? ceilf(x): ceilf(x) - 1 ;
+// }
 
 float OMV_ATTR_ALWAYS_INLINE fast_fabsf(float x)
 {

@@ -6,9 +6,9 @@
 #include "imlib.h"
 #include "tanstation.h"
 #include "minicvconfig.h"
-// #define debug_line printf("[%s %s] %s:%d: %s\n", __DATE__, __TIME__, __FILE__, __LINE__, __func__)
+#define debug_line printf("[%s %s] %s:%d: %s\n", __DATE__, __TIME__, __FILE__, __LINE__, __func__)
 
-#define debug_line
+// #define debug_line
 
 image_t self_image_img;
 
@@ -1030,7 +1030,8 @@ py_image_find_blobs(PyObject *self, PyObject *args, PyObject *keywds)
 #endif //IMLIB_ENABLE_FIND_BLOBS
 
 #ifdef IMLIB_ENABLE_FIND_LINES
-static mp_obj_t py_image_find_lines(PyObject *self, PyObject *args, PyObject *keywds)
+static PyObject *
+py_image_find_lines(PyObject *self, PyObject *args, PyObject *keywds)
 {
     image_t *arg_img = &self_image_img;
 
@@ -1053,11 +1054,13 @@ static mp_obj_t py_image_find_lines(PyObject *self, PyObject *args, PyObject *ke
 
     roi_tan(py_roi, &roi, arg_img->w, arg_img->h);
 
+
     list_t out;
     fb_alloc_mark();
-    imlib_find_lines(&out, arg_img, &roi, x_stride, y_stride, threshold, theta_margin, rho_margin);
-    fb_alloc_free_till_mark();
 
+    imlib_find_lines(&out, arg_img, &roi, x_stride, y_stride, threshold, theta_margin, rho_margin);
+
+    fb_alloc_free_till_mark();
     PyObject *objects_list = PyList_New(list_size(&out));
     PyObject *o;
     for (size_t i = 0; list_size(&out); i++)
@@ -1076,13 +1079,13 @@ static mp_obj_t py_image_find_lines(PyObject *self, PyObject *args, PyObject *ke
         int y_diff = lnk_data.line.y2 - lnk_data.line.y1;
 
         PyDict_SetItem(o, Py_BuildValue("s", "length"), Py_BuildValue("i", fast_roundf(fast_sqrtf((x_diff * x_diff) + (y_diff * y_diff)))));
-        PyDict_SetItem(o, Py_BuildValue("s", "magnitude"), Py_BuildValue("i", nk_data.magnitude));
+        PyDict_SetItem(o, Py_BuildValue("s", "magnitude"), Py_BuildValue("i", lnk_data.magnitude));
         PyDict_SetItem(o, Py_BuildValue("s", "theta"), Py_BuildValue("i", lnk_data.theta));
         PyDict_SetItem(o, Py_BuildValue("s", "rho"), Py_BuildValue("i", lnk_data.rho));
 
         PyList_SetItem(objects_list, i, o);
     }
-
+    debug_line;
     return objects_list;
 }
 #endif // IMLIB_ENABLE_FIND_LINES
@@ -1129,7 +1132,7 @@ py_image_find_line_segments(PyObject *self, PyObject *args, PyObject *keywds)
         int y_diff = lnk_data.line.y2 - lnk_data.line.y1;
 
         PyDict_SetItem(o, Py_BuildValue("s", "length"), Py_BuildValue("i", fast_roundf(fast_sqrtf((x_diff * x_diff) + (y_diff * y_diff)))));
-        PyDict_SetItem(o, Py_BuildValue("s", "magnitude"), Py_BuildValue("i", nk_data.magnitude));
+        PyDict_SetItem(o, Py_BuildValue("s", "magnitude"), Py_BuildValue("i", lnk_data.magnitude));
         PyDict_SetItem(o, Py_BuildValue("s", "theta"), Py_BuildValue("i", lnk_data.theta));
         PyDict_SetItem(o, Py_BuildValue("s", "rho"), Py_BuildValue("i", lnk_data.rho));
 
@@ -5069,8 +5072,8 @@ static PyMethodDef imageMethods[] = {
 
     {"find_blobs", (PyCFunction)py_image_find_blobs, METH_VARARGS | METH_KEYWORDS, "img draw line"},
     {"find_eye", (PyCFunction)py_image_find_eye, METH_VARARGS | METH_KEYWORDS, "img draw line"},
-
-
+    {"find_lines", (PyCFunction)py_image_find_lines, METH_VARARGS | METH_KEYWORDS, "img draw line"},
+    {"find_line_segments", (PyCFunction)py_image_find_line_segments, METH_VARARGS | METH_KEYWORDS, "img draw line"},
 
 
 
@@ -5093,6 +5096,7 @@ PyMODINIT_FUNC
 PyInit_minicv(void)
 {
     self_image_img.data = NULL;
+    imlib_init();
     PyObject *module = PyModule_Create(&spammodule);
 
 

@@ -5,9 +5,7 @@
 
 // #define debug_line printf("[%s %s] %s:%d: %s\n", __DATE__, __TIME__, __FILE__, __LINE__, __func__)
 
-#define debug_line 
-
-
+#define debug_line
 
 PyObject *back_img(image_t *img)
 {
@@ -108,19 +106,19 @@ int roi_tan(PyObject *roi, rectangle_t *pt, int w, int h)
 {
     int thr_len;
     thr_len = PyList_Size(roi);
-    if (thr_len == 0)
-    {
-        pt->x = 0;
-        pt->y = 0;
-        pt->w = w;
-        pt->h = h;
-    }
-    else if (thr_len == 4)
+    if (thr_len == 4)
     {
         pt->x = PyLong_AsLong(PyList_GetItem(roi, 0));
         pt->y = PyLong_AsLong(PyList_GetItem(roi, 1));
         pt->w = PyLong_AsLong(PyList_GetItem(roi, 2));
         pt->h = PyLong_AsLong(PyList_GetItem(roi, 3));
+    }
+    else
+    {
+        pt->x = 0;
+        pt->y = 0;
+        pt->w = w;
+        pt->h = h;
     }
     return 0;
 }
@@ -153,8 +151,7 @@ int r24to_imgr16(PyObject *img_or_data, PyObject *w, PyObject *h, PyObject *bpp,
         arg_img->h = PyLong_AsLong(h);
         arg_img->bpp = PyLong_AsLong(bpp);
     }
-    
-    
+
     debug_line;
     switch (arg_img->bpp)
     {

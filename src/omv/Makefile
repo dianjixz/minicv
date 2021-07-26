@@ -19,19 +19,6 @@ C_SRC += $(MY_DIR)common/ringbuf.c
 
 
 
-# C_SRC += $(MY_DIR)imlib/imlib.c
-# C_SRC += $(MY_DIR)imlib/agast.c
-# C_SRC += $(MY_DIR)imlib/apriltag.c
-# C_SRC += $(MY_DIR)imlib/bayer.c
-# C_SRC += $(MY_DIR)imlib/blob.c
-# C_SRC += $(MY_DIR)imlib/bmp.c
-# C_SRC += $(MY_DIR)imlib/clahe.c
-# C_SRC += $(MY_DIR)imlib/collections.c
-# C_SRC += $(MY_DIR)imlib/dmtx.c
-# C_SRC += $(MY_DIR)imlib/draw.c
-# C_SRC += $(MY_DIR)imlib/edge.c
-# C_SRC += $(MY_DIR)imlib/eye.c
-
 
 C_SRC += $(MY_DIR)imlib/agast.c
 C_SRC += $(MY_DIR)imlib/edge.c    
@@ -91,12 +78,6 @@ C_SRC += $(MY_DIR)config/mini.c
 
 
 
-# C_SRC += $(MY_DIR)imlib/bayer.c
-# C_SRC += $(MY_DIR)imlib/collections.c
-# C_SRC += $(MY_DIR)imlib/sincos_tab.c
-# C_SRC += $(MY_DIR)imlib/xyz_tab.c 
-# C_SRC += $(MY_DIR)imlib/fmath.c 
-
 C_SRC +=
 C_SRC +=
 C_SRC += 
@@ -143,8 +124,8 @@ C_SRC +=
 
 INCLUDE =  -I$(MY_DIR)imlib -I$(MY_DIR)alloc -I$(MY_DIR)common -I$(MY_DIR)config
 
-LDFLAGS += -fPIC -shared
-CFLAGS += -fPIC -Wall
+LDFLAGS += -fPIC -shared -g
+CFLAGS += -fPIC -Wall -g
 
 
 

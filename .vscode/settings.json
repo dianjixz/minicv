@@ -9,6 +9,7 @@
 		"ff_wrapper.h": "c",
 		"*.old": "cpp",
 		"framebuffer.h": "c",
-		"typeinfo": "c"
+		"typeinfo": "c",
+		"stdio.h": "c"
 	}
 }

@@ -14,8 +14,8 @@
 #define FA_READ
 #define FA_OPEN_EXISTING
 
-#define OMV_FB_ALLOC_SIZE 2048 // minimum fb alloc size
-#define OMV_FB_ALLOC_SIZE_END 2047
+#define OMV_FB_ALLOC_SIZE  (1024 * 1024 * 4)// minimum fb alloc size
+#define OMV_FB_ALLOC_SIZE_END 1677215
 
 #define OMV_UMM_BLOCK_SIZE 256
 
@@ -28,6 +28,24 @@
 
 #define OMV_RAW_BUF_SIZE (4 * 1024 * 1024)
 
+
+
+char _fballoc[OMV_FB_ALLOC_SIZE];
+
+char _jpeg_buf[OMV_JPEG_BUF_SIZE];
+
+char _fb_base[OMV_FB_SIZE];
+
+
+
+
+
+
+
+
+
+#define PI 3.1415926
+
 typedef FILE FIL;
 typedef DIR FF_DIR;
 typedef char TCHAR;
@@ -39,18 +57,18 @@ typedef struct stat FILINFO;
 
 // char _fballoc[OMV_FB_ALLOC_SIZE];
 
-#define DBGLOG_TRACE(format, ...) printf("[%s %s] %s:%d: %s\n", __DATE__, __TIME__, __FILE__, __LINE__, __func__)
+#define DBGLOG_TRACE(format, ...) 	printf("[%s %s] %s:%d: %s\n", __DATE__, __TIME__, __FILE__, __LINE__, __func__)
 
-#define DBGLOG_DEBUG(format, ...) printf("[%s %s] %s:%d: %s\n", __DATE__, __TIME__, __FILE__, __LINE__, __func__)
+#define DBGLOG_DEBUG(format, ...) 	printf("[%s %s] %s:%d: %s\n", __DATE__, __TIME__, __FILE__, __LINE__, __func__)
 
-#define DBGLOG_ERROR(format, ...) printf("[%s %s] %s:%d: %s\n", __DATE__, __TIME__, __FILE__, __LINE__, __func__)
+#define DBGLOG_ERROR(format, ...) 	printf("[%s %s] %s:%d: %s\n", __DATE__, __TIME__, __FILE__, __LINE__, __func__)
 void __DMB();
 void __disable_irq();
 void __enable_irq();
 void __LDREXW();
 void __STREXW();
 void __WFI();
-void mp_hal_ticks_ms();
+long mp_hal_ticks_ms();
 
 // #define __UXTB_RORn(a,b)
 
@@ -65,15 +83,6 @@ __STATIC_FORCEINLINE uint32_t __UXTB_RORn(uint32_t op1, uint32_t rotate)
 
 __STATIC_FORCEINLINE uint8_t __CLZ(uint32_t value)
 {
-	/* Even though __builtin_clz produces a CLZ instruction on ARM, formally
-     __builtin_clz(0) is undefined behaviour, so handle this case specially.
-     This guarantees ARM-compatible results if happening to compile on a non-ARM
-     target, and ensures the compiler doesn't decide to activate any
-     optimisations using the logic "value was passed to __builtin_clz, so it
-     is non-zero".
-     ARM GCC 7.3 and possibly earlier will optimise this test away, leaving a
-     single CLZ instruction.
-   */
 	if (value == 0U)
 	{
 		return 32U;
@@ -213,8 +222,8 @@ __STATIC_FORCEINLINE uint32_t __USAT16(int32_t val, uint32_t sat)
 	return (uint32_t)val;
 }
 
-// #define IMLIB_ENABLE_FIND_LINES 1
-// #define IMLIB_ENABLE_FIND_LINE_SEGMENTS 1
+#define IMLIB_ENABLE_FIND_LINES 1
+#define IMLIB_ENABLE_FIND_LINE_SEGMENTS 1
 
 // #define IMLIB_ENABLE_GET_REGRESSION 1
 
@@ -237,5 +246,6 @@ __STATIC_FORCEINLINE uint32_t __USAT16(int32_t val, uint32_t sat)
 
 
 uint32_t rng_randint(uint32_t min, uint32_t max);
+long getTimems();
 
 #endif

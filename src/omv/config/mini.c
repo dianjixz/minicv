@@ -4,7 +4,8 @@
 #include<time.h>
 #define random(x) (rand()%x)
 
-
+#include <time.h>
+#include <sys/time.h>
 void __DMB()
 {
 
@@ -29,19 +30,19 @@ void __WFI()
 {
 
 }
-void mp_hal_ticks_ms()
+long getTimems()
 {
-	
+    long tic;
+    struct timeval t;
+    gettimeofday(&t, 0);
+     
+    tic = (long)((long)t.tv_sec * 1000 * 1000 + t.tv_usec);
+    return tic/1000;
 }
-
-
-
-// void main()
-// {
-	
-// 	for (int x = 0; x < 10; x++)
-// 		printf("%d\n", random(100));
-// }
+long mp_hal_ticks_ms()
+{
+	return getTimems();
+}
 
 uint32_t rng_randint(uint32_t min, uint32_t max)
 {

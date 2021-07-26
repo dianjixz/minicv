@@ -37,6 +37,9 @@ print(minicv.draw_circle(120,200,50, c = 0xCCCCFF,thickness = 5,fill = False))
 
 print("  asdsad: ",minicv.get_pixel(10,10))
 
+print(minicv.find_lines())
+
+
 minicv.image_print()
 
 img = minicv.to_rgb24()
