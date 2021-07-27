@@ -1,1 +1,0 @@
-py_image_get_statistics

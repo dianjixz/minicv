@@ -1,6 +1,20 @@
 CFLAGS=  
 LIBS = -lm -lpython3.8 -lminiimg
-CC=gcc
+
+
+
+
+# CC=/opt/v831/toolchain-sunxi-musl/toolchain/bin/arm-openwrt-linux-muslgnueabi-gcc
+# INCLUDE =  -Iomv/imlib -Iomv/alloc -Iomv/common -Iomv/config -I/opt/v831/usr/include -I/opt/v831/toolchain-sunxi-musl/toolchain/usr/include -I/opt/v831/toolchain-sunxi-musl/toolchain/include -I/opt/v831/toolchain-sunxi-musl/toolchain/include/fortify -I/opt/v831/usr/include/python3.8
+# LIBDIR = -L./omv -L/opt/v831/usr/lib -L/opt/v831/lib -L/opt/v831/toolchain-sunxi-musl/toolchain/usr/lib -L/opt/v831/toolchain-sunxi-musl/toolchain/lib
+
+
+
+
+CC = gcc
+INCLUDE =  -Iomv/imlib -Iomv/alloc -Iomv/common -Iomv/config -I/usr/include/python3.8
+LIBDIR = -L./omv
+
 # OBJDIR=./build
 project=./minicv.so
 # C_SRC = $(wildcard *.c)  
@@ -8,8 +22,8 @@ C_SRC += py_modules/py_image.c
 C_SRC += py_modules/tanstation.c
 C_SRC += 
 
-INCLUDE =  -Iomv/imlib -Iomv/alloc -Iomv/common -Iomv/config -I/usr/include/python3.8
-LIBDIR = -L./omv
+
+
 
 LDFLAGS += -fPIC  -shared -Wl,-rpath=./omv -g
 CFLAGS += -fPIC -Wall -g

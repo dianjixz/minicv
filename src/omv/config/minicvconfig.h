@@ -14,7 +14,7 @@
 #define FA_READ
 #define FA_OPEN_EXISTING
 
-#define OMV_FB_ALLOC_SIZE  (1024 * 1024)// minimum fb alloc size
+#define OMV_FB_ALLOC_SIZE  (1024 * 1024 * 4)// minimum fb alloc size
 
 #define OMV_UMM_BLOCK_SIZE 256
 
@@ -216,7 +216,7 @@ __STATIC_FORCEINLINE uint32_t __USAT16(int32_t val, uint32_t sat)
 
 // #define IMLIB_ENABLE_FIND_CIRCLES 1
 // #define IMLIB_ENABLE_FIND_RECTS 1
-// #define IMLIB_ENABLE_QRCODES 1
+#define IMLIB_ENABLE_QRCODES 1
 
 // #define IMLIB_ENABLE_APRILTAGS 1
 
@@ -230,6 +230,8 @@ __STATIC_FORCEINLINE uint32_t __USAT16(int32_t val, uint32_t sat)
 // #define IMLIB_ENABLE_FIND_DISPLACEMENT 1
 
 // #define IMLIB_DRAW_IMAGE 1
+
+
 
 
 uint32_t rng_randint(uint32_t min, uint32_t max);

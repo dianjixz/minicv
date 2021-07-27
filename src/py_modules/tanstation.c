@@ -19,12 +19,13 @@ PyObject *back_img(image_t *img)
     {
     case IMAGE_BPP_BINARY:
     {
-
+        debug_line;
         break;
     }
     case IMAGE_BPP_GRAYSCALE:
     {
-
+        PyTuple_SetItem(th_tup, 0, PyBytes_FromStringAndSize(img->data, img->w * img->h));
+        debug_line;
         break;
     }
     case IMAGE_BPP_RGB565:
@@ -45,19 +46,29 @@ PyObject *back_img(image_t *img)
         }
         PyTuple_SetItem(th_tup, 0, PyBytes_FromStringAndSize(_888_data, img->w * img->h * 3));
         free(_888_data);
+        break;
     }
     case IMAGE_BPP_BAYER:
     {
+        debug_line;
+        
+        // PyTuple_SetItem(th_tup, 0, PyBytes_FromStringAndSize(img->data, img->w * img->h));
+        // for (int i = 0; i < 100; i++)
+        // {
+        //     // printf("nihao:%x\r\n", img->data[i]);
+        //     printf("nihao\r\n");
+        // }
 
         break;
     }
     default:
     {
+        debug_line;
         return Py_None;
         break;
     }
     }
-
+    debug_line;
     PyTuple_SetItem(th_tup, 1, PyLong_FromLong(img->w));
     PyTuple_SetItem(th_tup, 2, PyLong_FromLong(img->h));
     PyTuple_SetItem(th_tup, 3, PyLong_FromLong(img->bpp));

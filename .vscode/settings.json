@@ -10,6 +10,9 @@
 		"*.old": "cpp",
 		"framebuffer.h": "c",
 		"typeinfo": "c",
-		"stdio.h": "c"
+		"stdio.h": "c",
+		"*.tcc": "c",
+		"string": "c",
+		"string_view": "c"
 	}
 }

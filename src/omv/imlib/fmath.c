@@ -22,7 +22,7 @@ const float __atanf_lut[4] = {
     +0.9997878412794807f     //p1
 };
 
-#if (__ARM_ARCH < 7)
+// #if (__ARM_ARCH < 7)
 #include <math.h>
 float OMV_ATTR_ALWAYS_INLINE fast_sqrtf(float x)
 {
@@ -31,7 +31,7 @@ float OMV_ATTR_ALWAYS_INLINE fast_sqrtf(float x)
 
 int OMV_ATTR_ALWAYS_INLINE fast_floorf(float x)
 {
-    return floorf(x);
+    return (int)floorf(x);
 }
 
 int OMV_ATTR_ALWAYS_INLINE fast_ceilf(float x)
@@ -52,57 +52,57 @@ float OMV_ATTR_ALWAYS_INLINE fast_fabsf(float x)
 {
     return fabsf(x);
 }
-#else
-float OMV_ATTR_ALWAYS_INLINE fast_sqrtf(float x)
-{
-    asm volatile (
-            "vsqrt.f32  %[r], %[x]\n"
-            : [r] "=t" (x)
-            : [x] "t"  (x));
-    return x;
-}
+// #else
+// float OMV_ATTR_ALWAYS_INLINE fast_sqrtf(float x)
+// {
+//     asm volatile (
+//             "vsqrt.f32  %[r], %[x]\n"
+//             : [r] "=t" (x)
+//             : [x] "t"  (x));
+//     return x;
+// }
 
-int OMV_ATTR_ALWAYS_INLINE fast_floorf(float x)
-{
-    int i;
-    asm volatile (
-            "vcvt.S32.f32  %[r], %[x]\n"
-            : [r] "=t" (i)
-            : [x] "t"  (x));
-    return i;
-}
+// int OMV_ATTR_ALWAYS_INLINE fast_floorf(float x)
+// {
+//     int i;
+//     asm volatile (
+//             "vcvt.S32.f32  %[r], %[x]\n"
+//             : [r] "=t" (i)
+//             : [x] "t"  (x));
+//     return i;
+// }
 
-int OMV_ATTR_ALWAYS_INLINE fast_ceilf(float x)
-{
-    int i;
-    x += 0.9999f;
-    asm volatile (
-            "vcvt.S32.f32  %[r], %[x]\n"
-            : [r] "=t" (i)
-            : [x] "t"  (x));
-    return i;
-}
+// int OMV_ATTR_ALWAYS_INLINE fast_ceilf(float x)
+// {
+//     int i;
+//     x += 0.9999f;
+//     asm volatile (
+//             "vcvt.S32.f32  %[r], %[x]\n"
+//             : [r] "=t" (i)
+//             : [x] "t"  (x));
+//     return i;
+// }
 
-int OMV_ATTR_ALWAYS_INLINE fast_roundf(float x)
-{
-    int i;
-    asm volatile (
-            "vcvtr.s32.f32  %[r], %[x]\n"
-            : [r] "=t" (i)
-            : [x] "t"  (x));
-    return i;
-}
+// int OMV_ATTR_ALWAYS_INLINE fast_roundf(float x)
+// {
+//     int i;
+//     asm volatile (
+//             "vcvtr.s32.f32  %[r], %[x]\n"
+//             : [r] "=t" (i)
+//             : [x] "t"  (x));
+//     return i;
+// }
 
-float OMV_ATTR_ALWAYS_INLINE fast_fabsf(float x)
-{
-    asm volatile (
-            "vabs.f32  %[r], %[x]\n"
-            : [r] "=t" (x)
-            : [x] "t"  (x));
-    return x;
-}
+// float OMV_ATTR_ALWAYS_INLINE fast_fabsf(float x)
+// {
+//     asm volatile (
+//             "vabs.f32  %[r], %[x]\n"
+//             : [r] "=t" (x)
+//             : [x] "t"  (x));
+//     return x;
+// }
 
-#endif
+// #endif
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wstrict-aliasing"

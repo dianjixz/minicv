@@ -1,6 +1,20 @@
 CFLAGS=  
 LIBS = -lm
+
+# CC = /opt/v831/toolchain-sunxi-musl/toolchain/bin/arm-openwrt-linux-muslgnueabi-gcc
+# INCLUDE =  -Iomv/imlib -Iomv/alloc -Iomv/common -Iomv/config -I/opt/v831/usr/include -I/opt/v831/toolchain-sunxi-musl/toolchain/usr/include -I/opt/v831/toolchain-sunxi-musl/toolchain/include -I/opt/v831/toolchain-sunxi-musl/toolchain/include/fortify -I/opt/v831/usr/include/python3.8
+# LIBDIR = -L./omv -L/opt/v831/usr/lib -L/opt/v831/lib -L/opt/v831/toolchain-sunxi-musl/toolchain/usr/lib -L/opt/v831/toolchain-sunxi-musl/toolchain/lib
+
+
+
+
+
 CC = gcc
+INCLUDE =  -I$(MY_DIR)imlib -I$(MY_DIR)alloc -I$(MY_DIR)common -I$(MY_DIR)config
+
+
+
+
 mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
 MY_DIR := $(dir $(mkfile_path))
 # OBJDIR=./build
@@ -16,8 +30,6 @@ C_SRC += $(MY_DIR)common/ff_wrapper.c
 C_SRC += $(MY_DIR)common/ini.c
 C_SRC += $(MY_DIR)common/mutex.c
 C_SRC += $(MY_DIR)common/ringbuf.c
-
-
 
 
 C_SRC += $(MY_DIR)imlib/agast.c
@@ -78,51 +90,9 @@ C_SRC += $(MY_DIR)config/mini.c
 
 
 
-C_SRC +=
-C_SRC +=
-C_SRC += 
-C_SRC += 
-C_SRC += 
-C_SRC += 
-C_SRC += 
-C_SRC += 
-C_SRC += 
-C_SRC += 
-C_SRC += 
-C_SRC += 
-C_SRC += 
-C_SRC += 
-C_SRC += 
-C_SRC += 
-C_SRC += 
-C_SRC += 
-C_SRC +=
-C_SRC += 
-C_SRC += 
-C_SRC += 
-C_SRC += 
-C_SRC += 
-C_SRC +=
-C_SRC += 
-C_SRC += 
-C_SRC += 
-C_SRC += 
-C_SRC +=
-C_SRC += 
-C_SRC +=
-C_SRC += 
-C_SRC +=
-C_SRC +=
-C_SRC +=
-C_SRC +=
-C_SRC +=
-C_SRC += 
 
 
 
-
-
-INCLUDE =  -I$(MY_DIR)imlib -I$(MY_DIR)alloc -I$(MY_DIR)common -I$(MY_DIR)config
 
 LDFLAGS += -fPIC -shared -g
 CFLAGS += -fPIC -Wall -g

@@ -978,37 +978,50 @@ static mp_obj_t py_image_to(int bpp, const uint16_t *default_color_palette, bool
         }
     }
 
-    if (copy) {
-        if (copy_to_fb) {
+    if (copy)
+    {
+        if (copy_to_fb)
+        {
             py_helper_set_to_framebuffer(&dst_img);
-        } else {
+        }
+        else
+        {
             dst_img.data = xalloc(image_size(&dst_img));
         }
-    } else if (arg_other) {
+    }
+    else if (arg_other)
+    {
         bool fb = py_helper_is_equal_to_framebuffer(arg_other);
         size_t size = fb ? framebuffer_get_buffer_size() : image_size(arg_other);
         PY_ASSERT_TRUE_MSG((image_size(&dst_img) <= size),
-                "The new image won't fit in the target frame buffer!");
+                           "The new image won't fit in the target frame buffer!");
         // DO NOT MODIFY arg_other YET (as it could point to src_img)!
         dst_img.data = arg_other->data;
         py_helper_update_framebuffer(&dst_img);
-    } else {
+    }
+    else
+    {
         dst_img.data = xalloc(image_size(&dst_img));
     }
 
-    if (dst_img.bpp >= IMAGE_BPP_JPEG) {
-        if (dst_img.data != src_img->data) {
+    if (dst_img.bpp >= IMAGE_BPP_JPEG)
+    {
+        if (dst_img.data != src_img->data)
+        {
             memcpy(dst_img.data, src_img->data, dst_img.bpp);
         }
-    } else {
+    }
+    else
+    {
         fb_alloc_mark();
         imlib_draw_image(&dst_img, src_img, 0, 0, arg_x_scale, arg_y_scale, &arg_roi,
-                        arg_rgb_channel, arg_alpha, color_palette, alpha_palette,
-                        (hint & (~IMAGE_HINT_CENTER)) | IMAGE_HINT_BLACK_BACKGROUND, NULL, NULL);
+                         arg_rgb_channel, arg_alpha, color_palette, alpha_palette,
+                         (hint & (~IMAGE_HINT_CENTER)) | IMAGE_HINT_BLACK_BACKGROUND, NULL, NULL);
         fb_alloc_free_till_mark();
     }
 
-    if (arg_other) {
+    if (arg_other)
+    {
         arg_other->w = dst_img.w;
         arg_other->h = dst_img.h;
         arg_other->bpp = dst_img.bpp;

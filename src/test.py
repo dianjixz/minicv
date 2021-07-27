@@ -1,5 +1,6 @@
 import minicv
 from PIL import Image, ImageDraw
+import numpy as np
 
 canvas = Image.new("RGB", (240, 240), "#0000ff")
 draw = ImageDraw.Draw(canvas)
@@ -7,7 +8,7 @@ draw.rectangle(((0, 0), (100, 100)), fill="#00ff00")
 draw.rectangle(((150, 150), (100, 100)), fill="#FF0000")
 
 
-minicv.Image(canvas.tobytes(), w=240, h=240,bpp= 2)
+minicv.Image(canvas.tobytes(), w=240, h=240,bpp= minicv.IMAGE_BPP_RGB565)
 
 
 # print(minicv.to_rgb24())
@@ -23,7 +24,7 @@ assert (0, 0, 0) == minicv.binary_to_rgb(0)
 assert (255, 255, 255) == minicv.binary_to_rgb(1)
 
 
-print("binary_to_grayscale:1",minicv.binary_to_grayscale(1,nihao = False))
+print("binary_to_grayscale:1",minicv.binary_to_grayscale(1))
 # print("binary_to_grayscale:0",minicv.binary_to_grayscale(0))
 
 print("binary_to_rgb:0",minicv.binary_to_rgb(0))
@@ -55,3 +56,33 @@ mm = Image.frombytes(mode="RGB", size=(240,240), data=img[0], decoder_name="raw"
 print(minicv.width())
 
 mm.show()
+
+
+# img = Image.open("/home/nihao/nihao.png")
+# # img.show()
+# print(img.format,img.size,img.mode)
+# img = img.convert('RGB')
+# print(img.format,img.size,img.mode)
+
+minicv.Image(canvas.tobytes(), w=canvas.width, h=canvas.height ,bpp= minicv.IMAGE_BPP_RGB565)
+
+# print(img.tobytes())
+# mda = np.array(img)
+# print(mda)
+mka = minicv.to_grayscale()
+# print(mka)
+
+# mm = Image.frombytes(mode="L", size=(260,260), data=mka[0], decoder_name="raw")
+# mm.show()
+
+# print("find_qrcodes",minicv.find_qrcodes())
+
+# imgb = minicv.to_rgb24()
+# mm = Image.frombytes(mode="RGB", size=img.size, data=imgb[0], decoder_name="raw")
+# mm.show()
+
+
+
+
+
+

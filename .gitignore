@@ -1,3 +1,4 @@
 src/omv/libminiimg.so
 src/minicv.so
 *.o
+src/core*

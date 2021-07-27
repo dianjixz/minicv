@@ -31,7 +31,7 @@ void mutex_init0(omv_mutex_t *mutex)
 
 static void _mutex_lock(omv_mutex_t *mutex, uint32_t tid, bool blocking)
 {
-    #if (__ARM_ARCH < 7)
+    // #if (__ARM_ARCH < 7)
     do {
         __disable_irq();
         if (mutex->lock == 0) {
@@ -40,17 +40,17 @@ static void _mutex_lock(omv_mutex_t *mutex, uint32_t tid, bool blocking)
         }
         __enable_irq();
     } while (mutex->tid != tid && blocking);
-    #else
-    do {
-        // Attempt to lock the mutex
-        if (__LDREXW(&mutex->lock) == 0) {
-            if (__STREXW(1, &mutex->lock) == 0) {
-                // Set TID if mutex is locked
-                mutex->tid = tid;
-            }
-        }
-    } while (mutex->tid != tid && blocking);
-    #endif
+    // #else
+    // do {
+    //     // Attempt to lock the mutex
+    //     if (__LDREXW(&mutex->lock) == 0) {
+    //         if (__STREXW(1, &mutex->lock) == 0) {
+    //             // Set TID if mutex is locked
+    //             mutex->tid = tid;
+    //         }
+    //     }
+    // } while (mutex->tid != tid && blocking);
+    // #endif
     __DMB();
 }
 
