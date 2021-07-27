@@ -33,7 +33,7 @@ print("binary_to_rgb:1",minicv.binary_to_rgb(1))
 print(minicv.draw_line(0, 0, 100, 100, 0xFFFF66, 5))
 
 print(minicv.draw_rectangle(100, 0, 100, 100, 0xCCCCFF, 5,fill = True))
-print(minicv.draw_circle(120,200,50, c = 0xCCCCFF,thickness = 5,fill = False))
+print(minicv.draw_circle(120,200,50, c = 0xCCCCFF,thickness = 5,fill = True))
 
 print("  asdsad: ",minicv.get_pixel(10,10))
 
