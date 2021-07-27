@@ -29,6 +29,9 @@ print("binary_to_grayscale:1",minicv.binary_to_grayscale(1,nihao = False))
 print("binary_to_rgb:0",minicv.binary_to_rgb(0))
 print("binary_to_rgb:1",minicv.binary_to_rgb(1))
 
+print("py_image_binary_to_lab",minicv.binary_to_lab(0))
+print("py_image_binary_to_lab",minicv.binary_to_lab(1))
+
 
 print(minicv.draw_line(0, 0, 100, 100, 0xFFFF66, 5))
 
@@ -36,6 +39,14 @@ print(minicv.draw_rectangle(100, 0, 100, 100, 0xCCCCFF, 5,fill = True))
 print(minicv.draw_circle(120,200,50, c = 0xCCCCFF,thickness = 5,fill = True))
 
 print("  asdsad: ",minicv.get_pixel(10,10))
+
+print(minicv.find_lines())
+# for i in minicv.find_lines():
+# 	minicv.draw_line(i["x1"], i["y1"], i["x2"], i["y2"], 0x00FF66, 2)
+print(minicv.find_line_segments())
+# for i in minicv.find_line_segments():
+# 	minicv.draw_line(i["x1"], i["y1"], i["x2"], i["y2"], 0xFFFF66, 2)
+
 
 minicv.image_print()
 

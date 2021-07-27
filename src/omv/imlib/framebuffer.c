@@ -18,17 +18,12 @@
 #define CONSERVATIVE_JPEG_BUF_SIZE  (OMV_JPEG_BUF_SIZE-64)
 
 
-char _jpeg_buf[OMV_JPEG_BUF_SIZE];
+extern char *_fb_base;
+framebuffer_t *framebuffer ;
 
-char _fb_base[OMV_FB_SIZE];
+extern char *_jpeg_buf;
 
-
-
-// extern char _fb_base;
-framebuffer_t *framebuffer = (framebuffer_t *) _fb_base;
-
-// extern char _jpeg_buf;
-jpegbuffer_t *jpeg_framebuffer = (jpegbuffer_t *) _jpeg_buf;
+jpegbuffer_t *jpeg_framebuffer ;
 
 void fb_set_streaming_enabled(bool enable)
 {
@@ -81,6 +76,8 @@ void fb_encode_for_ide(uint8_t *ptr, image_t *img)
 
 void framebuffer_init0()
 {
+    framebuffer = (framebuffer_t *)_fb_base;
+    jpeg_framebuffer = (jpegbuffer_t *)_jpeg_buf;
     // Save fb_enabled flag state
     int fb_enabled = JPEG_FB()->enabled;
 
@@ -123,7 +120,7 @@ static void initialize_jpeg_buf_from_image(image_t *img)
         jpeg_framebuffer->size = img->bpp;
     }
 }
-#ifdef NO_WORK
+
 void framebuffer_update_jpeg_buffer()
 {
     static int overflow_count = 0;
@@ -198,7 +195,7 @@ void framebuffer_update_jpeg_buffer()
     }
 }
 
-#endif
+
 
 int32_t framebuffer_get_x()
 {
