@@ -1435,24 +1435,4 @@ int imlib_affine(image_t* src_img, image_t* dst_img, float* TT);
 
 
 
-
-
-
-
-
-
-
-
-int rgb565_to_rgb888(const void * psrc, int w, int h, void * pdst);
-int rgb888_to_rgb565(const void * psrc, int w, int h, void * pdst);
-
-unsigned short RGB888ToRGB565(unsigned int n888Color);
-unsigned int RGB565ToRGB888(unsigned short n565Color);
-
-void rgb888_to_rgb565_img(image_t *img_in,image_t *img_out);
-
-int rgb565_to_rgb888_img(image_t *img_in,image_t *img_out);
-
-
-
 #endif //__IMLIB_H__

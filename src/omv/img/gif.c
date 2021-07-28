@@ -6,12 +6,12 @@
  * A super simple GIF encoder.
  *
  */
-#include <mp.h>
 #include "fb_alloc.h"
 #include "vfs_wrapper.h"
 #include "imlib.h"
 #define BLOCK_SIZE (126) // (2^7) - 2 // (DO NOT CHANGE!)
 
+#ifdef END_GIF
 void gif_open(mp_obj_t fp, int width, int height, bool color, bool loop)
 {
     file_buffer_on(fp);
@@ -114,3 +114,5 @@ void gif_close(mp_obj_t fp)
     write_byte(fp, ';');
     file_close(fp);
 }
+
+#endif

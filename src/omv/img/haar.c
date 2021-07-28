@@ -167,7 +167,8 @@ int imlib_load_cascade_from_file(cascade_t *cascade, const char *path)
 {
     int i;
     mp_obj_t fp;
-    FRESULT res=FR_OK;
+    // FRESULT res=FR_OK;
+    int res = 0;
 
     file_read_open_raise(&fp, path);
     file_buffer_on(&fp);
@@ -291,7 +292,7 @@ int imlib_load_cascade(cascade_t *cascade, const char *path)
     for (i=0, cascade->n_rectangles=0; i<cascade->n_features; i++) {
         cascade->n_rectangles += cascade->num_rectangles_array[i];
     }
-    return FR_OK;
+    return 0;
 }
 
 #endif //OMV_MINIMUM
