@@ -1430,7 +1430,7 @@ void pix_fill_yuv(uint32_t idx, int8_t* y, int8_t* u, int8_t* v);
 void imlib_affine_getTansform(uint16_t *src, uint16_t *dst, uint16_t cnt, float* TT);
 int imlib_affine_ai(image_t* src_img, image_t* dst_img, float* TT);
 int imlib_affine(image_t* src_img, image_t* dst_img, float* TT);
-
+void imlib_zero(image_t *img, image_t *mask, bool invert);
 
 
 

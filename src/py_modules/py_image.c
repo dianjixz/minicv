@@ -171,9 +171,6 @@ py_image_binary_to_yuv(PyObject *self, PyObject *args, PyObject *keywds)
     int YY = COLOR_RGB565_TO_Y(rgb565);
     int UU = COLOR_RGB565_TO_U(rgb565);
     int VV = COLOR_RGB565_TO_V(rgb565);
-
-
-
     return Py_BuildValue("iii", YY, UU, VV);
 }
 
@@ -857,10 +854,10 @@ py_image_get_statistics(PyObject *self, PyObject *args, PyObject *keywds)
         hist.ABinCount = 0;
         hist.BBinCount = 0;
         fb_alloc_mark();
-        hist.LBins = fb_alloc(hist.LBinCount * sizeof(float), FB_ALLOC_NO_HINT);
+        hist.LBins = fb_alloc(hist.LBinCount * sizeof(float));
         hist.ABins = NULL;
         hist.BBins = NULL;
-        imlib_get_histogram(&hist, arg_img, &roi, &thresholds, invert, other);
+        imlib_get_histogram(&hist, arg_img, &roi, &thresholds, invert);
         list_free(&thresholds);
         break;
     }
@@ -876,10 +873,10 @@ py_image_get_statistics(PyObject *self, PyObject *args, PyObject *keywds)
         hist.ABinCount = 0;
         hist.BBinCount = 0;
         fb_alloc_mark();
-        hist.LBins = fb_alloc(hist.LBinCount * sizeof(float), FB_ALLOC_NO_HINT);
+        hist.LBins = fb_alloc(hist.LBinCount * sizeof(float));
         hist.ABins = NULL;
         hist.BBins = NULL;
-        imlib_get_histogram(&hist, arg_img, &roi, &thresholds, invert, other);
+        imlib_get_histogram(&hist, arg_img, &roi, &thresholds, invert);
         list_free(&thresholds);
         break;
     }
@@ -909,10 +906,10 @@ py_image_get_statistics(PyObject *self, PyObject *args, PyObject *keywds)
         // py_helper_keyword_int(n_args, args, n_args, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_b_bins), b_bins);
         // PY_ASSERT_TRUE_MSG(hist.BBinCount >= 2, "b_bins must be >= 2");
         fb_alloc_mark();
-        hist.LBins = fb_alloc(hist.LBinCount * sizeof(float), FB_ALLOC_NO_HINT);
-        hist.ABins = fb_alloc(hist.ABinCount * sizeof(float), FB_ALLOC_NO_HINT);
-        hist.BBins = fb_alloc(hist.BBinCount * sizeof(float), FB_ALLOC_NO_HINT);
-        imlib_get_histogram(&hist, arg_img, &roi, &thresholds, invert, other);
+        hist.LBins = fb_alloc(hist.LBinCount * sizeof(float));
+        hist.ABins = fb_alloc(hist.ABinCount * sizeof(float));
+        hist.BBins = fb_alloc(hist.BBinCount * sizeof(float));
+        imlib_get_histogram(&hist, arg_img, &roi, &thresholds, invert);
         list_free(&thresholds);
         break;
     }
@@ -5196,10 +5193,10 @@ py_image_find_eye(PyObject *self, PyObject *args, PyObject *keywds)
 // }
 
 static PyMethodDef imageMethods[] = {
-    {"Image", py_image_img_data_load, METH_VARARGS | METH_KEYWORDS, "python to c module image!"},
-    {"img_free", py_image_img_data_free, METH_VARARGS, "free img !"},
+    {"Image",  (PyCFunction)py_image_img_data_load, METH_VARARGS | METH_KEYWORDS, "python to c module image!"},
+    {"img_free",  (PyCFunction)py_image_img_data_free, METH_VARARGS, "free img !"},
     {"to_rgb24", (PyCFunction)py_img_torgb24, METH_VARARGS, "back an rgb888 img !"},
-    {"image_print", py_image_print, METH_VARARGS, "print img !"},
+    {"image_print",  (PyCFunction)py_image_print, METH_VARARGS, "print img !"},
     {"binary_to_grayscale", (PyCFunction)py_image_binary_to_grayscale, METH_VARARGS | METH_KEYWORDS, "img draw line"},
     {"binary_to_rgb", (PyCFunction)py_image_binary_to_rgb, METH_VARARGS | METH_KEYWORDS, "img draw line"},
     {"binary_to_lab", (PyCFunction)py_image_binary_to_lab, METH_VARARGS | METH_KEYWORDS, "img draw line"},
@@ -5245,8 +5242,8 @@ static PyMethodDef imageMethods[] = {
     {"find_eye", (PyCFunction)py_image_find_eye, METH_VARARGS | METH_KEYWORDS, "img draw line"},
     {"find_lines", (PyCFunction)py_image_find_lines, METH_VARARGS | METH_KEYWORDS, "img draw line"},
     {"find_line_segments", (PyCFunction)py_image_find_line_segments, METH_VARARGS | METH_KEYWORDS, "img draw line"},
-    // {"get_statistics", (PyCFunction)py_image_get_statistics, METH_VARARGS | METH_KEYWORDS, "find blob !"},
-    // {"find_qrcodes", (PyCFunction)py_image_find_qrcodes, METH_VARARGS | METH_KEYWORDS, "find blob !"},
+    {"get_statistics", (PyCFunction)py_image_get_statistics, METH_VARARGS | METH_KEYWORDS, "find blob !"},
+    {"find_qrcodes", (PyCFunction)py_image_find_qrcodes, METH_VARARGS | METH_KEYWORDS, "find blob !"},
     // {"to_grayscale", (PyCFunction)py_image_to_grayscale, METH_VARARGS | METH_KEYWORDS, "find blob !"},
 
 

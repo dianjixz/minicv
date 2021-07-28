@@ -113,7 +113,7 @@
 // #define IMLIB_ENABLE_FIND_RECTS
 
 // Enable find_qrcodes() (14 KB)
-// #define IMLIB_ENABLE_QRCODES
+#define IMLIB_ENABLE_QRCODES
 
 // Enable find_apriltags() (64 KB)
 // #define IMLIB_ENABLE_APRILTAGS
@@ -123,6 +123,10 @@
 
 // Enable find_barcodes() (42 KB)
 // #define IMLIB_ENABLE_BARCODES
+
+
+#define IMLIB_ENABLE_GET_STATISTICS
+
 
 // Enable LENET (200+ KB).
 #define IMLIB_ENABLE_LENET

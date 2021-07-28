@@ -23,7 +23,47 @@
 // Point Stuff //
 /////////////////
 
-
+void imlib_zero(image_t *img, image_t *mask, bool invert)
+{
+    switch(img->bpp) {
+        case IMAGE_BPP_BINARY: {
+            for (int y = 0, yy = img->h; y < yy; y++) {
+                uint32_t *row_ptr = IMAGE_COMPUTE_BINARY_PIXEL_ROW_PTR(img, y);
+                for (int x = 0, xx = img->w; x < xx; x++) {
+                    if (image_get_mask_pixel(mask, x, y) ^ invert) {
+                        IMAGE_PUT_BINARY_PIXEL_FAST(row_ptr, x, 0);
+                    }
+                }
+            }
+            break;
+        }
+        case IMAGE_BPP_GRAYSCALE: {
+            for (int y = 0, yy = img->h; y < yy; y++) {
+                uint8_t *row_ptr = IMAGE_COMPUTE_GRAYSCALE_PIXEL_ROW_PTR(img, y);
+                for (int x = 0, xx = img->w; x < xx; x++) {
+                    if (image_get_mask_pixel(mask, x, y) ^ invert) {
+                        IMAGE_PUT_GRAYSCALE_PIXEL_FAST(row_ptr, x, 0);
+                    }
+                }
+            }
+            break;
+        }
+        case IMAGE_BPP_RGB565: {
+            for (int y = 0, yy = img->h; y < yy; y++) {
+                uint16_t *row_ptr = IMAGE_COMPUTE_RGB565_PIXEL_ROW_PTR(img, y);
+                for (int x = 0, xx = img->w; x < xx; x++) {
+                    if (image_get_mask_pixel(mask, x, y) ^ invert) {
+                        IMAGE_PUT_RGB565_PIXEL_FAST(row_ptr, x, 0);
+                    }
+                }
+            }
+            break;
+        }
+        default: {
+            break;
+        }
+    }
+}
 void point_init(point_t *ptr, int x, int y)
 {
     ptr->x = x;

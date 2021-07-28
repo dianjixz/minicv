@@ -21,7 +21,7 @@ C_SRC += $(MY_DIR)fb_alloc.c
 C_SRC += $(MY_DIR)umm_malloc.c
 C_SRC += $(MY_DIR)xalloc.c
 C_SRC += $(MY_DIR)framebuffer.c
-
+C_SRC += $(MY_DIR)omv.c
 
 C_SRC += $(MY_DIR)array.c
 # C_SRC += $(MY_DIR)vfs_wrapper.c
