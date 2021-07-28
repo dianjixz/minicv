@@ -20,8 +20,7 @@ NORETURN  void umm_alloc_fail()
     // mp_raise_msg(&mp_type_MemoryError,
     //     MP_ERROR_TEXT("Out of temporary Frame Buffer Heap Memory!"
     //     " Please reduce the resolution of the image you are running this algorithm on to bypass this issue!"));
-        DBGLOG_ERROR("Out of temporary Frame Buffer Heap Memory!"
-        " Please reduce the resolution of the image you are running this algorithm on to bypass this issue!");
+        DBGLOG_ERROR("Out of temporary Frame Buffer Heap Memory! Please reduce the resolution of the image you are running this algorithm on to bypass this issue!");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -420,18 +419,11 @@ void *umm_malloc( size_t size ) {
 
     DBGLOG_TRACE( "Looking at block %6i size %6i\n", cf, blockSize );
 
-#if defined UMM_BEST_FIT
     if( (blockSize >= blocks) && (blockSize < bestSize) ) {
       bestBlock = cf;
       bestSize  = blockSize;
     }
-#elif defined UMM_FIRST_FIT
-    /* This is the first block that fits! */
-    if( (blockSize >= blocks) )
-      break;
-#else
-#  error "No UMM_*_FIT is defined - check umm_malloc_cfg.h"
-#endif
+
 
     cf = UMM_NFREE(cf);
   }
