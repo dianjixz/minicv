@@ -1,1 +1,0 @@
-framebuffer_reset_buffers
