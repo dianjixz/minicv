@@ -10,8 +10,8 @@
 #define __OMV_BOARDCONFIG_H__
 
 #include "imlib_config.h"
-#include "lcd.h"
-#include "global_config.h"
+// #include "lcd.h"
+// #include "global_config.h"
 
 #define OMV_INIT_BPP 2
 
@@ -20,11 +20,11 @@
 #define IDE_DBG_CMD_START_FLAG 0x30
 
 #if !defined(OMV_MINIMUM) || CONFIG_MAIXPY_IDE_SUPPORT
-  #define OMV_JPEG_BUF_SIZE 23 * 1024 // IDE JPEG buffer (header + data).
+  #define OMV_JPEG_BUF_SIZE 512 * 1024 // IDE JPEG buffer (header + data).
 #endif
 
 #ifndef OMV_MINIMUM
-#define OMV_FB_ALLOC_SIZE 700 * 1024 // minimum fb alloc size
+#define OMV_FB_ALLOC_SIZE 1024 * 1024 // minimum fb alloc size
 #define FB_MAX_ALLOC_TIMES    100
 
 #else  //OMV_MINIMUM
@@ -34,7 +34,7 @@
 
 #endif //OMV_MINIMUM
 
-#include "dvp.h"
+// #include "dvp.h"
 #define DCMI_RESET_LOW()      dvp->cmos_cfg &= ~DVP_CMOS_RESET
 #define DCMI_RESET_HIGH()     dvp->cmos_cfg |= DVP_CMOS_RESET
 #define DCMI_PWDN_LOW()       dvp->cmos_cfg &= ~DVP_CMOS_POWER_DOWN

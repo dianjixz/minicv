@@ -9,7 +9,7 @@
 // #include <mp.h>
 #include "fb_alloc.h"
 #include "framebuffer.h"
-// #include "omv_boardconfig.h"
+#include "omv_boardconfig.h"
 #include "stdlib.h"
 // #include <stdint.h>
 #include <stdio.h>
@@ -20,7 +20,7 @@
 #define NORETURN __attribute__((noreturn))
 #ifndef OMV_MINIMUM
 #define OMV_FB_ALLOC_SIZE 700 * 1024 // minimum fb alloc size
-#define FB_MAX_ALLOC_TIMES    100
+#define FB_MAX_ALLOC_TIMES    1024*16
 
 #else  //OMV_MINIMUM
 

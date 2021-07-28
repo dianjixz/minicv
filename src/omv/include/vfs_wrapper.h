@@ -1,11 +1,16 @@
 #ifndef __VFS_WRAPPER_H
 #define __VFS_WRAPPER_H
 
+#include "stdio.h"
 #include "stdint.h"
 #include "stdbool.h"
+#include "imlib.h"
 // #include "py/mpconfig.h"
 // #include "vfs_internal.h"
 
+// #define mp_obj_t FILE
+#define mp_int_t int
+#define mp_uint_t unsigned int
 int file_write_open_raise(mp_obj_t* fp, const char *path);
 int file_read_open_raise(mp_obj_t* fp, const char *path);
 int file_write_open(mp_obj_t* fp, const char *path);
@@ -22,7 +27,7 @@ void file_buffer_off(mp_obj_t fp);
 void fs_unsupported_format(mp_obj_t fp);
 void fs_file_corrupted(mp_obj_t fp);
 void fs_not_equal(mp_obj_t fp);
-void fs_no_intersection(mp_obj_t fp);
+void fs_no_intersection(mp_obj_t *fp);
 
 
 

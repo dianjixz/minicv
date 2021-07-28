@@ -18,6 +18,11 @@
 #include "fb_alloc.h"
 #include "vfs_wrapper.h"
 
+
+#define
+
+
+
 #ifndef OMV_MINIMUM
 
 #define PATCH_SIZE  (31) // 31x31 pixels

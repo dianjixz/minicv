@@ -2,7 +2,11 @@
 #include "imlib.h"
 #include "xalloc.h"
 #include "fb_alloc.h"
+#include <stdint.h>
 // #include "gc.h"
+
+
+#define byte char
 
 #ifdef IMLIB_ENABLE_FAST
 
@@ -155,7 +159,7 @@ static void nonmax_suppression(corner_t *corners, int num_corners, array_t *keyp
     }
 }
 
-static int fast9_corner_score(const byte* p, int bstart)
+static int fast9_corner_score(const byte *p, int bstart)
 {    
     int bmin = bstart;
     int bmax = 255;

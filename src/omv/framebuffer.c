@@ -46,6 +46,7 @@ uint32_t fb_buffer_size()
         }
     }
 }
+#ifdef END_JPEG
 void fb_update_jpeg_buffer()
 {
 #if !defined(OMV_MINIMUM)|| CONFIG_MAIXPY_IDE_SUPPORT
@@ -138,3 +139,4 @@ void fb_update_jpeg_buffer()
     }
 #endif
 }
+#endif

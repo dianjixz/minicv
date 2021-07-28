@@ -5,8 +5,7 @@
 // #include "imdefs.h"
 #include "imlib.h"
 #include "tanstation.h"
-#include "framebuffer.h"
-#include "minicvconfig.h"
+// #include "minicvconfig.h"
 // #include "py_helper.h"
 // #define debug_line printf("[%s %s] %s:%d: %s\n", __DATE__, __TIME__, __FILE__, __LINE__, __func__)
 
@@ -460,24 +459,20 @@ py_image_yuv_to_lab(PyObject *self, PyObject *args, PyObject *keywds)
 #ifdef IMLIB_ENABLE_GET_SIMILARITY
 // Similarity Object //
 #define py_similarity_obj_size 4
-typedef struct py_similarity_obj
-{
-    mp_obj_base_t base;
-    mp_obj_t avg, std, min, max;
-} py_similarity_obj_t;
 
-static void py_similarity_print(const mp_print_t *print, mp_obj_t self_in, mp_print_kind_t kind)
-{
-    py_similarity_obj_t *self = self_in;
-    mp_printf(print,
-              "{\"mean\":%f, \"stdev\":%f, \"min\":%f, \"max\":%f}",
-              (double)mp_obj_get_float(self->avg),
-              (double)mp_obj_get_float(self->std),
-              (double)mp_obj_get_float(self->min),
-              (double)mp_obj_get_float(self->max));
-}
+// static void py_similarity_print(const mp_print_t *print, mp_obj_t self_in, mp_print_kind_t kind)
+// {
+//     py_similarity_obj_t *self = self_in;
+//     mp_printf(print,
+//               "{\"mean\":%f, \"stdev\":%f, \"min\":%f, \"max\":%f}",
+//               (double)mp_obj_get_float(self->avg),
+//               (double)mp_obj_get_float(self->std),
+//               (double)mp_obj_get_float(self->min),
+//               (double)mp_obj_get_float(self->max));
+// }
 
-static mp_obj_t py_similarity_subscr(mp_obj_t self_in, mp_obj_t index, mp_obj_t value)
+static PyObject *
+py_similarity_subscr(PyObject *self, PyObject *args, PyObject *keywds)
 {
     if (value == MP_OBJ_SENTINEL)
     { // load
@@ -1863,21 +1858,28 @@ py_image_height(PyObject *self, PyObject *args, PyObject *keywds)
     return Py_BuildValue("i", self_image_img.h);
 }
 
+    // IMAGE_BPP_BINARY,       // BPP = 0
+    // IMAGE_BPP_GRAYSCALE,    // BPP = 1
+    // IMAGE_BPP_RGB565,       // BPP = 2
+    // IMAGE_BPP_BAYER,        // BPP = 3
+    // IMAGE_BPP_JPEG,         // BPP = 4
+
+
 static PyObject *
 py_image_format(PyObject *self, PyObject *args)
 {
     switch (self_image_img.bpp)
     {
     case IMAGE_BPP_BINARY:
-        return Py_BuildValue("i", PIXFORMAT_BINARY);
+        return Py_BuildValue("i", IMAGE_BPP_BINARY);
     case IMAGE_BPP_GRAYSCALE:
-        return Py_BuildValue("i", PIXFORMAT_GRAYSCALE);
+        return Py_BuildValue("i", IMAGE_BPP_GRAYSCALE);
     case IMAGE_BPP_RGB565:
-        return Py_BuildValue("i", PIXFORMAT_RGB565);
+        return Py_BuildValue("i", IMAGE_BPP_RGB565);
     case IMAGE_BPP_BAYER:
-        return Py_BuildValue("i", PIXFORMAT_BAYER);
+        return Py_BuildValue("i", IMAGE_BPP_BAYER);
     default:
-        return Py_BuildValue("i", PIXFORMAT_JPEG);
+        return Py_BuildValue("i", IMAGE_BPP_JPEG);
     }
 }
 
@@ -2106,29 +2108,29 @@ py_image_set_pixel(PyObject *self, PyObject *args, PyObject *keywds)
 
 
 
-void py_helper_set_to_framebuffer(image_t *img)
-{
-    #if MICROPY_PY_SENSOR
-    sensor_set_framebuffers(1);
-    #else
-    framebuffer_set_buffers(1);
-    #endif
-    debug_line;
-    // PY_ASSERT_TRUE_MSG((image_size(img) <= framebuffer_get_buffer_size()),
-    //         "The image doesn't fit in the frame buffer!");
-    framebuffer_set(img->w, img->h, img->bpp);
-    img->data = framebuffer_get_buffer(framebuffer->head)->data;
-}
-bool py_helper_is_equal_to_framebuffer(image_t *img)
-{
-    return framebuffer_get_buffer(framebuffer->head)->data == img->data;
-}
-void py_helper_update_framebuffer(image_t *img)
-{
-    if (py_helper_is_equal_to_framebuffer(img)) {
-        framebuffer_set(img->w, img->h, img->bpp);
-    }
-}
+// void py_helper_set_to_framebuffer(image_t *img)
+// {
+//     #if MICROPY_PY_SENSOR
+//     sensor_set_framebuffers(1);
+//     #else
+//     framebuffer_set_buffers(1);
+//     #endif
+//     debug_line;
+//     // PY_ASSERT_TRUE_MSG((image_size(img) <= framebuffer_get_buffer_size()),
+//     //         "The image doesn't fit in the frame buffer!");
+//     framebuffer_set(img->w, img->h, img->bpp);
+//     img->data = framebuffer_get_buffer(framebuffer->head)->data;
+// }
+// bool py_helper_is_equal_to_framebuffer(image_t *img)
+// {
+//     return framebuffer_get_buffer(framebuffer->head)->data == img->data;
+// }
+// void py_helper_update_framebuffer(image_t *img)
+// {
+//     if (py_helper_is_equal_to_framebuffer(img)) {
+//         framebuffer_set(img->w, img->h, img->bpp);
+//     }
+// }
 // image_t *py_helper_arg_to_image_mutable_bayer(const mp_obj_t arg)
 // {
 //     image_t *arg_img = py_image_cobj(arg);
@@ -2142,251 +2144,251 @@ void py_helper_update_framebuffer(image_t *img)
 // }
 
 //不允许使用复制功能
-static PyObject *
-py_image_to(int bpp, const uint16_t *default_color_palette, bool copy_to_fb,PyObject *self, PyObject *args, PyObject *keywds)
-{
-    image_t *src_img = &self_image_img;
-    // PyObject *img_tuple ;
-    // PyObject *img_data;
-    // PyObject *img_w;
-    // PyObject *img_h;
-    float arg_x_scale = 1.f;
-    float arg_y_scale = 1.f;
-    rectangle_t arg_roi;
-    PyObject *py_roi = Py_None;
-    int arg_rgb_channel = 0;
-    int arg_alpha = 0;
-    const uint16_t *color_palette = NULL;
-    const uint8_t *alpha_palette = NULL;
-    PyObject *py_color_palette = Py_None;
-    PyObject *py_alpha_palette = Py_None;
-    image_hint_t hint ;
-    int arg_x_size = 0;
-    int arg_y_size = 0;
-    // mp_obj_t copy_obj ;
-    bool copy = false;
-    static char *kwlist[] = {"x_scale", "y_scale", "roi", "rgb_channel", "alpha", "color_palette","alpha_palette", "hint","x_size","y_size","copy",NULL};
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "|ffOiiOOiiii", kwlist,
-                                     &arg_x_scale, &arg_y_scale, &py_roi, &arg_rgb_channel, &arg_alpha, &py_color_palette,&py_alpha_palette,&hint,&arg_x_size,&arg_y_size,&copy))
-        return NULL;
-    // Py_DECREF(py_color_palette);
-    // Py_DECREF(py_alpha_palette);
-    debug_line;
-    roi_tan(py_roi, &arg_roi, src_img->w, src_img->h);
-
-    debug_line;
-    bool got_x_scale = (arg_x_scale == 1.f) ? 0 : 1 ;
-    bool got_y_scale = (arg_y_scale == 1.f) ? 0 : 1 ;
-
-debug_line;
-    bool got_x_size =(arg_x_size == 0) ? 0 : 1 ;
-    bool got_y_size = (arg_y_size == 0) ? 0 : 1 ;
-
-    copy = false;
-
-debug_line;
-
-    if ((arg_rgb_channel < -1) || (2 < arg_rgb_channel)) {
-        // mp_raise_msg(&mp_type_ValueError, MP_ERROR_TEXT("-1 <= rgb_channel <= 2!"));
-        debug_line;
-        return NULL;
-    }
-
-    if ((arg_alpha < 0) || (256 < arg_alpha)) {
-        // mp_raise_msg(&mp_type_ValueError, MP_ERROR_TEXT("0 <= alpha <= 256!"));
-        debug_line;
-        return NULL;
-    }
-
-debug_line;
-    if (got_x_scale && got_x_size) {
-        // mp_raise_msg(&mp_type_ValueError, MP_ERROR_TEXT("Choose either x_scale or x_size not both!"));
-        debug_line;
-        return NULL;
-    }
-
-    if (got_y_scale && got_y_size) {
-        // mp_raise_msg(&mp_type_ValueError, MP_ERROR_TEXT("Choose either y_scale or y_size not both!"));
-        debug_line;
-        return NULL;
-    }
-debug_line;
-    if (got_x_size)
-    {
-        arg_x_scale = arg_x_size / ((float)arg_roi.w);
-    }
-
-    if (got_y_size)
-    {
-        arg_y_scale = arg_y_size / ((float)arg_roi.h);
-    }
-
-    if ((!got_x_scale) && (!got_x_size) && got_y_size)
-    {
-        arg_x_scale = arg_y_scale;
-    }
-debug_line;
-    if ((!got_y_scale) && (!got_y_size) && got_x_size)
-    {
-        arg_y_scale = arg_x_scale;
-    }
-
-    image_t *arg_other = copy_to_fb ? NULL : src_img;
-
-    // if (copy_obj)
-    // {
-    //     if (mp_obj_is_integer(copy_obj))
-    //     {
-    //         copy = mp_obj_get_int(copy_obj);
-    //     }
-    //     else
-    //     {
-    //         arg_other = py_helper_arg_to_image_mutable_bayer(copy_obj);
-    //     }
-    // }
-
-    // if (copy_to_fb && copy) {
-    //     framebuffer_update_jpeg_buffer();
-    // }
-
-    image_t dst_img;
-    dst_img.w = fast_floorf(arg_roi.w * arg_x_scale);
-    dst_img.h = fast_floorf(arg_roi.h * arg_y_scale);
-    dst_img.bpp = (bpp >= 0) ? bpp : src_img->bpp;
-debug_line;
-    if (dst_img.bpp == IMAGE_BPP_BAYER)
-    {
-        if (((arg_x_scale != 1) && (arg_x_scale != -1)) ||
-            ((arg_y_scale != 1) && (arg_y_scale != -1)) ||
-            (arg_rgb_channel != -1) ||
-            (arg_alpha != 256) ||
-            (color_palette != NULL) ||
-            (alpha_palette != NULL))
-        {
-            debug_line;
-            // mp_raise_msg(&mp_type_ValueError, MP_ERROR_TEXT("Only bayer copying/cropping is supported!"));
-            return NULL;
-        }
-        else
-        {
-            hint &= ~(IMAGE_HINT_AREA |
-                      IMAGE_HINT_BICUBIC |
-                      IMAGE_HINT_BILINEAR |
-                      IMAGE_HINT_EXTRACT_RGB_CHANNEL_FIRST |
-                      IMAGE_HINT_APPLY_COLOR_PALETTE_FIRST);
-        }
-    }
-    else if (dst_img.bpp >= IMAGE_BPP_JPEG)
-    {
-        if ((arg_x_scale != 1) ||
-            (arg_y_scale != 1) ||
-            (arg_roi.x != 0) ||
-            (arg_roi.y != 0) ||
-            (arg_roi.w != src_img->w) ||
-            (arg_roi.h != src_img->h) ||
-            (arg_rgb_channel != -1) ||
-            (arg_alpha != 256) ||
-            (color_palette != NULL) ||
-            (alpha_palette != NULL))
-        {
-            // mp_raise_msg(&mp_type_ValueError, MP_ERROR_TEXT("Only jpeg copying is supported!"));
-            debug_line;
-            return NULL;
-        }
-    }
-debug_line;
-    if (copy)
-    {
-                debug_line;
-        if (copy_to_fb)
-        {
-            py_helper_set_to_framebuffer(&dst_img);
-        }
-        else
-        {
-            dst_img.data = xalloc(image_size(&dst_img));
-        }
-    }
-    else if (arg_other)
-    {
-                debug_line;
-        bool fb = py_helper_is_equal_to_framebuffer(arg_other);
-        size_t size = fb ? framebuffer_get_buffer_size() : image_size(arg_other);
-
-        // PY_ASSERT_TRUE_MSG((image_size(&dst_img) <= size),
-        //         "The new image won't fit in the target frame buffer!");
-        if (!(image_size(&dst_img) <= size))
-        {
-            debug_line;
-            return NULL;
-        }
-        // DO NOT MODIFY arg_other YET (as it could point to src_img)!
-        dst_img.data = arg_other->data;
-        py_helper_update_framebuffer(&dst_img);
-                debug_line;
-    }
-    else
-    {
-                debug_line;
-        dst_img.data = xalloc(image_size(&dst_img));
-    }
-    if (dst_img.bpp >= IMAGE_BPP_JPEG)
-    {
-        if (dst_img.data != src_img->data)
-        {
-            memcpy(dst_img.data, src_img->data, dst_img.bpp);
-        }
-    }
-    else
-    {
-        // for (int i = 0; i < 1000; i++)
-        // {
-        //     printf("%x", src_img->data[i]);
-        // }
-        // printf("\r\n");
-        fb_alloc_mark();
-        imlib_draw_image(&dst_img, &src_img, 0, 0, arg_x_scale, arg_y_scale, &arg_roi,
-                         arg_rgb_channel, arg_alpha, color_palette, alpha_palette,
-                         (hint & (~IMAGE_HINT_CENTER)) | IMAGE_HINT_BLACK_BACKGROUND, NULL, NULL);
-        fb_alloc_free_till_mark();
-        debug_line;
-        // for (int i = 0;i < 1000; i++)
-        // {
-        //     printf("%x", dst_img.data[i]);
-        //     //                 if(src_img->data[i] != dst_img.data[i])
-        //     //                 {
-        //     //                     printf("err:%d\r\n",i);
-        //     //                 }
-        // }
-        // printf("\r\n");
-    }
-debug_line;
-    // if (arg_other)
-    // {
-    //     debug_line;
-    //     arg_other->w = dst_img.w;
-    //     arg_other->h = dst_img.h;
-    //     arg_other->bpp = dst_img.bpp;
-    // }
-debug_line;
-    // return Py_BuildValue("i", 0);
-    return back_img(&dst_img);
-    // return py_image_from_struct(&dst_img);
-}
-
-
-
-
-
-// static PyObject * py_image_to_bitmap(PyObject *self, PyObject *args, PyObject *keywds)
+// static PyObject *
+// py_image_to(int bpp, const uint16_t *default_color_palette, bool copy_to_fb,PyObject *self, PyObject *args, PyObject *keywds)
 // {
-//     return py_image_to(IMAGE_BPP_BINARY, NULL, false, n_args, args, kw_args);
+//     image_t *src_img = &self_image_img;
+//     // PyObject *img_tuple ;
+//     // PyObject *img_data;
+//     // PyObject *img_w;
+//     // PyObject *img_h;
+//     float arg_x_scale = 1.f;
+//     float arg_y_scale = 1.f;
+//     rectangle_t arg_roi;
+//     PyObject *py_roi = Py_None;
+//     int arg_rgb_channel = 0;
+//     int arg_alpha = 0;
+//     const uint16_t *color_palette = NULL;
+//     const uint8_t *alpha_palette = NULL;
+//     PyObject *py_color_palette = Py_None;
+//     PyObject *py_alpha_palette = Py_None;
+//     image_hint_t hint ;
+//     int arg_x_size = 0;
+//     int arg_y_size = 0;
+//     // mp_obj_t copy_obj ;
+//     bool copy = false;
+//     static char *kwlist[] = {"x_scale", "y_scale", "roi", "rgb_channel", "alpha", "color_palette","alpha_palette", "hint","x_size","y_size","copy",NULL};
+//     if (!PyArg_ParseTupleAndKeywords(args, keywds, "|ffOiiOOiiii", kwlist,
+//                                      &arg_x_scale, &arg_y_scale, &py_roi, &arg_rgb_channel, &arg_alpha, &py_color_palette,&py_alpha_palette,&hint,&arg_x_size,&arg_y_size,&copy))
+//         return NULL;
+//     // Py_DECREF(py_color_palette);
+//     // Py_DECREF(py_alpha_palette);
+//     debug_line;
+//     roi_tan(py_roi, &arg_roi, src_img->w, src_img->h);
+
+//     debug_line;
+//     bool got_x_scale = (arg_x_scale == 1.f) ? 0 : 1 ;
+//     bool got_y_scale = (arg_y_scale == 1.f) ? 0 : 1 ;
+
+// debug_line;
+//     bool got_x_size =(arg_x_size == 0) ? 0 : 1 ;
+//     bool got_y_size = (arg_y_size == 0) ? 0 : 1 ;
+
+//     copy = false;
+
+// debug_line;
+
+//     if ((arg_rgb_channel < -1) || (2 < arg_rgb_channel)) {
+//         // mp_raise_msg(&mp_type_ValueError, MP_ERROR_TEXT("-1 <= rgb_channel <= 2!"));
+//         debug_line;
+//         return NULL;
+//     }
+
+//     if ((arg_alpha < 0) || (256 < arg_alpha)) {
+//         // mp_raise_msg(&mp_type_ValueError, MP_ERROR_TEXT("0 <= alpha <= 256!"));
+//         debug_line;
+//         return NULL;
+//     }
+
+// debug_line;
+//     if (got_x_scale && got_x_size) {
+//         // mp_raise_msg(&mp_type_ValueError, MP_ERROR_TEXT("Choose either x_scale or x_size not both!"));
+//         debug_line;
+//         return NULL;
+//     }
+
+//     if (got_y_scale && got_y_size) {
+//         // mp_raise_msg(&mp_type_ValueError, MP_ERROR_TEXT("Choose either y_scale or y_size not both!"));
+//         debug_line;
+//         return NULL;
+//     }
+// debug_line;
+//     if (got_x_size)
+//     {
+//         arg_x_scale = arg_x_size / ((float)arg_roi.w);
+//     }
+
+//     if (got_y_size)
+//     {
+//         arg_y_scale = arg_y_size / ((float)arg_roi.h);
+//     }
+
+//     if ((!got_x_scale) && (!got_x_size) && got_y_size)
+//     {
+//         arg_x_scale = arg_y_scale;
+//     }
+// debug_line;
+//     if ((!got_y_scale) && (!got_y_size) && got_x_size)
+//     {
+//         arg_y_scale = arg_x_scale;
+//     }
+
+//     image_t *arg_other = copy_to_fb ? NULL : src_img;
+
+//     // if (copy_obj)
+//     // {
+//     //     if (mp_obj_is_integer(copy_obj))
+//     //     {
+//     //         copy = mp_obj_get_int(copy_obj);
+//     //     }
+//     //     else
+//     //     {
+//     //         arg_other = py_helper_arg_to_image_mutable_bayer(copy_obj);
+//     //     }
+//     // }
+
+//     // if (copy_to_fb && copy) {
+//     //     framebuffer_update_jpeg_buffer();
+//     // }
+
+//     image_t dst_img;
+//     dst_img.w = fast_floorf(arg_roi.w * arg_x_scale);
+//     dst_img.h = fast_floorf(arg_roi.h * arg_y_scale);
+//     dst_img.bpp = (bpp >= 0) ? bpp : src_img->bpp;
+// debug_line;
+//     if (dst_img.bpp == IMAGE_BPP_BAYER)
+//     {
+//         if (((arg_x_scale != 1) && (arg_x_scale != -1)) ||
+//             ((arg_y_scale != 1) && (arg_y_scale != -1)) ||
+//             (arg_rgb_channel != -1) ||
+//             (arg_alpha != 256) ||
+//             (color_palette != NULL) ||
+//             (alpha_palette != NULL))
+//         {
+//             debug_line;
+//             // mp_raise_msg(&mp_type_ValueError, MP_ERROR_TEXT("Only bayer copying/cropping is supported!"));
+//             return NULL;
+//         }
+//         else
+//         {
+//             hint &= ~(IMAGE_HINT_AREA |
+//                       IMAGE_HINT_BICUBIC |
+//                       IMAGE_HINT_BILINEAR |
+//                       IMAGE_HINT_EXTRACT_RGB_CHANNEL_FIRST |
+//                       IMAGE_HINT_APPLY_COLOR_PALETTE_FIRST);
+//         }
+//     }
+//     else if (dst_img.bpp >= IMAGE_BPP_JPEG)
+//     {
+//         if ((arg_x_scale != 1) ||
+//             (arg_y_scale != 1) ||
+//             (arg_roi.x != 0) ||
+//             (arg_roi.y != 0) ||
+//             (arg_roi.w != src_img->w) ||
+//             (arg_roi.h != src_img->h) ||
+//             (arg_rgb_channel != -1) ||
+//             (arg_alpha != 256) ||
+//             (color_palette != NULL) ||
+//             (alpha_palette != NULL))
+//         {
+//             // mp_raise_msg(&mp_type_ValueError, MP_ERROR_TEXT("Only jpeg copying is supported!"));
+//             debug_line;
+//             return NULL;
+//         }
+//     }
+// debug_line;
+//     if (copy)
+//     {
+//                 debug_line;
+//         if (copy_to_fb)
+//         {
+//             py_helper_set_to_framebuffer(&dst_img);
+//         }
+//         else
+//         {
+//             dst_img.data = xalloc(image_size(&dst_img));
+//         }
+//     }
+//     else if (arg_other)
+//     {
+//                 debug_line;
+//         bool fb = py_helper_is_equal_to_framebuffer(arg_other);
+//         size_t size = fb ? framebuffer_get_buffer_size() : image_size(arg_other);
+
+//         // PY_ASSERT_TRUE_MSG((image_size(&dst_img) <= size),
+//         //         "The new image won't fit in the target frame buffer!");
+//         if (!(image_size(&dst_img) <= size))
+//         {
+//             debug_line;
+//             return NULL;
+//         }
+//         // DO NOT MODIFY arg_other YET (as it could point to src_img)!
+//         dst_img.data = arg_other->data;
+//         py_helper_update_framebuffer(&dst_img);
+//                 debug_line;
+//     }
+//     else
+//     {
+//                 debug_line;
+//         dst_img.data = xalloc(image_size(&dst_img));
+//     }
+//     if (dst_img.bpp >= IMAGE_BPP_JPEG)
+//     {
+//         if (dst_img.data != src_img->data)
+//         {
+//             memcpy(dst_img.data, src_img->data, dst_img.bpp);
+//         }
+//     }
+//     else
+//     {
+//         // for (int i = 0; i < 1000; i++)
+//         // {
+//         //     printf("%x", src_img->data[i]);
+//         // }
+//         // printf("\r\n");
+//         fb_alloc_mark();
+//         imlib_draw_image(&dst_img, &src_img, 0, 0, arg_x_scale, arg_y_scale, &arg_roi,
+//                          arg_rgb_channel, arg_alpha, color_palette, alpha_palette,
+//                          (hint & (~IMAGE_HINT_CENTER)) | IMAGE_HINT_BLACK_BACKGROUND, NULL, NULL);
+//         fb_alloc_free_till_mark();
+//         debug_line;
+//         // for (int i = 0;i < 1000; i++)
+//         // {
+//         //     printf("%x", dst_img.data[i]);
+//         //     //                 if(src_img->data[i] != dst_img.data[i])
+//         //     //                 {
+//         //     //                     printf("err:%d\r\n",i);
+//         //     //                 }
+//         // }
+//         // printf("\r\n");
+//     }
+// debug_line;
+//     // if (arg_other)
+//     // {
+//     //     debug_line;
+//     //     arg_other->w = dst_img.w;
+//     //     arg_other->h = dst_img.h;
+//     //     arg_other->bpp = dst_img.bpp;
+//     // }
+// debug_line;
+//     // return Py_BuildValue("i", 0);
+//     return back_img(&dst_img);
+//     // return py_image_from_struct(&dst_img);
 // }
 
-static PyObject * py_image_to_grayscale(PyObject *self, PyObject *args, PyObject *keywds)
-{
-    return py_image_to(IMAGE_BPP_GRAYSCALE, NULL, false, self, args, keywds);
-}
+
+
+
+
+// // static PyObject * py_image_to_bitmap(PyObject *self, PyObject *args, PyObject *keywds)
+// // {
+// //     return py_image_to(IMAGE_BPP_BINARY, NULL, false, n_args, args, kw_args);
+// // }
+
+// static PyObject * py_image_to_grayscale(PyObject *self, PyObject *args, PyObject *keywds)
+// {
+//     return py_image_to(IMAGE_BPP_GRAYSCALE, NULL, false, self, args, keywds);
+// }
 
 // static PyObject * py_image_to_rgb565(PyObject *self, PyObject *args, PyObject *keywds)
 // {
@@ -2868,7 +2870,7 @@ py_image_mask_rectangle(PyObject *self, PyObject *args, PyObject *keywds)
     temp.w = arg_img->w;
     temp.h = arg_img->h;
     temp.bpp = IMAGE_BPP_BINARY;
-    temp.data = fb_alloc0(image_size(&temp), FB_ALLOC_NO_HINT);
+    temp.data = fb_alloc0(image_size(&temp));
 
     imlib_draw_rectangle(&temp, arg_rx, arg_ry, arg_rw, arg_rh, -1, 0, true);
     imlib_zero(arg_img, &temp, true);
@@ -2894,7 +2896,7 @@ py_image_mask_circle(PyObject *self, PyObject *args, PyObject *keywds)
     temp.w = arg_img->w;
     temp.h = arg_img->h;
     temp.bpp = IMAGE_BPP_BINARY;
-    temp.data = fb_alloc0(image_size(&temp), FB_ALLOC_NO_HINT);
+    temp.data = fb_alloc0(image_size(&temp));
 
     imlib_draw_circle(&temp, arg_cx, arg_cy, arg_cr, -1, 0, true);
     imlib_zero(arg_img, &temp, true);
@@ -2921,7 +2923,7 @@ py_image_mask_ellipse(PyObject *self, PyObject *args, PyObject *keywds)
     temp.w = arg_img->w;
     temp.h = arg_img->h;
     temp.bpp = IMAGE_BPP_BINARY;
-    temp.data = fb_alloc0(image_size(&temp), FB_ALLOC_NO_HINT);
+    temp.data = fb_alloc0(image_size(&temp));
 
     imlib_draw_ellipse(&temp, arg_cx, arg_cy, arg_rx, arg_ry, arg_r, -1, 0, true);
     imlib_zero(arg_img, &temp, true);
@@ -4404,7 +4406,7 @@ py_image_find_blobs(PyObject *self, PyObject *args, PyObject *keywds)
         merge = 0;
     fb_alloc_mark();
     imlib_find_blobs(&out, &arg_img, &roi, rece_sta.x_stride, rece_sta.y_stride, &thresholds, invert,
-                     rece_sta.area_threshold, rece_sta.pixels_threshold, merge, rece_sta.margin, NULL, NULL, NULL, NULL, 0, 0);
+                     rece_sta.area_threshold, rece_sta.pixels_threshold, merge, rece_sta.margin);
     fb_alloc_free_till_mark();
     thr = PyList_New(0);
 
@@ -4417,8 +4419,8 @@ py_image_find_blobs(PyObject *self, PyObject *args, PyObject *keywds)
         PyDict_SetItemString(thr2, "w", PyLong_FromLong(lnk_blob.rect.w));
         PyDict_SetItemString(thr2, "h", PyLong_FromLong(lnk_blob.rect.h));
         PyDict_SetItemString(thr2, "pixels", PyLong_FromLong(lnk_blob.pixels));
-        PyDict_SetItemString(thr2, "cx", PyLong_FromLong(lnk_blob.centroid_x));
-        PyDict_SetItemString(thr2, "cy", PyLong_FromLong(lnk_blob.centroid_y));
+        PyDict_SetItemString(thr2, "cx", PyLong_FromLong(lnk_blob.centroid.x));
+        PyDict_SetItemString(thr2, "cy", PyLong_FromLong(lnk_blob.centroid.y));
         PyDict_SetItemString(thr2, "rotation", PyFloat_FromDouble(lnk_blob.rotation));
         PyDict_SetItemString(thr2, "code", PyLong_FromLong(lnk_blob.code));
         PyDict_SetItemString(thr2, "count", PyLong_FromLong(lnk_blob.count));
@@ -5243,9 +5245,9 @@ static PyMethodDef imageMethods[] = {
     {"find_eye", (PyCFunction)py_image_find_eye, METH_VARARGS | METH_KEYWORDS, "img draw line"},
     {"find_lines", (PyCFunction)py_image_find_lines, METH_VARARGS | METH_KEYWORDS, "img draw line"},
     {"find_line_segments", (PyCFunction)py_image_find_line_segments, METH_VARARGS | METH_KEYWORDS, "img draw line"},
-    {"get_statistics", (PyCFunction)py_image_get_statistics, METH_VARARGS | METH_KEYWORDS, "find blob !"},
-    {"find_qrcodes", (PyCFunction)py_image_find_qrcodes, METH_VARARGS | METH_KEYWORDS, "find blob !"},
-    {"to_grayscale", (PyCFunction)py_image_to_grayscale, METH_VARARGS | METH_KEYWORDS, "find blob !"},
+    // {"get_statistics", (PyCFunction)py_image_get_statistics, METH_VARARGS | METH_KEYWORDS, "find blob !"},
+    // {"find_qrcodes", (PyCFunction)py_image_find_qrcodes, METH_VARARGS | METH_KEYWORDS, "find blob !"},
+    // {"to_grayscale", (PyCFunction)py_image_to_grayscale, METH_VARARGS | METH_KEYWORDS, "find blob !"},
 
 
 
@@ -5266,11 +5268,15 @@ static struct PyModuleDef spammodule = {
                  or -1 if the module keeps state in global variables. */
     imageMethods};
 
+
+
+#include"omv.h"
+
 PyMODINIT_FUNC
 PyInit_minicv(void)
 {
     self_image_img.data = NULL;
-    imlib_init();
+    omv_init();
     PyObject *module = PyModule_Create(&spammodule);
 
 

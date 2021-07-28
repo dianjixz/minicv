@@ -1,7 +1,8 @@
 #include "vfs_wrapper.h"
-#include "py/stream.h"
+// #include "py/stream.h"
 #include "extmod/vfs.h"
-#include "py/runtime.h"
+// #include "py/runtime.h"
+#ifdef END_FILE_IO
 
 /************ File OP ************/
 int file_write_open(mp_obj_t* fp, const char *path)
@@ -158,7 +159,7 @@ NORETURN void fs_not_equal(mp_obj_t fp)
     nlr_raise(mp_obj_new_exception_msg(&mp_type_OSError, "Images not equal!"));
 }
 
-NORETURN void fs_no_intersection(mp_obj_t fp)
+NORETURN void fs_no_intersection(mp_obj_t *fp)
 {
     int err;
     if(fp)
@@ -400,6 +401,7 @@ int write_data_raise(mp_obj_t fp, const void *data, mp_uint_t size)
     return err;
 } 
 
+#endif
 
 
 

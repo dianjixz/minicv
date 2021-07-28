@@ -12,7 +12,7 @@ LIBS = -lm -lpython3.8 -lminiimg
 
 
 CC = gcc
-INCLUDE =  -Iomv/imlib -Iomv/alloc -Iomv/common -Iomv/config -I/usr/include/python3.8
+INCLUDE =  -Iomv/img/include -Iomv/include -I/usr/include/python3.8
 LIBDIR = -L./omv
 
 # OBJDIR=./build
