@@ -1,17 +1,17 @@
 CFLAGS=  
 LIBS = -lm
 
-# CC = /opt/v831/toolchain-sunxi-musl/toolchain/bin/arm-openwrt-linux-muslgnueabi-gcc
-# INCLUDE =  -Iomv/imlib -Iomv/alloc -Iomv/common -Iomv/config -I/opt/v831/usr/include -I/opt/v831/toolchain-sunxi-musl/toolchain/usr/include -I/opt/v831/toolchain-sunxi-musl/toolchain/include -I/opt/v831/toolchain-sunxi-musl/toolchain/include/fortify -I/opt/v831/usr/include/python3.8
-# LIBDIR = -L./omv -L/opt/v831/usr/lib -L/opt/v831/lib -L/opt/v831/toolchain-sunxi-musl/toolchain/usr/lib -L/opt/v831/toolchain-sunxi-musl/toolchain/lib
+CC = /opt/v831/toolchain-sunxi-musl/toolchain/bin/arm-openwrt-linux-muslgnueabi-gcc
+INCLUDE =  -I$(MY_DIR)imlib -I$(MY_DIR)alloc -I$(MY_DIR)common -I$(MY_DIR)config -I/opt/v831/usr/include -I/opt/v831/toolchain-sunxi-musl/toolchain/usr/include -I/opt/v831/toolchain-sunxi-musl/toolchain/include -I/opt/v831/toolchain-sunxi-musl/toolchain/include/fortify -I/opt/v831/usr/include/python3.8
+LIBDIR = -L/opt/v831/usr/lib -L/opt/v831/lib -L/opt/v831/toolchain-sunxi-musl/toolchain/usr/lib -L/opt/v831/toolchain-sunxi-musl/toolchain/lib
 
 
 
 
 
-CC = gcc
-INCLUDE =  -I$(MY_DIR)imlib -I$(MY_DIR)alloc -I$(MY_DIR)common -I$(MY_DIR)config
-
+# CC = gcc
+# INCLUDE =  -I$(MY_DIR)imlib -I$(MY_DIR)alloc -I$(MY_DIR)common -I$(MY_DIR)config
+# LIBDIR := 
 
 
 
@@ -107,7 +107,7 @@ CPP_SRC =
 CPP_OBJ =  
 
 $(project): $(C_OBJ)
-	$(CC) $(LDFLAGS) -o $@ $(notdir $(C_OBJ)) $(LIBS) $(INCLUDE)
+	$(CC) $(LDFLAGS) -o $@ $(notdir $(C_OBJ)) $(LIBS) $(INCLUDE) $(LIBDIR)
 	make clean_o
 
 %.o:%.c

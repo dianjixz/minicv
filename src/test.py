@@ -56,26 +56,26 @@ mm = Image.frombytes(mode="RGB", size=(240,240), data=img[0], decoder_name="raw"
 print(minicv.width())
 
 mm.show()
+# while True:
 
+img = Image.open("/home/nihao/nihao.png")
+# img.show()
+print(img.format,img.size,img.mode)
+img = img.convert('RGB')
+print(img.format,img.size,img.mode)
 
-# img = Image.open("/home/nihao/nihao.png")
-# # img.show()
-# print(img.format,img.size,img.mode)
-# img = img.convert('RGB')
-# print(img.format,img.size,img.mode)
-
-minicv.Image(canvas.tobytes(), w=canvas.width, h=canvas.height ,bpp= minicv.IMAGE_BPP_RGB565)
+minicv.Image(img.tobytes(), w=img.width, h=img.height ,bpp= minicv.IMAGE_BPP_RGB565)
 
 # print(img.tobytes())
 # mda = np.array(img)
 # print(mda)
-mka = minicv.to_grayscale()
+# mka = minicv.to_grayscale()
 # print(mka)
 
 # mm = Image.frombytes(mode="L", size=(260,260), data=mka[0], decoder_name="raw")
 # mm.show()
 
-# print("find_qrcodes",minicv.find_qrcodes())
+print("find_qrcodes",minicv.find_qrcodes())
 
 # imgb = minicv.to_rgb24()
 # mm = Image.frombytes(mode="RGB", size=img.size, data=imgb[0], decoder_name="raw")
