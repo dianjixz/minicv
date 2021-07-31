@@ -26,6 +26,12 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#define debug_line printf("[%s %s] %s:%d: %s\n", __DATE__, __TIME__, __FILE__, __LINE__, __func__)
+
+// #define debug_line
+
+
+
 struct quirc;
 
 /* Obtain the library version string. */
@@ -2938,7 +2944,7 @@ void imlib_find_qrcodes(list_t *out, image_t *ptr, rectangle_t *roi)
     struct quirc *controller = quirc_new();	
     quirc_resize(controller, roi->w, roi->h);
     uint8_t *grayscale_image = quirc_begin(controller, NULL, NULL);
-	
+	debug_line;
     switch(ptr->bpp) {
         case IMAGE_BPP_BINARY: {
             for (int y = roi->y, yy = roi->y + roi->h; y < yy; y++) {
@@ -2946,7 +2952,7 @@ void imlib_find_qrcodes(list_t *out, image_t *ptr, rectangle_t *roi)
                 for (int x = roi->x, xx = roi->x + roi->w; x < xx; x++) {
                     *(grayscale_image++) = COLOR_BINARY_TO_GRAYSCALE(IMAGE_GET_BINARY_PIXEL_FAST(row_ptr, x));
                 }
-            }
+            }debug_line;
             break;
         }
         case IMAGE_BPP_GRAYSCALE: {
@@ -2955,7 +2961,7 @@ void imlib_find_qrcodes(list_t *out, image_t *ptr, rectangle_t *roi)
                 for (int x = roi->x, xx = roi->x + roi->w; x < xx; x++) {
                     *(grayscale_image++) = IMAGE_GET_GRAYSCALE_PIXEL_FAST(row_ptr, x);
                 }
-            }
+            }debug_line;
             break;
         }
         case IMAGE_BPP_RGB565: {
@@ -2964,24 +2970,24 @@ void imlib_find_qrcodes(list_t *out, image_t *ptr, rectangle_t *roi)
                 for (int x = roi->x, xx = roi->x + roi->w; x < xx; x++) {
                     *(grayscale_image++) = COLOR_RGB565_TO_GRAYSCALE(IMAGE_GET_RGB565_PIXEL_FAST(row_ptr, x));
                 }
-            }
+            }debug_line;
             break;
         }
         default: {
             memset(grayscale_image, 0, roi->w * roi->h);
             break;
         }
-    }
-    quirc_end(controller);
+    }debug_line;
+    quirc_end(controller);debug_line;
 	//这以上为纠偏，生成QRcode的标准像素数据
     list_init(out, sizeof(find_qrcodes_list_lnk_data_t));
-
+debug_line;
     for (int i = 0, j = quirc_count(controller); i < j; i++) {
-		
+		debug_line;
         struct quirc_code *code = fb_alloc(sizeof(struct quirc_code));
         struct quirc_data *data = fb_alloc(sizeof(struct quirc_data));
         quirc_extract(controller, i, code);
-		
+		debug_line;
         if(quirc_decode(code, data) == QUIRC_SUCCESS) {
             find_qrcodes_list_lnk_data_t lnk_data;
             rectangle_init(&(lnk_data.rect), code->corners[0].x + roi->x, code->corners[0].y + roi->y, 0, 0);
@@ -2991,7 +2997,7 @@ void imlib_find_qrcodes(list_t *out, image_t *ptr, rectangle_t *roi)
                 rectangle_init(&temp, code->corners[k].x + roi->x, code->corners[k].y + roi->y, 0, 0);
                 rectangle_united(&(lnk_data.rect), &temp);
             }
-
+debug_line;
             // Add corners...
             lnk_data.corners[0].x = fast_roundf(code->corners[0].x) + roi->x; // top-left
             lnk_data.corners[0].y = fast_roundf(code->corners[0].y) + roi->y; // top-left
@@ -3004,8 +3010,9 @@ void imlib_find_qrcodes(list_t *out, image_t *ptr, rectangle_t *roi)
 
             // Payload is already null terminated.
             lnk_data.payload_len = data->payload_len;
-            lnk_data.payload = xalloc(data->payload_len);
+            lnk_data.payload = xalloc(data->payload_len  + 1);
             memcpy(lnk_data.payload, data->payload, data->payload_len);
+            lnk_data.payload[data->payload_len] = '\0' ;
 
             lnk_data.version = data->version;
             lnk_data.ecc_level = data->ecc_level;
@@ -3015,10 +3022,10 @@ void imlib_find_qrcodes(list_t *out, image_t *ptr, rectangle_t *roi)
 
             list_push_back(out, &lnk_data);
         }
-
+debug_line;
         fb_free();
         fb_free();
     }
-    quirc_destroy(controller);
+    quirc_destroy(controller);debug_line;
 }
 #endif //IMLIB_ENABLE_QRCODES

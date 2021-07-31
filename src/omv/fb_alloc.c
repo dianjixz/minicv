@@ -19,8 +19,8 @@
 
 #define NORETURN __attribute__((noreturn))
 #ifndef OMV_MINIMUM
-#define OMV_FB_ALLOC_SIZE 700 * 1024 // minimum fb alloc size
-#define FB_MAX_ALLOC_TIMES    1024*16
+#define OMV_FB_ALLOC_SIZE 1024 * 1024 // minimum fb alloc size
+#define FB_MAX_ALLOC_TIMES    250
 
 #else  //OMV_MINIMUM
 
@@ -28,7 +28,9 @@
 #define FB_MAX_ALLOC_TIMES    50
 
 #endif //OMV_MINIMUM
+#define debug_line printf("[%s %s] %s:%d: %s\n", __DATE__, __TIME__, __FILE__, __LINE__, __func__)
 
+// #define debug_line
 
 typedef struct 
 {
@@ -46,16 +48,17 @@ static uint8_t m_mark_max_now = 0;
 NORETURN void fb_alloc_fail()
 {
     sprintf(stderr,"Out of Memory! Please reduce the resolution of the image you are running this algorithm on to bypass this issue!\r\n");
+    debug_line;
 }
 
 NORETURN void fb_alloc_fail_2()
 {
-    sprintf(stderr,"Too many fb_alloc! no space save! try again or reduce img size!\r\n");
+    sprintf(stderr,"Too many fb_alloc! no space save! try again or reduce img size!\r\n"); debug_line;
 }
 
 void fb_alloc_init_once()
 {
-    
+     debug_line;
 }
 
 void fb_alloc_init0()
@@ -67,6 +70,7 @@ uint64_t fb_avail()
 {
     // size_t size = get_free_heap_size2();
     // return  size > OMV_FB_ALLOC_SIZE ? OMV_FB_ALLOC_SIZE : size;
+     debug_line;
     return OMV_FB_ALLOC_SIZE;
 }
 
@@ -79,18 +83,23 @@ void fb_alloc_mark()
 void fb_alloc_free_till_mark()
 {
     uint8_t i;
-
-    for(i=0; i<FB_MAX_ALLOC_TIMES; ++i)
+    debug_line;
+    for (i = 0; i < FB_MAX_ALLOC_TIMES; ++i)
     {
-        if( m_fb_alloc_addr[i].valid && m_fb_alloc_addr[i].mark==m_mark_max_now)
+        debug_line;
+        if (m_fb_alloc_addr[i].valid && m_fb_alloc_addr[i].mark == m_mark_max_now)
         {
+            debug_line;
             free(m_fb_alloc_addr[i].p);
             m_fb_alloc_addr[i].p = NULL;
             m_fb_alloc_addr[i].valid = false;
             --m_count_max_now;
+            debug_line;
         }
     }
+    debug_line;
     --m_mark_max_now;
+    debug_line;
 }
 
 void *fb_alloc(uint64_t size)

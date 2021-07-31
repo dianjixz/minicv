@@ -3,9 +3,9 @@
 // #include "imdefs.h"
 // #include "imlib.h"
 
-// #define debug_line printf("[%s %s] %s:%d: %s\n", __DATE__, __TIME__, __FILE__, __LINE__, __func__)
+#define debug_line printf("[%s %s] %s:%d: %s\n", __DATE__, __TIME__, __FILE__, __LINE__, __func__)
 
-#define debug_line
+// #define debug_line
 PyObject *back_img(image_t *img)
 {
     PyObject *th_tup = Py_None;
@@ -19,12 +19,19 @@ PyObject *back_img(image_t *img)
     {
     case IMAGE_BPP_BINARY:
     {
-        debug_line;
+
+        PyTuple_SetItem(th_tup, 0, PyBytes_FromStringAndSize(img->data, img->w * img->h));
+        PyTuple_SetItem(th_tup, 1, PyLong_FromLong(img->w));
+        PyTuple_SetItem(th_tup, 2, PyLong_FromLong(img->h));
+        PyTuple_SetItem(th_tup, 3, PyLong_FromLong(IMAGE_BPP_BINARY));
         break;
     }
     case IMAGE_BPP_GRAYSCALE:
     {
         PyTuple_SetItem(th_tup, 0, PyBytes_FromStringAndSize(img->data, img->w * img->h));
+        PyTuple_SetItem(th_tup, 1, PyLong_FromLong(img->w));
+        PyTuple_SetItem(th_tup, 2, PyLong_FromLong(img->h));
+        PyTuple_SetItem(th_tup, 3, PyLong_FromLong(IMAGE_BPP_GRAYSCALE));
         debug_line;
         break;
     }
@@ -46,12 +53,15 @@ PyObject *back_img(image_t *img)
         }
         PyTuple_SetItem(th_tup, 0, PyBytes_FromStringAndSize(_888_data, img->w * img->h * 3));
         free(_888_data);
+        PyTuple_SetItem(th_tup, 1, PyLong_FromLong(img->w));
+        PyTuple_SetItem(th_tup, 2, PyLong_FromLong(img->h));
+        PyTuple_SetItem(th_tup, 3, PyLong_FromLong(IMAGE_BPP_RGB565));
         break;
     }
     case IMAGE_BPP_BAYER:
     {
         debug_line;
-        
+        return Py_None;
         // PyTuple_SetItem(th_tup, 0, PyBytes_FromStringAndSize(img->data, img->w * img->h));
         // for (int i = 0; i < 100; i++)
         // {
@@ -69,9 +79,6 @@ PyObject *back_img(image_t *img)
     }
     }
     debug_line;
-    PyTuple_SetItem(th_tup, 1, PyLong_FromLong(img->w));
-    PyTuple_SetItem(th_tup, 2, PyLong_FromLong(img->h));
-    PyTuple_SetItem(th_tup, 3, PyLong_FromLong(img->bpp));
     return th_tup;
 }
 
@@ -121,11 +128,6 @@ int r24to_imgr16(PyObject *img_or_data, PyObject *w, PyObject *h, PyObject *bpp,
     uint8_t *r24_pixel;
     uint16_t *r16_pixel;
     // arg_img = malloc(sizeof(image_t));
-    if (arg_img->data != NULL)
-    {
-        free(arg_img->data);
-        arg_img->data = NULL;
-    }
     debug_line;
     if (PyTuple_Check(img_or_data))
     {

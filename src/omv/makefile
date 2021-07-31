@@ -6,13 +6,13 @@ MY_DIR := $(dir $(mkfile_path))
 
 
 
-# CC = /opt/v831/toolchain-sunxi-musl/toolchain/bin/arm-openwrt-linux-muslgnueabi-gcc
-# INCLUDE =  -I$(MY_DIR)img/include -I$(MY_DIR)include -I$(MY_DIR)common -I$(MY_DIR)config -I/opt/v831/usr/include -I/opt/v831/toolchain-sunxi-musl/toolchain/usr/include -I/opt/v831/toolchain-sunxi-musl/toolchain/include -I/opt/v831/toolchain-sunxi-musl/toolchain/include/fortify -I/opt/v831/usr/include/python3.8
+CC = /opt/v831/toolchain-sunxi-musl/toolchain/bin/arm-openwrt-linux-muslgnueabi-gcc
+INCLUDE =  -I$(MY_DIR)img/include -I$(MY_DIR)include -I$(MY_DIR)common -I$(MY_DIR)config -I/opt/v831/usr/include -I/opt/v831/toolchain-sunxi-musl/toolchain/usr/include -I/opt/v831/toolchain-sunxi-musl/toolchain/include -I/opt/v831/toolchain-sunxi-musl/toolchain/include/fortify -I/opt/v831/usr/include/python3.8
 # LIBDIR = -L./omv -L/opt/v831/usr/lib -L/opt/v831/lib -L/opt/v831/toolchain-sunxi-musl/toolchain/usr/lib -L/opt/v831/toolchain-sunxi-musl/toolchain/lib
 
 
-CC = gcc
-INCLUDE =  -I$(MY_DIR)img/include -I$(MY_DIR)include -I$(MY_DIR)common -I$(MY_DIR)config
+# CC = gcc
+# INCLUDE =  -I$(MY_DIR)img/include -I$(MY_DIR)include -I$(MY_DIR)common -I$(MY_DIR)config
 
 
 

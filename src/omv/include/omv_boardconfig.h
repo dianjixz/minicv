@@ -25,7 +25,7 @@
 
 #ifndef OMV_MINIMUM
 #define OMV_FB_ALLOC_SIZE 1024 * 1024 // minimum fb alloc size
-#define FB_MAX_ALLOC_TIMES    100
+#define FB_MAX_ALLOC_TIMES    250
 
 #else  //OMV_MINIMUM
 
