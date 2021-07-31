@@ -2529,7 +2529,7 @@ py_image_draw_rectangle(PyObject *self, PyObject *args, PyObject *keywds)
     else
         fill = 0;
 
-    imlib_draw_rectangle(&self_image_img, rx, ry, rw, rh, c, thickness, fill);
+    imlib_draw_rectangle(&self_image_img, rx, ry, rw, rh, COLOR_R8_G8_B8_TO_RGB565((c & 0xff0000) >> 16,(c & 0xff00) >> 8,(c & 0xff)), thickness, fill);
 
     return PyLong_FromLong(0);
 }
@@ -2555,7 +2555,7 @@ py_image_draw_circle(PyObject *self, PyObject *args, PyObject *keywds)
         arg_fill = 1;
     else
         arg_fill = 0;
-    imlib_draw_circle(arg_img, arg_cx, arg_cy, arg_cr, arg_c, arg_thickness, arg_fill);
+    imlib_draw_circle(arg_img, arg_cx, arg_cy, arg_cr, COLOR_R8_G8_B8_TO_RGB565((arg_c & 0xff0000) >> 16,(arg_c & 0xff00) >> 8,(arg_c & 0xff)), arg_thickness, arg_fill);
     return PyLong_FromLong(0);
 }
 
@@ -2582,7 +2582,7 @@ py_image_draw_ellipse(PyObject *self, PyObject *args, PyObject *keywds)
         arg_fill = 1;
     else
         arg_fill = 0;
-    imlib_draw_ellipse(arg_img, arg_cx, arg_cy, arg_rx, arg_ry, arg_r, arg_c, arg_thickness, arg_fill);
+    imlib_draw_ellipse(arg_img, arg_cx, arg_cy, arg_rx, arg_ry, arg_r, COLOR_R8_G8_B8_TO_RGB565((arg_c & 0xff0000) >> 16,(arg_c & 0xff00) >> 8,(arg_c & 0xff)), arg_thickness, arg_fill);
     return PyLong_FromLong(0);
 }
 
@@ -2634,8 +2634,8 @@ py_image_draw_cross(PyObject *self, PyObject *args, PyObject *keywds)
                                      &arg_x, &arg_y, &arg_c, &arg_s, &arg_thickness))
         return NULL;
 
-    imlib_draw_line(arg_img, arg_x - arg_s, arg_y, arg_x + arg_s, arg_y, arg_c, arg_thickness);
-    imlib_draw_line(arg_img, arg_x, arg_y - arg_s, arg_x, arg_y + arg_s, arg_c, arg_thickness);
+    imlib_draw_line(arg_img, arg_x - arg_s, arg_y, arg_x + arg_s, arg_y, COLOR_R8_G8_B8_TO_RGB565((arg_c & 0xff0000) >> 16,(arg_c & 0xff00) >> 8,(arg_c & 0xff)), arg_thickness);
+    imlib_draw_line(arg_img, arg_x, arg_y - arg_s, arg_x, arg_y + arg_s, COLOR_R8_G8_B8_TO_RGB565((arg_c & 0xff0000) >> 16,(arg_c & 0xff00) >> 8,(arg_c & 0xff)), arg_thickness);
     return PyLong_FromLong(0);
 }
 
@@ -2647,7 +2647,7 @@ py_image_draw_arrow(PyObject *self, PyObject *args, PyObject *keywds)
     int arg_y0 = 0;
     int arg_x1 = 0;
     int arg_y1 = 0;
-    int arg_c = 0xfffffff;
+    int arg_c = 0xffffff;
     int arg_s = 10;
     int arg_thickness = 1;
 
@@ -2667,9 +2667,9 @@ py_image_draw_arrow(PyObject *self, PyObject *args, PyObject *keywds)
     int a1x = fast_roundf(arg_x1 - (arg_s * ux) - (arg_s * vx * 0.5));
     int a1y = fast_roundf(arg_y1 - (arg_s * uy) - (arg_s * vy * 0.5));
 
-    imlib_draw_line(arg_img, arg_x0, arg_y0, arg_x1, arg_y1, arg_c, arg_thickness);
-    imlib_draw_line(arg_img, arg_x1, arg_y1, a0x, a0y, arg_c, arg_thickness);
-    imlib_draw_line(arg_img, arg_x1, arg_y1, a1x, a1y, arg_c, arg_thickness);
+    imlib_draw_line(arg_img, arg_x0, arg_y0, arg_x1, arg_y1, COLOR_R8_G8_B8_TO_RGB565((arg_c & 0xff0000) >> 16,(arg_c & 0xff00) >> 8,(arg_c & 0xff)), arg_thickness);
+    imlib_draw_line(arg_img, arg_x1, arg_y1, a0x, a0y, COLOR_R8_G8_B8_TO_RGB565((arg_c & 0xff0000) >> 16,(arg_c & 0xff00) >> 8,(arg_c & 0xff)), arg_thickness);
+    imlib_draw_line(arg_img, arg_x1, arg_y1, a1x, a1y, COLOR_R8_G8_B8_TO_RGB565((arg_c & 0xff0000) >> 16,(arg_c & 0xff00) >> 8,(arg_c & 0xff)), arg_thickness);
     return PyLong_FromLong(0);
 }
 
@@ -2705,10 +2705,10 @@ py_image_draw_edges(PyObject *self, PyObject *args, PyObject *keywds)
 
     if (arg_s >= 1)
     {
-        imlib_draw_circle(arg_img, x0, y0, arg_s, arg_c, arg_thickness, arg_fill);
-        imlib_draw_circle(arg_img, x1, y1, arg_s, arg_c, arg_thickness, arg_fill);
-        imlib_draw_circle(arg_img, x2, y2, arg_s, arg_c, arg_thickness, arg_fill);
-        imlib_draw_circle(arg_img, x3, y3, arg_s, arg_c, arg_thickness, arg_fill);
+        imlib_draw_circle(arg_img, x0, y0, arg_s, COLOR_R8_G8_B8_TO_RGB565((arg_c & 0xff0000) >> 16,(arg_c & 0xff00) >> 8,(arg_c & 0xff)), arg_thickness, arg_fill);
+        imlib_draw_circle(arg_img, x1, y1, arg_s, COLOR_R8_G8_B8_TO_RGB565((arg_c & 0xff0000) >> 16,(arg_c & 0xff00) >> 8,(arg_c & 0xff)), arg_thickness, arg_fill);
+        imlib_draw_circle(arg_img, x2, y2, arg_s, COLOR_R8_G8_B8_TO_RGB565((arg_c & 0xff0000) >> 16,(arg_c & 0xff00) >> 8,(arg_c & 0xff)), arg_thickness, arg_fill);
+        imlib_draw_circle(arg_img, x3, y3, arg_s, COLOR_R8_G8_B8_TO_RGB565((arg_c & 0xff0000) >> 16,(arg_c & 0xff00) >> 8,(arg_c & 0xff)), arg_thickness, arg_fill);
     }
 
     return PyLong_FromLong(0);
@@ -2842,7 +2842,7 @@ py_image_flood_fill(PyObject *self, PyObject *args, PyObject *keywds)
     fb_alloc_mark();
     imlib_flood_fill(arg_img, arg_x_off, arg_y_off,
                      arg_seed_threshold, arg_floating_threshold,
-                     arg_c, arg_invert, clear_background, arg_msk);
+                     COLOR_R8_G8_B8_TO_RGB565((arg_c & 0xff0000) >> 16,(arg_c & 0xff00) >> 8,(arg_c & 0xff)), arg_invert, clear_background, arg_msk);
     fb_alloc_free_till_mark();
     return PyLong_FromLong(0);
 }
