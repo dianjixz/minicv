@@ -5,7 +5,7 @@ LIBS = -lm -lpython3.8 -lminiimg
 
 
 # CC=/opt/v831/toolchain-sunxi-musl/toolchain/bin/arm-openwrt-linux-muslgnueabi-gcc
-# INCLUDE =  -Iomv/imlib -Iomv/alloc -Iomv/common -Iomv/config -I/opt/v831/usr/include -I/opt/v831/toolchain-sunxi-musl/toolchain/usr/include -I/opt/v831/toolchain-sunxi-musl/toolchain/include -I/opt/v831/toolchain-sunxi-musl/toolchain/include/fortify -I/opt/v831/usr/include/python3.8
+# INCLUDE =  -Iomv/img/include -Iomv/include -I/opt/v831/usr/include -I/opt/v831/toolchain-sunxi-musl/toolchain/usr/include -I/opt/v831/toolchain-sunxi-musl/toolchain/include -I/opt/v831/toolchain-sunxi-musl/toolchain/include/fortify -I/opt/v831/usr/include/python3.8
 # LIBDIR = -L./omv -L/opt/v831/usr/lib -L/opt/v831/lib -L/opt/v831/toolchain-sunxi-musl/toolchain/usr/lib -L/opt/v831/toolchain-sunxi-musl/toolchain/lib
 
 
@@ -13,7 +13,11 @@ LIBS = -lm -lpython3.8 -lminiimg
 
 CC = gcc
 INCLUDE =  -Iomv/img/include -Iomv/include -I/usr/include/python3.8
-LIBDIR = -L./omv
+
+
+
+
+LIBDIR += -L./omv
 
 # OBJDIR=./build
 project=./minicv.so
@@ -25,7 +29,7 @@ C_SRC +=
 
 
 
-LDFLAGS += -fPIC  -shared -Wl,-rpath=./omv -g
+LDFLAGS += -fPIC  -shared -Wl,-rpath=./ -g
 CFLAGS += -fPIC -Wall -g
 
 

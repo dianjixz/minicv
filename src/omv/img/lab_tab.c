@@ -4,7 +4,7 @@
 #ifdef IMLIB_ENABLE_YUV_LAB_FUNC
 
 #include "math.h"
-#if 0
+#if 1
 static inline float lab_f(float t)
 {
     if (t > 0.008856)
