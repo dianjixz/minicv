@@ -1534,6 +1534,10 @@ STATIC mp_obj_t py_image_draw_image(uint n_args, const mp_obj_t *args, mp_map_t 
     fb_alloc_free_till_mark();
     return args[0];
 }
+
+
+
+
 STATIC MP_DEFINE_CONST_FUN_OBJ_KW(py_image_draw_image_obj, 3, py_image_draw_image);
 
 STATIC mp_obj_t py_image_draw_keypoints(uint n_args, const mp_obj_t *args, mp_map_t *kw_args)
