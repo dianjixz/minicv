@@ -5,7 +5,7 @@
 
 #include "math.h"
 
-#if 0
+#if 1
 // https://github.com/openmv/openmv/blob/master/tools/gen_rgb2yuv.py
 int8_t yuv_table(uint32_t idx)
 {

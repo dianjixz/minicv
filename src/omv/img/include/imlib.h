@@ -1418,7 +1418,7 @@ void imlib_phasecorrelate(image_t *img0, image_t *img1, rectangle_t *roi0, recta
 array_t *imlib_selective_search(image_t *src, float t, int min_size, float a1, float a2, float a3);
 
 // MAIX conv acc
-void imlib_conv3(image_t *img, float *krn);
+// void imlib_conv3(image_t *img, float *krn);
 
 
 void pix_fill_8yuv(uint16_t* pixels, uint32_t ofs, int8_t* y, int8_t* u, int8_t* v);

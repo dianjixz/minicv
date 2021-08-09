@@ -996,7 +996,7 @@ int imlib_image_std(image_t *src)
     return fast_sqrtf(v);
 }
 
-static volatile uint8_t _ai_done_flag;
+// static volatile uint8_t _ai_done_flag;
 // static int kpu_done(void *ctx)
 // {
 //     _ai_done_flag = 1;

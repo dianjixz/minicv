@@ -1,7 +1,14 @@
-#include "vfs_wrapper.h"
+// #include "vfs_wrapper.h"
 // #include "py/stream.h"
-#include "extmod/vfs.h"
+// #include "extmod/vfs.h"
 // #include "py/runtime.h"
+#include <sys/types.h>    
+#include <sys/stat.h>    
+#include <fcntl.h> 
+#include <stdio.h>
+
+// #define END_FILE_IO
+
 #ifdef END_FILE_IO
 
 /************ File OP ************/

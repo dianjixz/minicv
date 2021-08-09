@@ -31,7 +31,7 @@ static inline int fast_ceilf(float x)
 
 static inline int fast_roundf(float x)
 {
-    return (int)(x);
+    return (int)(roundf(x));
 }
 
 static inline float fast_fabsf(float d)
