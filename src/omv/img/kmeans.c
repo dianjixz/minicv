@@ -13,8 +13,19 @@
 #include "imlib.h"
 #include "array.h"
 #include "xalloc.h"
+#include<stdio.h>
+#include<stdlib.h>
+#include<time.h>
 
-// extern uint32_t rng_randint(uint32_t min, uint32_t max);
+
+
+
+uint32_t rng_randint(uint32_t min, uint32_t max)
+{
+ return (uint32_t)(rand()%(max-min+1)+min);
+}
+
+
 
 static cluster_t *cluster_alloc(int cx, int cy)
 {
@@ -109,31 +120,31 @@ static void cluster_points(array_t *clusters, array_t *points, cluster_dist_t di
     }
 }
 
-// array_t *cluster_kmeans(array_t *points, int k, cluster_dist_t dist_func)
-// {
-//     // Alloc clusters array
-//     array_t *clusters=NULL;
-//     array_alloc(&clusters, cluster_free);
+array_t *cluster_kmeans(array_t *points, int k, cluster_dist_t dist_func)
+{
+    // Alloc clusters array
+    array_t *clusters=NULL;
+    array_alloc(&clusters, cluster_free);
 
-//     // Select K clusters randomly
-//     for (int i=0; i<k; i++) {
-//         int pidx = rng_randint(0, array_length(points)-1);
-//         kp_t *p = array_at(points, pidx);
-//         array_push_back(clusters, cluster_alloc(p->x, p->y));
-//     }
+    // Select K clusters randomly
+    for (int i=0; i<k; i++) {
+        int pidx = rng_randint(0, array_length(points)-1);
+        kp_t *p = array_at(points, pidx);
+        array_push_back(clusters, cluster_alloc(p->x, p->y));
+    }
 
-//     int cl_changed = 1;
-//     do {
-//         // Reset clusters
-//         cluster_reset(clusters, points);
+    int cl_changed = 1;
+    do {
+        // Reset clusters
+        cluster_reset(clusters, points);
 
-//         // Add points to clusters
-//         cluster_points(clusters, points, dist_func);
+        // Add points to clusters
+        cluster_points(clusters, points, dist_func);
 
-//         // Update centroids
-//         cl_changed = cluster_update(clusters);
+        // Update centroids
+        cl_changed = cluster_update(clusters);
 
-//     } while (cl_changed);
+    } while (cl_changed);
 
-//     return clusters;
-// }
+    return clusters;
+}

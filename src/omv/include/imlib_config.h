@@ -92,7 +92,8 @@
 #endif
 
 // Enable get_similarity()
-// #define IMLIB_ENABLE_GET_SIMILARITY
+#define IMLIB_ENABLE_GET_SIMILARITY
+#define IMLIB_ENABLE_FIND_BLOBS
 
 // Enable find_lines()
 #define IMLIB_ENABLE_FIND_LINES
@@ -107,7 +108,7 @@
 #endif
 
 // Enable find_circles()
-// #define IMLIB_ENABLE_FIND_CIRCLES
+#define IMLIB_ENABLE_FIND_CIRCLES
 
 // Enable find_rects()
 // #define IMLIB_ENABLE_FIND_RECTS
@@ -116,13 +117,13 @@
 #define IMLIB_ENABLE_QRCODES
 
 // Enable find_apriltags() (64 KB)
-// #define IMLIB_ENABLE_APRILTAGS
+#define IMLIB_ENABLE_APRILTAGS
 
 // Enable find_datamatrices() (26 KB)
-// #define IMLIB_ENABLE_DATAMATRICES
+#define IMLIB_ENABLE_DATAMATRICES
 
 // Enable find_barcodes() (42 KB)
-// #define IMLIB_ENABLE_BARCODES
+#define IMLIB_ENABLE_BARCODES
 
 
 #define IMLIB_ENABLE_GET_STATISTICS
