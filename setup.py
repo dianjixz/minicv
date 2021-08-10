@@ -89,9 +89,9 @@ ext_modules = Extension(
     ),
     libraries=[
         
-    ]
+    ],
     # library_dirs=[ "./ports"],
-    # extra_compile_args=prot_d, # V83x use armv7 -DARMV7_V83X , '-DARMV7_V83X', '-DARM_MATH_DSP'
+    extra_compile_args=['-lm'], # V83x use armv7 -DARMV7_V83X , '-DARMV7_V83X', '-DARM_MATH_DSP'
     # extra_link_args  = [ "-Wl,-rpath=/usr/lib/python3.8/site-packages/xxxxxx" ]
 )
 

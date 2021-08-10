@@ -49,26 +49,22 @@ import numpy as np
 # print(img)
 
 # display.show(mm)
-
-# assert 255 == minicv.binary_to_grayscale(1)
-# # assert 0 == minicv.binary_to_grayscale(0)
-
-assert (0, 0, 0) == minicv.binary_to_rgb(0)
-# assert (255, 255, 255) == minicv.binary_to_rgb(1)
+print()
+print('--------------------------------------------------------------------------------------------------------')
 
 
-# print("binary_to_grayscale:1",minicv.binary_to_grayscale(1))
-# print("binary_to_grayscale:0",minicv.binary_to_grayscale(0))
+print("binary_to_grayscale:1",minicv.binary_to_grayscale(1))
+print("binary_to_grayscale:0",minicv.binary_to_grayscale(0))
 
-# print("binary_to_rgb:0",minicv.binary_to_rgb(0))
-# print("binary_to_rgb:1",minicv.binary_to_rgb(1))
+print("binary_to_rgb:0",minicv.binary_to_rgb(0))
+print("binary_to_rgb:1",minicv.binary_to_rgb(1))
 
-# print("py_image_binary_to_lab",minicv.binary_to_lab(0))
-# print("py_image_binary_to_lab",minicv.binary_to_lab(1))
+print("py_image_binary_to_lab:0",minicv.binary_to_lab(0))
+print("py_image_binary_to_lab:1",minicv.binary_to_lab(1))
 
 # print("py_image_rgb_to_lab",minicv.rgb_to_lab((0,66,84)))
-# # print("py_image_binary_to_lab",minicv.binary_to_lab(1))
-# # print("py_image_binary_to_lab",minicv.binary_to_lab(1))
+print("py_image_binary_to_lab:0",minicv.binary_to_lab(1))
+print("py_image_binary_to_lab:1",minicv.binary_to_lab(1))
 
 
 # print(minicv.draw_line(0, 0, 100, 100, 0xFFFF66, 5))
@@ -123,3 +119,4 @@ assert (0, 0, 0) == minicv.binary_to_rgb(0)
 
 
 
+print('--------------------------------------------------------------------------------------------------------')
