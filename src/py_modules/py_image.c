@@ -1,12 +1,9 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
-
 // #include "collections.h"
 // #include "imdefs.h"
 #include "imlib.h"
 #include "tanstation.h"
-// #include "minicvconfig.h"
-// #include "py_helper.h"
 #define debug_line printf("[%s %s] %s:%d: %s\n", __DATE__, __TIME__, __FILE__, __LINE__, __func__)
 
 // #define debug_line
@@ -743,223 +740,6 @@ py_histogram_get_threshold(PyObject *self, PyObject *args, PyObject *keywds)
 
 #endif //IMLIB_ENABLE_GET_THRESHOLD
 
-#ifdef IMLIB_ENABLE_GET_STATISTICS
-// static PyObject *
-// py_histogram_get_statistics(PyObject *self, PyObject *args, PyObject *keywds)
-// {
-//     histogram_t hist;
-//     hist.LBinCount = 0;
-//     hist.ABinCount = 0;
-//     hist.BBinCount = 0;
-//     fb_alloc_mark();
-//     hist.LBins = fb_alloc(hist.LBinCount * sizeof(float), FB_ALLOC_NO_HINT);
-//     hist.ABins = fb_alloc(hist.ABinCount * sizeof(float), FB_ALLOC_NO_HINT);
-//     hist.BBins = fb_alloc(hist.BBinCount * sizeof(float), FB_ALLOC_NO_HINT);
-// PyObject *
-
-//     for (int i = 0; i < hist.LBinCount; i++)
-//     {
-//         hist.LBins[i] = mp_obj_get_float(((mp_obj_list_t *)((py_histogram_obj_t *)self_in)->LBins)->items[i]);
-//     }
-
-//     for (int i = 0; i < hist.ABinCount; i++)
-//     {
-//         hist.ABins[i] = mp_obj_get_float(((mp_obj_list_t *)((py_histogram_obj_t *)self_in)->ABins)->items[i]);
-//     }
-
-//     for (int i = 0; i < hist.BBinCount; i++)
-//     {
-//         hist.BBins[i] = mp_obj_get_float(((mp_obj_list_t *)((py_histogram_obj_t *)self_in)->BBins)->items[i]);
-//     }
-
-//     statistics_t stats;
-//     imlib_get_statistics(&stats, ((py_histogram_obj_t *)self_in)->bpp, &hist);
-//     fb_alloc_free_till_mark();
-
-//     py_statistics_obj_t *o = m_new_obj(py_statistics_obj_t);
-//     o->base.type = &py_statistics_type;
-//     o->bpp = ((py_histogram_obj_t *)self_in)->bpp;
-
-//     o->LMean = mp_obj_new_int(stats.LMean);
-//     o->LMedian = mp_obj_new_int(stats.LMedian);
-//     o->LMode = mp_obj_new_int(stats.LMode);
-//     o->LSTDev = mp_obj_new_int(stats.LSTDev);
-//     o->LMin = mp_obj_new_int(stats.LMin);
-//     o->LMax = mp_obj_new_int(stats.LMax);
-//     o->LLQ = mp_obj_new_int(stats.LLQ);
-//     o->LUQ = mp_obj_new_int(stats.LUQ);
-//     o->AMean = mp_obj_new_int(stats.AMean);
-//     o->AMedian = mp_obj_new_int(stats.AMedian);
-//     o->AMode = mp_obj_new_int(stats.AMode);
-//     o->ASTDev = mp_obj_new_int(stats.ASTDev);
-//     o->AMin = mp_obj_new_int(stats.AMin);
-//     o->AMax = mp_obj_new_int(stats.AMax);
-//     o->ALQ = mp_obj_new_int(stats.ALQ);
-//     o->AUQ = mp_obj_new_int(stats.AUQ);
-//     o->BMean = mp_obj_new_int(stats.BMean);
-//     o->BMedian = mp_obj_new_int(stats.BMedian);
-//     o->BMode = mp_obj_new_int(stats.BMode);
-//     o->BSTDev = mp_obj_new_int(stats.BSTDev);
-//     o->BMin = mp_obj_new_int(stats.BMin);
-//     o->BMax = mp_obj_new_int(stats.BMax);
-//     o->BLQ = mp_obj_new_int(stats.BLQ);
-//     o->BUQ = mp_obj_new_int(stats.BUQ);
-
-//     return o;
-// }
-
-static PyObject *
-py_image_get_statistics(PyObject *self, PyObject *args, PyObject *keywds)
-{
-    image_t *arg_img = &self_image_img;
-
-    list_t thresholds;
-    PyObject *py_thresholds = Py_None;
-    bool invert = 0;
-    image_t *other = NULL;
-
-    rectangle_t roi;
-    PyObject *py_roi = Py_None;
-    PyObject *py_bins = Py_None;
-    PyObject *py_l_bins = Py_None;
-    PyObject *py_a_bins = Py_None;
-    PyObject *py_b_bins = Py_None;
-
-    static char *kwlist[] = {"thresholds", "invert", "roi", "bins", "l_bins", "a_bins", "b_bins", NULL};
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "|OiOOOOO", kwlist,
-                                     &py_thresholds, &invert, &py_roi, &py_bins, &py_l_bins, &py_a_bins, &py_b_bins))
-        return NULL;
-    debug_line;
-    thresholds_tan(py_thresholds, &thresholds);
-    roi_tan(py_roi, &roi, arg_img->w, arg_img->h);
-
-    histogram_t hist;
-
-    switch (arg_img->bpp)
-    {
-    case IMAGE_BPP_BINARY:
-    {
-        int bins = PyLong_Check(py_bins) ? PyLong_AsLong(py_bins) : (COLOR_BINARY_MAX - COLOR_BINARY_MIN + 1);
-        // PY_ASSERT_TRUE_MSG(bins >= 2, "bins must be >= 2");
-        hist.LBinCount = PyLong_Check(py_l_bins) ? PyLong_AsLong(py_l_bins) : bins;
-        // PY_ASSERT_TRUE_MSG(hist.LBinCount >= 2, "l_bins must be >= 2");
-        hist.ABinCount = 0;
-        hist.BBinCount = 0;
-        fb_alloc_mark();
-        hist.LBins = fb_alloc(hist.LBinCount * sizeof(float));
-        hist.ABins = NULL;
-        hist.BBins = NULL;
-        imlib_get_histogram(&hist, arg_img, &roi, &thresholds, invert);
-        list_free(&thresholds);
-        break;
-    }
-    case IMAGE_BPP_GRAYSCALE:
-    {
-        int bins = PyLong_Check(py_bins) ? PyLong_AsLong(py_bins) : (COLOR_GRAYSCALE_MAX - COLOR_GRAYSCALE_MIN + 1);
-        // py_helper_keyword_int(n_args, args, n_args, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_bins),
-        //                                  (COLOR_GRAYSCALE_MAX - COLOR_GRAYSCALE_MIN + 1));
-        // PY_ASSERT_TRUE_MSG(bins >= 2, "bins must be >= 2");
-        hist.LBinCount = PyLong_Check(py_l_bins) ? PyLong_AsLong(py_l_bins) : bins;
-        // py_helper_keyword_int(n_args, args, n_args, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_l_bins), bins);
-        // PY_ASSERT_TRUE_MSG(hist.LBinCount >= 2, "l_bins must be >= 2");
-        hist.ABinCount = 0;
-        hist.BBinCount = 0;
-        fb_alloc_mark();
-        hist.LBins = fb_alloc(hist.LBinCount * sizeof(float));
-        hist.ABins = NULL;
-        hist.BBins = NULL;
-        imlib_get_histogram(&hist, arg_img, &roi, &thresholds, invert);
-        list_free(&thresholds);
-        break;
-    }
-    case IMAGE_BPP_RGB565:
-    {
-        int l_bins = PyLong_Check(py_bins) ? PyLong_AsLong(py_bins) : (COLOR_L_MAX - COLOR_L_MIN + 1);
-        // py_helper_keyword_int(n_args, args, n_args, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_bins),
-        //                                    (COLOR_L_MAX - COLOR_L_MIN + 1));
-        // PY_ASSERT_TRUE_MSG(l_bins >= 2, "bins must be >= 2");
-        hist.LBinCount = PyLong_Check(py_l_bins) ? PyLong_AsLong(py_l_bins) : l_bins;
-        // py_helper_keyword_int(n_args, args, n_args, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_l_bins), l_bins);
-        // PY_ASSERT_TRUE_MSG(hist.LBinCount >= 2, "l_bins must be >= 2");
-
-        int a_bins = PyLong_Check(py_bins) ? PyLong_AsLong(py_bins) : (COLOR_A_MAX - COLOR_A_MIN + 1);
-        // py_helper_keyword_int(n_args, args, n_args, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_bins),
-        //                                    (COLOR_A_MAX - COLOR_A_MIN + 1));
-        // PY_ASSERT_TRUE_MSG(a_bins >= 2, "bins must be >= 2");
-        hist.ABinCount = PyLong_Check(py_a_bins) ? PyLong_AsLong(py_a_bins) : a_bins;
-        // py_helper_keyword_int(n_args, args, n_args, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_a_bins), a_bins);
-        // PY_ASSERT_TRUE_MSG(hist.ABinCount >= 2, "a_bins must be >= 2");
-
-        int b_bins = PyLong_Check(py_bins) ? PyLong_AsLong(py_bins) : (COLOR_B_MAX - COLOR_B_MIN + 1);
-        // py_helper_keyword_int(n_args, args, n_args, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_bins),
-        //                                    (COLOR_B_MAX - COLOR_B_MIN + 1));
-        // PY_ASSERT_TRUE_MSG(b_bins >= 2, "bins must be >= 2");
-        hist.BBinCount = PyLong_Check(py_b_bins) ? PyLong_AsLong(py_b_bins) : b_bins;
-        // py_helper_keyword_int(n_args, args, n_args, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_b_bins), b_bins);
-        // PY_ASSERT_TRUE_MSG(hist.BBinCount >= 2, "b_bins must be >= 2");
-        fb_alloc_mark();
-        hist.LBins = fb_alloc(hist.LBinCount * sizeof(float));
-        hist.ABins = fb_alloc(hist.ABinCount * sizeof(float));
-        hist.BBins = fb_alloc(hist.BBinCount * sizeof(float));
-        imlib_get_histogram(&hist, arg_img, &roi, &thresholds, invert);
-        list_free(&thresholds);
-        break;
-    }
-    default:
-    {
-        return Py_None;
-    }
-    }
-    statistics_t stats;
-    imlib_get_statistics(&stats, arg_img->bpp, &hist);
-    fb_alloc_free_till_mark();
-
-    PyObject *o = PyDict_New();
-    PyObject *tmp1;
-    PyObject *tmp2;
-
-    tmp1 = Py_BuildValue("s", "LMean");
-    tmp2 = Py_BuildValue("i", stats.LMean);
-
-    PyDict_SetItem(o, tmp1, tmp2);
-    Py_DECREF(tmp1);
-    Py_DECREF(tmp2);
-
-    tmp1 = Py_BuildValue("s", "LMedian");
-    tmp2 = Py_BuildValue("i", stats.LMedian);
-
-    PyDict_SetItem(o, tmp1, tmp2);
-    Py_DECREF(tmp1);
-    Py_DECREF(tmp2);
-    tmp1 = Py_BuildValue("s", "LMode");
-    tmp2 = Py_BuildValue("i", stats.LMode);
-
-    PyDict_SetItem(o, tmp1, tmp2);
-    Py_DECREF(tmp1);
-    Py_DECREF(tmp2);
-
-    PyDict_SetItem(o, Py_BuildValue("s", "LSTDev"), Py_BuildValue("i", stats.LSTDev));
-    PyDict_SetItem(o, Py_BuildValue("s", "LMin"), Py_BuildValue("i", stats.LMin));
-    PyDict_SetItem(o, Py_BuildValue("s", "LMax"), Py_BuildValue("i", stats.LMax));
-    PyDict_SetItem(o, Py_BuildValue("s", "LLQ"), Py_BuildValue("i", stats.LLQ));
-    PyDict_SetItem(o, Py_BuildValue("s", "LUQ"), Py_BuildValue("i", stats.LUQ));
-    PyDict_SetItem(o, Py_BuildValue("s", "ASTDev"), Py_BuildValue("i", stats.ASTDev));
-    PyDict_SetItem(o, Py_BuildValue("s", "AMin"), Py_BuildValue("i", stats.AMin));
-    PyDict_SetItem(o, Py_BuildValue("s", "AMax"), Py_BuildValue("i", stats.AMax));
-    PyDict_SetItem(o, Py_BuildValue("s", "ALQ"), Py_BuildValue("i", stats.ALQ));
-    PyDict_SetItem(o, Py_BuildValue("s", "BMean"), Py_BuildValue("i", stats.BMean));
-    PyDict_SetItem(o, Py_BuildValue("s", "BMedian"), Py_BuildValue("i", stats.BMedian));
-    PyDict_SetItem(o, Py_BuildValue("s", "BMode"), Py_BuildValue("i", stats.BMode));
-    PyDict_SetItem(o, Py_BuildValue("s", "BSTDev"), Py_BuildValue("i", stats.BSTDev));
-    PyDict_SetItem(o, Py_BuildValue("s", "BMin"), Py_BuildValue("i", stats.BMin));
-    PyDict_SetItem(o, Py_BuildValue("s", "BMax"), Py_BuildValue("i", stats.BMax));
-    PyDict_SetItem(o, Py_BuildValue("s", "BLQ"), Py_BuildValue("i", stats.BLQ));
-    PyDict_SetItem(o, Py_BuildValue("s", "BUQ"), Py_BuildValue("i", stats.BUQ));
-
-    return o;
-}
-
-#endif //IMLIB_ENABLE_GET_STATISTICS
 
 #ifdef IMLIB_ENABLE_FIND_BLOBS
 
@@ -5559,275 +5339,351 @@ int *arg_krn = fb_alloc(n * sizeof(int));
 */
 
 
-// static PyObject *
-// py_image_gaussian(PyObject *self, PyObject *args, PyObject* keywds)
-// {
-//     image_t *arg_img =&self_image_img;
-//     int arg_ksize =0;
+static PyObject *
+py_image_gaussian(PyObject *self, PyObject *args, PyObject* keywds)
+{
+    image_t *arg_img =&self_image_img;
+    int arg_ksize =0;
 
-//     int k_2 = arg_ksize * 2;
-//     int n = k_2 + 1;
 
-//     fb_alloc_mark();
+    float arg_add =0.0f;
+    bool arg_threshold =0;
+    int arg_offset =0;
+    bool arg_invert =0;
+    bool unsharp = 0;
+    image_t *arg_msk =NULL;
 
-//     int *pascal = fb_alloc(n * sizeof(int), FB_ALLOC_NO_HINT);
-//     pascal[0] = 1;
+    int arg_m = 0;
+    float arg_mul =0;
+    PyObject *msk;
 
-//     for (int i = 0; i < k_2; i++) { // Compute a row of pascal's triangle.
-//         pascal[i + 1] = (pascal[i] * (k_2 - i)) / (i + 1);
-//     }
+    static char *kwlist[] = {"size", "unsharp", "mul","add","threshold", "offset", "invert", "mask", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "i|iffiiiO", kwlist,
+                                     &arg_ksize, &unsharp, &arg_mul,&arg_add,&arg_threshold, &arg_offset, &arg_invert, &msk))
+        return NULL;
 
-//     int *arg_krn = fb_alloc(n * n * sizeof(int), FB_ALLOC_NO_HINT);
-//     int arg_m = 0;
+    r24to_imgr16(msk, Py_None, Py_None, Py_None, arg_msk);
 
-//     for (int i = 0; i < n; i++) {
-//         for (int j = 0; j < n; j++) {
-//             int temp = pascal[i] * pascal[j];
-//             arg_krn[(i * n) + j] = temp;
-//             arg_m += temp;
-//         }
-//     }
-//     bool unsharp = 0;
 
-//     if (unsharp) {
-//         arg_krn[((n/2)*n)+(n/2)] -= arg_m * 2;
-//         arg_m = -arg_m;
-//     }
+    int k_2 = arg_ksize * 2;
+    int n = k_2 + 1;
 
-//     float arg_mul =1.0f / arg_m;
+    fb_alloc_mark();
 
-//     float arg_add =0.0f;
-//     bool arg_threshold =0;
-//     int arg_offset =0;
-//     bool arg_invert =0;
-//     image_t *arg_msk =NULL;
+    int *pascal = fb_alloc(n * sizeof(int));
+    pascal[0] = 1;
 
-//     imlib_morph(arg_img, arg_ksize, arg_krn, arg_mul, arg_add, arg_threshold, arg_offset, arg_invert, arg_msk);
-//     fb_alloc_free_till_mark();
-//     return PyLong_FromLong(0);
-// }
-// static PyObject *
-// py_image_laplacian(PyObject *self, PyObject *args, PyObject* keywds)
-// {
-//     image_t *arg_img =&self_image_img;
-//     int arg_ksize =0;
+    for (int i = 0; i < k_2; i++) { // Compute a row of pascal's triangle.
+        pascal[i + 1] = (pascal[i] * (k_2 - i)) / (i + 1);
+    }
 
-//     int k_2 = arg_ksize * 2;
-//     int n = k_2 + 1;
+    int *arg_krn = fb_alloc(n * n * sizeof(int));
 
-//     fb_alloc_mark();
 
-//     int *pascal = fb_alloc(n * sizeof(int), FB_ALLOC_NO_HINT);
-//     pascal[0] = 1;
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            int temp = pascal[i] * pascal[j];
+            arg_krn[(i * n) + j] = temp;
+            arg_m += temp;
+        }
+    }
+    if (unsharp) {
+        arg_krn[((n/2)*n)+(n/2)] -= arg_m * 2;
+        arg_m = -arg_m;
+    }
+     arg_mul = arg_mul ?  arg_mul:1.0f / arg_m;
 
-//     for (int i = 0; i < k_2; i++) { // Compute a row of pascal's triangle.
-//         pascal[i + 1] = (pascal[i] * (k_2 - i)) / (i + 1);
-//     }
+    imlib_morph(arg_img, arg_ksize, arg_krn, arg_mul, arg_add, arg_threshold, arg_offset, arg_invert, arg_msk);
+    fb_alloc_free_till_mark();
+    return PyLong_FromLong(0);
+}
 
-//     int *arg_krn = fb_alloc(n * n * sizeof(int), FB_ALLOC_NO_HINT);
-//     int arg_m = 0;
 
-//     for (int i = 0; i < n; i++) {
-//         for (int j = 0; j < n; j++) {
-//             int temp = pascal[i] * pascal[j];
-//             arg_krn[(i * n) + j] = -temp;
-//             arg_m += temp;
-//         }
-//     }
 
-//     arg_krn[((n/2)*n)+(n/2)] += arg_m;
-//     arg_m = arg_krn[((n/2)*n)+(n/2)];
 
-//     if (py_helper_keyword_int(n_args, args, 2, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_sharpen), false)) {
-//         arg_krn[((n/2)*n)+(n/2)] += arg_m;
-//     }
 
-//     float arg_mul =
-//         py_helper_keyword_float(n_args, args, 3, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_mul), 1.0f / arg_m);
-//     float arg_add =
-//         py_helper_keyword_float(n_args, args, 4, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_add), 0.0f);
-//     bool arg_threshold =
-//         py_helper_keyword_int(n_args, args, 5, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_threshold), false);
-//     int arg_offset =
-//         py_helper_keyword_int(n_args, args, 6, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_offset), 0);
-//     bool arg_invert =
-//         py_helper_keyword_int(n_args, args, 7, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_invert), false);
-//     image_t *arg_msk =
-//         py_helper_keyword_to_image_mutable_mask(n_args, args, 8, kw_args);
+static PyObject *
+py_image_laplacian(PyObject *self, PyObject *args, PyObject* keywds)
+{
+    image_t *arg_img =&self_image_img;
+    int arg_ksize =0;
+    int k_2 = arg_ksize * 2;
+    int n = k_2 + 1;
+    float arg_add =0.0f;
+    bool arg_threshold =false;
+    int arg_offset =0;
+    bool arg_invert =false;
+    image_t *arg_msk =NULL;
+float arg_mul =0;
+bool arg_sharpen = false;
 
-//     imlib_morph(arg_img, arg_ksize, arg_krn, arg_mul, arg_add, arg_threshold, arg_offset, arg_invert, arg_msk);
-//     fb_alloc_free_till_mark();
-//     return args[0];
-// }
-// static PyObject *py_image_bilateral(PyObject *self, PyObject *args, PyObject *keywds)
-// {
-//     image_t *arg_img = &self_image_img;
-//     int arg_ksize = 0;
-//     float arg_color_sigma = 0.1;
-//     float arg_space_sigma = 1;
-//     bool arg_threshold = 0;
-//     int arg_offset = 0;
-//     bool arg_invert = 0;
-//     image_t *arg_msk = NULL;
 
-//     PyObject *msk;
+    PyObject *msk;
 
-//     static char *kwlist[] = {"size", "color_sigma", "space_sigma", "threshold", "offset", "invert", "mask", NULL};
-//     if (!PyArg_ParseTupleAndKeywords(args, keywds, "i|ffiiiO", kwlist,
-//                                      &arg_ksize, &arg_color_sigma, &arg_space_sigma, &arg_threshold, &arg_offset, &arg_invert, &msk))
-//         return NULL;
+    static char *kwlist[] = {"size", "sharpen", "mul","add","threshold", "offset", "invert", "mask", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "i|iffiiiO", kwlist,
+                                     &arg_ksize, &arg_sharpen, &arg_mul,&arg_add,&arg_threshold, &arg_offset, &arg_invert, &msk))
+        return NULL;
 
-//     fb_alloc_mark();
-//     imlib_bilateral_filter(arg_img, arg_ksize, arg_color_sigma, arg_space_sigma, arg_threshold, arg_offset, arg_invert, arg_msk);
-//     fb_alloc_free_till_mark();
-//     return PyLong_FromLong(0);
-// }
+    r24to_imgr16(msk, Py_None, Py_None, Py_None, arg_msk);
 
-// static PyObject *
-// py_image_cartoon(PyObject *self, PyObject *args, PyObject *keywds)
-// {
-//     image_t *arg_img = &self_image_img;
-//     float arg_seed_threshold = 0.05;
-//     // PY_ASSERT_TRUE_MSG((0.0f <= arg_seed_threshold) && (arg_seed_threshold <= 1.0f),
-//     //                    "Error: 0.0 <= seed_threshold <= 1.0!");
-//     float arg_floating_threshold = 0.05;
-//     // PY_ASSERT_TRUE_MSG((0.0f <= arg_floating_threshold) && (arg_floating_threshold <= 1.0f),
-//     //                    "Error: 0.0 <= floating_threshold <= 1.0!");
-//     image_t *arg_msk = NULL;
 
-//     PyObject *msk;
 
-//     static char *kwlist[] = {"seed_threshold", "floating_threshold", "mask", NULL};
-//     if (!PyArg_ParseTupleAndKeywords(args, keywds, "|ffO", kwlist,
-//                                      &arg_seed_threshold, &arg_floating_threshold, &msk))
-//         return NULL;
+    fb_alloc_mark();
 
-//     fb_alloc_mark();
-//     imlib_cartoon_filter(arg_img, arg_seed_threshold, arg_floating_threshold, arg_msk);
-//     fb_alloc_free_till_mark();
-//     return PyLong_FromLong(0);
-// }
+    int *pascal = fb_alloc(n * sizeof(int));
+    pascal[0] = 1;
 
-// static PyObject *
-// py_image_linpola(PyObject *self, PyObject *args, PyObject* keywds)
-// {
-//     image_t *arg_img =&self_image_img;
-//     // PY_ASSERT_FALSE_MSG(arg_img->w % 2, "Width must be even!");
-//     // PY_ASSERT_FALSE_MSG(arg_img->h % 2, "Height must be even!");
-//     bool arg_reverse =0;
+    for (int i = 0; i < k_2; i++) { // Compute a row of pascal's triangle.
+        pascal[i + 1] = (pascal[i] * (k_2 - i)) / (i + 1);
+    }
 
-//     static char *kwlist[] = {"reverse",NULL};
-//     if (!PyArg_ParseTupleAndKeywords(args, keywds, "|i", kwlist,
-//                               &arg_reverse)) return NULL;
+    int *arg_krn = fb_alloc(n * n * sizeof(int));
+    int arg_m = 0;
 
-//     fb_alloc_mark();
-//     imlib_logpolar(arg_img, true, arg_reverse);
-//     fb_alloc_free_till_mark();
-//     return PyLong_FromLong(0);
-// }
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            int temp = pascal[i] * pascal[j];
+            arg_krn[(i * n) + j] = -temp;
+            arg_m += temp;
+        }
+    }
 
-// static PyObject *
-// py_image_logpolar(PyObject *self, PyObject *args, PyObject* keywds)
-// {
-//     image_t *arg_img =&self_image_img;
-//     // PY_ASSERT_FALSE_MSG(arg_img->w % 2, "Width must be even!");
-//     // PY_ASSERT_FALSE_MSG(arg_img->h % 2, "Height must be even!");
-//     bool arg_reverse =0;
-//     static char *kwlist[] = {"reverse",NULL};
-//     if (!PyArg_ParseTupleAndKeywords(args, keywds, "|i", kwlist,
-//                               &arg_reverse)) return NULL;
+    arg_krn[((n/2)*n)+(n/2)] += arg_m;
+    arg_m = arg_krn[((n/2)*n)+(n/2)];
 
-//     fb_alloc_mark();
-//     imlib_logpolar(arg_img, false, arg_reverse);
-//     fb_alloc_free_till_mark();
-//     return PyLong_FromLong(0);
-// }
+    if (arg_sharpen) {
+        arg_krn[((n/2)*n)+(n/2)] += arg_m;
+    }
 
-// static PyObject * py_image_lens_corr(PyObject *self, PyObject *args, PyObject *keywds)
-// {
-//     image_t *arg_img =
-//         &self_image_img;
-//     PY_ASSERT_FALSE_MSG(arg_img->w % 2, "Width must be even!");
-//     PY_ASSERT_FALSE_MSG(arg_img->h % 2, "Height must be even!");
-//     float arg_strength =
-//         py_helper_keyword_float(n_args, args, 1, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_strength), 1.8f);
-//     PY_ASSERT_TRUE_MSG(arg_strength > 0.0f, "Strength must be > 0!");
-//     float arg_zoom =
-//         py_helper_keyword_float(n_args, args, 2, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_zoom), 1.0f);
-//     PY_ASSERT_TRUE_MSG(arg_zoom > 0.0f, "Zoom must be > 0!");
+    arg_mul = arg_mul ?  arg_mul:1.0f / arg_m;
 
-//     float arg_x_corr =
-//         py_helper_keyword_float(n_args, args, 3, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_x_corr), 0.0f);
-//     float arg_y_corr =
-//         py_helper_keyword_float(n_args, args, 4, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_y_corr), 0.0f);
 
-//     fb_alloc_mark();
-//     imlib_lens_corr(arg_img, arg_strength, arg_zoom, arg_x_corr, arg_y_corr);
-//     fb_alloc_free_till_mark();
-//     return args[0];
-// }
-// static PyObject *
-// py_image_rotation_corr(PyObject *self, PyObject *args, PyObject *keywds)
-// {
-//     image_t *arg_img = &self_image_img;
-//     float arg_x_rotation = 0.0f;
-//     float arg_y_rotation = 0.0f;
-//     float arg_z_rotation = 0.0f;
-//     float arg_x_translation = 0.0f;
-//     float arg_y_translation = 0.0f;
-//     float arg_zoom = 1.0f;
-//     // PY_ASSERT_TRUE_MSG(arg_zoom > 0.0f, "Zoom must be > 0!");
-//     float arg_fov = 60.0f;
-//     // PY_ASSERT_TRUE_MSG((0.0f < arg_fov) && (arg_fov < 180.0f), "FOV must be > 0 and < 180!");
-//     float *arg_corners = 0;
+    imlib_morph(arg_img, arg_ksize, arg_krn, arg_mul, arg_add, arg_threshold, arg_offset, arg_invert, arg_msk);
+    fb_alloc_free_till_mark();
+    return PyLong_FromLong(0);
+}
+static PyObject *py_image_bilateral(PyObject *self, PyObject *args, PyObject *keywds)
+{
+    image_t *arg_img = &self_image_img;
+    int arg_ksize = 0;
+    float arg_color_sigma = 0.1;
+    float arg_space_sigma = 1;
+    bool arg_threshold = 0;
+    int arg_offset = 0;
+    bool arg_invert = 0;
+    image_t *arg_msk = NULL;
 
-//     static char *kwlist[] = {"x_rotation", "y_rotation", "z_rotation", "x_translation", "y_translation", "zoom", NULL};
-//     if (!PyArg_ParseTupleAndKeywords(args, keywds, "|ffffff", kwlist,
-//                                      &arg_x_rotation, &arg_y_rotation, &arg_z_rotation, &arg_x_translation, &arg_y_translation, &arg_zoom))
-//         return NULL;
+    PyObject *msk;
 
-//     fb_alloc_mark();
-//     imlib_rotation_corr(arg_img,
-//                         arg_x_rotation, arg_y_rotation, arg_z_rotation,
-//                         arg_x_translation, arg_y_translation,
-//                         arg_zoom, arg_fov, arg_corners);
-//     fb_alloc_free_till_mark();
-//     return PyLong_FromLong(0);
-// }
+    static char *kwlist[] = {"size", "color_sigma", "space_sigma", "threshold", "offset", "invert", "mask", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "i|ffiiiO", kwlist,
+                                     &arg_ksize, &arg_color_sigma, &arg_space_sigma, &arg_threshold, &arg_offset, &arg_invert, &msk))
+        return NULL;
+    r24to_imgr16(msk, Py_None, Py_None, Py_None, arg_msk);
 
-// static PyObject *
-// py_image_get_similarity(PyObject *self, PyObject *args, PyObject* keywds)
-// {
-//     image_t *arg_img = &self_image_img;
-//     float avg, std, min, max;
+    fb_alloc_mark();
+    imlib_bilateral_filter(arg_img, arg_ksize, arg_color_sigma, arg_space_sigma, arg_threshold, arg_offset, arg_invert, arg_msk);
+    fb_alloc_free_till_mark();
+    return PyLong_FromLong(0);
+}
 
-//     fb_alloc_mark();
+static PyObject *
+py_image_cartoon(PyObject *self, PyObject *args, PyObject *keywds)
+{
+    image_t *arg_img = &self_image_img;
+    float arg_seed_threshold = 0.05;
+    // PY_ASSERT_TRUE_MSG((0.0f <= arg_seed_threshold) && (arg_seed_threshold <= 1.0f),
+    //                    "Error: 0.0 <= seed_threshold <= 1.0!");
+    float arg_floating_threshold = 0.05;
+    // PY_ASSERT_TRUE_MSG((0.0f <= arg_floating_threshold) && (arg_floating_threshold <= 1.0f),
+    //                    "Error: 0.0 <= floating_threshold <= 1.0!");
+    image_t *arg_msk = NULL;
 
-//     if (MP_OBJ_IS_STR(other_obj))
-//     {
-//         imlib_get_similarity(arg_img, mp_obj_str_get_str(other_obj), NULL, 0, &avg, &std, &min, &max);
-//     }
-//     else if (MP_OBJ_IS_TYPE(other_obj, &py_image_type))
-//     {
-//         imlib_get_similarity(arg_img, NULL, py_helper_arg_to_image_mutable(other_obj), 0, &avg, &std, &min, &max);
-//     }
-//     else
-//     {
-//         imlib_get_similarity(arg_img, NULL, NULL,
-//                              py_helper_keyword_color(arg_img, 1, &other_obj, 0, NULL, 0),
-//                              &avg, &std, &min, &max);
-//     }
+    PyObject *msk;
 
-//     fb_alloc_free_till_mark();
+    static char *kwlist[] = {"seed_threshold", "floating_threshold", "mask", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "|ffO", kwlist,
+                                     &arg_seed_threshold, &arg_floating_threshold, &msk))
+        return NULL;
+r24to_imgr16(msk, Py_None, Py_None, Py_None, arg_msk);
+    fb_alloc_mark();
+    imlib_cartoon_filter(arg_img, arg_seed_threshold, arg_floating_threshold, arg_msk);
+    fb_alloc_free_till_mark();
+    return PyLong_FromLong(0);
+}
+/*
+static PyObject *
+py_image_remove_shadows(PyObject *self, PyObject *args, PyObject *keywds)
+{
+    image_t *arg_img = &self_image_img;
+    fb_alloc_mark();
 
-//     py_similarity_obj_t *o = m_new_obj(py_similarity_obj_t);
-//     o->base.type = &py_similarity_type;
-//     o->avg = mp_obj_new_float(avg);
-//     o->std = mp_obj_new_float(std);
-//     o->min = mp_obj_new_float(min);
-//     o->max = mp_obj_new_float(max);
-//     return o;
-// }
+    if (n_args < 2) {
+        imlib_remove_shadows(arg_img, NULL, NULL, 0, true);
+    } else if (MP_OBJ_IS_STR(args[1])) {
+        imlib_remove_shadows(arg_img, mp_obj_str_get_str(args[1]), NULL, 0, false);
+    } else if (MP_OBJ_IS_TYPE(args[1], &py_image_type)) {
+        imlib_remove_shadows(arg_img, NULL, py_helper_arg_to_image_color(args[1]), 0, false);
+    } else {
+        imlib_remove_shadows(arg_img, NULL, NULL,
+                             py_helper_keyword_color(arg_img, n_args, args, 1, NULL, 0),
+                             false);
+    }
+    fb_alloc_free_till_mark();
+    return PyLong_FromLong(0);
+}
+*/
+
+static PyObject *
+py_image_chrominvar(PyObject *self, PyObject *args)
+{
+    fb_alloc_mark();
+    imlib_chrominvar(&self_image_img);
+    fb_alloc_free_till_mark();
+    return PyLong_FromLong(0);
+}
+
+static PyObject *
+py_image_illuminvar(PyObject *self, PyObject *args)
+{
+    fb_alloc_mark();
+    imlib_illuminvar(&self_image_img);
+    fb_alloc_free_till_mark();
+    return PyLong_FromLong(0);
+}
+
+
+
+
+
+
+
+
+
+static PyObject *
+py_image_linpola(PyObject *self, PyObject *args, PyObject* keywds)
+{
+    image_t *arg_img =&self_image_img;
+    // PY_ASSERT_FALSE_MSG(arg_img->w % 2, "Width must be even!");
+    // PY_ASSERT_FALSE_MSG(arg_img->h % 2, "Height must be even!");
+    bool arg_reverse =0;
+
+    static char *kwlist[] = {"reverse",NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "|i", kwlist,
+                              &arg_reverse)) return NULL;
+
+    fb_alloc_mark();
+    imlib_logpolar(arg_img, true, arg_reverse);
+    fb_alloc_free_till_mark();
+    return PyLong_FromLong(0);
+}
+
+static PyObject *
+py_image_logpolar(PyObject *self, PyObject *args, PyObject* keywds)
+{
+    image_t *arg_img =&self_image_img;
+    // PY_ASSERT_FALSE_MSG(arg_img->w % 2, "Width must be even!");
+    // PY_ASSERT_FALSE_MSG(arg_img->h % 2, "Height must be even!");
+    bool arg_reverse =0;
+    static char *kwlist[] = {"reverse",NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "|i", kwlist,
+                              &arg_reverse)) return NULL;
+
+    fb_alloc_mark();
+    imlib_logpolar(arg_img, false, arg_reverse);
+    fb_alloc_free_till_mark();
+    return PyLong_FromLong(0);
+}
+
+
+static PyObject * 
+py_image_lens_corr(PyObject *self, PyObject *args, PyObject *keywds)
+{
+    image_t *arg_img =&self_image_img;
+     float arg_strength =1.8f;
+    // PY_ASSERT_TRUE_MSG(arg_strength > 0.0f, "Strength must be > 0!");
+    float arg_zoom = 1.0f;
+    // PY_ASSERT_TRUE_MSG(arg_zoom > 0.0f, "Zoom must be > 0!");
+    static char *kwlist[] = {"strength","zoom",NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "|ff", kwlist,
+                              &arg_strength,&arg_zoom)) return NULL;
+
+    fb_alloc_mark();
+    imlib_lens_corr(arg_img, arg_strength, arg_zoom);
+    fb_alloc_free_till_mark();
+    return PyLong_FromLong(0);
+}
+
+
+
+
+
+
+static PyObject *
+py_image_rotation_corr(PyObject *self, PyObject *args, PyObject *keywds)
+{
+    image_t *arg_img = &self_image_img;
+    float arg_x_rotation = 0.0f;
+    float arg_y_rotation = 0.0f;
+    float arg_z_rotation = 0.0f;
+    float arg_x_translation = 0.0f;
+    float arg_y_translation = 0.0f;
+    float arg_zoom = 1.0f;
+    // PY_ASSERT_TRUE_MSG(arg_zoom > 0.0f, "Zoom must be > 0!");
+    float arg_fov = 60.0f;
+    // PY_ASSERT_TRUE_MSG((0.0f < arg_fov) && (arg_fov < 180.0f), "FOV must be > 0 and < 180!");
+    float *arg_corners = 0;
+
+    static char *kwlist[] = {"x_rotation", "y_rotation", "z_rotation", "x_translation", "y_translation", "zoom","fov","corners", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "|fffffff", kwlist,
+                                     &arg_x_rotation, &arg_y_rotation, &arg_z_rotation, &arg_x_translation, &arg_y_translation, &arg_zoom,&arg_fov,&arg_corners))
+        return NULL;
+
+    fb_alloc_mark();
+    imlib_rotation_corr(arg_img,
+                        arg_x_rotation, arg_y_rotation, arg_z_rotation,
+                        arg_x_translation, arg_y_translation,
+                        arg_zoom, arg_fov, arg_corners);
+    fb_alloc_free_till_mark();
+    return PyLong_FromLong(0);
+}
+
+/*
+static PyObject *
+py_image_get_similarity(PyObject *self, PyObject *args, PyObject* keywds)
+{
+    image_t *arg_img = &self_image_img;
+    float avg, std, min, max;
+
+    fb_alloc_mark();
+
+    if (MP_OBJ_IS_STR(other_obj))
+    {
+        imlib_get_similarity(arg_img, mp_obj_str_get_str(other_obj), NULL, 0, &avg, &std, &min, &max);
+    }
+    else if (MP_OBJ_IS_TYPE(other_obj, &py_image_type))
+    {
+        imlib_get_similarity(arg_img, NULL, py_helper_arg_to_image_mutable(other_obj), 0, &avg, &std, &min, &max);
+    }
+    else
+    {
+        imlib_get_similarity(arg_img, NULL, NULL,
+                             py_helper_keyword_color(arg_img, 1, &other_obj, 0, NULL, 0),
+                             &avg, &std, &min, &max);
+    }
+
+    fb_alloc_free_till_mark();
+
+    py_similarity_obj_t *o = m_new_obj(py_similarity_obj_t);
+    o->base.type = &py_similarity_type;
+    o->avg = mp_obj_new_float(avg);
+    o->std = mp_obj_new_float(std);
+    o->min = mp_obj_new_float(min);
+    o->max = mp_obj_new_float(max);
+    return o;
+}
+*/
 
 // static PyObject *
 // py_image_get_histogram(PyObject *self, PyObject *args, PyObject* keywds)
@@ -5944,224 +5800,47 @@ int *arg_krn = fb_alloc(n * sizeof(int));
 
 // }
 
-/*
-该算法没有使用感兴趣区，等参数
-*/
+
+#ifdef IMLIB_ENABLE_GET_STATISTICS
 // static PyObject *
-// py_image_get_statistics(PyObject *self, PyObject *args, PyObject *keywds)
+// py_histogram_get_statistics(PyObject *self, PyObject *args, PyObject *keywds)
 // {
-//     image_t *arg_img = &self_image_img;
-//     //mp ini
-
-//     //python args
-//     struct RECE_STA
-//     {
-//         PyObject *thresholds;
-//         PyObject *invert;
-//         PyObject *roi;
-
-//         PyObject *bins;
-//         PyObject *l_bins;
-//         PyObject *a_bins;
-//         PyObject *b_bins;
-
-//     } rece_sta;
-//     PyObject *thr;
-//     PyObject *thr2;
-//     PyObject *thr3;
-//     //imlib args
-//     list_t thresholds;
-//     bool invert;
-//     rectangle_t roi;
-//     color_thresholds_list_lnk_data_t thrm;
 //     histogram_t hist;
-//     image_t *other = NULL;
-
-//     //imlib args init
-//     hist.ABinCount = 101;
-//     hist.BBinCount = 256;
-//     hist.LBinCount = 256;
-//     list_init(&thresholds, sizeof(color_thresholds_list_lnk_data_t));
-
-//     static char *kwlist[] = {"thresholds", "invert", "roi", "bins", "l_bins", "a_bins", "b_bins", NULL};
-//     if (!PyArg_ParseTupleAndKeywords(args, keywds, "|OOOOOOO", kwlist,
-//                                      &rece_sta.thresholds, &rece_sta.invert, &rece_sta.roi, &rece_sta.bins, &rece_sta.l_bins, &rece_sta.a_bins, &rece_sta.b_bins))
-//         return NULL;
-
-//     //py args conversion imlib
-
-//     fb_alloc_mark(); //未知函数,暂时先调用
-
-//     if (rece_sta.invert == Py_True)
-//         invert = 1;
-//     else
-//         invert = 0;
-
-//     int thr_len, thrs;
-//     thr_len = PyList_Size(rece_sta.thresholds);
-//     if (thr_len == 0)
-//         return PyList_New(0); //检查传递阈值
-//     for (int i = 0; i < thr_len; i++)
-//     {
-//         thr = PyList_GetItem(rece_sta.thresholds, i);
-//         if (!PyTuple_Check(thr))
-//             return NULL;
-//         thrs = PyTuple_Size(thr);
-
-//         if (thrs == 6)
-//         {
-//             thr2 = PyTuple_GetItem(thr, 0);
-//             thrm.LMin = PyLong_AsLong(thr2);
-//             thr2 = PyTuple_GetItem(thr, 1);
-//             thrm.LMax = PyLong_AsLong(thr2);
-//             thr2 = PyTuple_GetItem(thr, 2);
-//             thrm.AMin = PyLong_AsLong(thr2);
-//             thr2 = PyTuple_GetItem(thr, 3);
-//             thrm.AMax = PyLong_AsLong(thr2);
-//             thr2 = PyTuple_GetItem(thr, 4);
-//             thrm.BMin = PyLong_AsLong(thr2);
-//             thr2 = PyTuple_GetItem(thr, 5);
-//             thrm.BMax = PyLong_AsLong(thr2);
-//             list_push_back(&thresholds, &thrm);
-//         }
-//         else if (thrs == 2)
-//         {
-//         }
-//         else
-//             return NULL;
-//     }
-
+//     hist.LBinCount = 0;
+//     hist.ABinCount = 0;
+//     hist.BBinCount = 0;
+//     fb_alloc_mark();
 //     hist.LBins = fb_alloc(hist.LBinCount * sizeof(float), FB_ALLOC_NO_HINT);
 //     hist.ABins = fb_alloc(hist.ABinCount * sizeof(float), FB_ALLOC_NO_HINT);
 //     hist.BBins = fb_alloc(hist.BBinCount * sizeof(float), FB_ALLOC_NO_HINT);
+// PyObject *
 
-//     imlib_get_histogram(&hist, &arg_img, &roi, &thresholds, invert, other);
-//     // imlib_get_histogram(&hist, &arg_img, &roi, &thresholds, invert);
+//     for (int i = 0; i < hist.LBinCount; i++)
+//     {
+//         hist.LBins[i] = mp_obj_get_float(((mp_obj_list_t *)((py_histogram_obj_t *)self_in)->LBins)->items[i]);
+//     }
 
-//     statistics_t stats;
-//     imlib_get_statistics(&stats, arg_img.bpp, &hist);
+//     for (int i = 0; i < hist.ABinCount; i++)
+//     {
+//         hist.ABins[i] = mp_obj_get_float(((mp_obj_list_t *)((py_histogram_obj_t *)self_in)->ABins)->items[i]);
+//     }
 
-//     if (hist.BBinCount)
-//         fb_free();
-//     if (hist.ABinCount)
-//         fb_free();
-//     if (hist.LBinCount)
-//         fb_free();
-//     fb_alloc_free_till_mark();
-
-//     PyObject *o = PyDict_New();
-//     PyDict_SetItem(o, Py_BuildValue("s", "LMean"), Py_BuildValue("i", stats.LMean));
-//     PyDict_SetItem(o, Py_BuildValue("s", "LMedian"), Py_BuildValue("i", stats.LMedian));
-//     PyDict_SetItem(o, Py_BuildValue("s", "LMode"), Py_BuildValue("i", stats.LMode));
-//     PyDict_SetItem(o, Py_BuildValue("s", "LSTDev"), Py_BuildValue("i", stats.LSTDev));
-//     PyDict_SetItem(o, Py_BuildValue("s", "LMin"), Py_BuildValue("i", stats.LMin));
-//     PyDict_SetItem(o, Py_BuildValue("s", "LMax"), Py_BuildValue("i", stats.LMax));
-//     PyDict_SetItem(o, Py_BuildValue("s", "LLQ"), Py_BuildValue("i", stats.LLQ));
-//     PyDict_SetItem(o, Py_BuildValue("s", "LUQ"), Py_BuildValue("i", stats.LUQ));
-//     PyDict_SetItem(o, Py_BuildValue("s", "ASTDev"), Py_BuildValue("i", stats.ASTDev));
-//     PyDict_SetItem(o, Py_BuildValue("s", "AMin"), Py_BuildValue("i", stats.AMin));
-//     PyDict_SetItem(o, Py_BuildValue("s", "AMax"), Py_BuildValue("i", stats.AMax));
-//     PyDict_SetItem(o, Py_BuildValue("s", "ALQ"), Py_BuildValue("i", stats.ALQ));
-//     PyDict_SetItem(o, Py_BuildValue("s", "BMean"), Py_BuildValue("i", stats.BMean));
-//     PyDict_SetItem(o, Py_BuildValue("s", "BMedian"), Py_BuildValue("i", stats.BMedian));
-//     PyDict_SetItem(o, Py_BuildValue("s", "BMode"), Py_BuildValue("i", stats.BMode));
-//     PyDict_SetItem(o, Py_BuildValue("s", "BSTDev"), Py_BuildValue("i", stats.BSTDev));
-//     PyDict_SetItem(o, Py_BuildValue("s", "BMin"), Py_BuildValue("i", stats.BMin));
-//     PyDict_SetItem(o, Py_BuildValue("s", "BMax"), Py_BuildValue("i", stats.BMax));
-//     PyDict_SetItem(o, Py_BuildValue("s", "BLQ"), Py_BuildValue("i", stats.BLQ));
-//     PyDict_SetItem(o, Py_BuildValue("s", "BUQ"), Py_BuildValue("i", stats.BUQ));
-
-//     //mp free
-//     return o;
-// }
-
-// static PyObject * py_image_get_statistics(PyObject *self, PyObject *args, PyObject *keywds)
-// {
-//     image_t *arg_img = &self_image_img;
-
-//     list_t thresholds;
-//     list_init(&thresholds, sizeof(color_thresholds_list_lnk_data_t));
-//     py_helper_keyword_thresholds(n_args, args, 1, kw_args, &thresholds);
-//     bool invert = py_helper_keyword_int(n_args, args, 2, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_invert), false);
-//     image_t *other = py_helper_keyword_to_image_mutable(n_args, args, 3, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_difference), NULL);
-
-//     rectangle_t roi;
-//     py_helper_keyword_rectangle_roi(arg_img, n_args, args, 3, kw_args, &roi);
-
-//     histogram_t hist;
-//     switch(arg_img->bpp) {
-//         case IMAGE_BPP_BINARY: {
-//             int bins = py_helper_keyword_int(n_args, args, n_args, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_bins),
-//                                              (COLOR_BINARY_MAX-COLOR_BINARY_MIN+1));
-//             PY_ASSERT_TRUE_MSG(bins >= 2, "bins must be >= 2");
-//             hist.LBinCount = py_helper_keyword_int(n_args, args, n_args, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_l_bins), bins);
-//             PY_ASSERT_TRUE_MSG(hist.LBinCount >= 2, "l_bins must be >= 2");
-//             hist.ABinCount = 0;
-//             hist.BBinCount = 0;
-//             fb_alloc_mark();
-//             hist.LBins = fb_alloc(hist.LBinCount * sizeof(float), FB_ALLOC_NO_HINT);
-//             hist.ABins = NULL;
-//             hist.BBins = NULL;
-//             imlib_get_histogram(&hist, arg_img, &roi, &thresholds, invert, other);
-//             list_free(&thresholds);
-//             break;
-//         }
-//         case IMAGE_BPP_GRAYSCALE: {
-//             int bins = py_helper_keyword_int(n_args, args, n_args, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_bins),
-//                                              (COLOR_GRAYSCALE_MAX-COLOR_GRAYSCALE_MIN+1));
-//             PY_ASSERT_TRUE_MSG(bins >= 2, "bins must be >= 2");
-//             hist.LBinCount = py_helper_keyword_int(n_args, args, n_args, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_l_bins), bins);
-//             PY_ASSERT_TRUE_MSG(hist.LBinCount >= 2, "l_bins must be >= 2");
-//             hist.ABinCount = 0;
-//             hist.BBinCount = 0;
-//             fb_alloc_mark();
-//             hist.LBins = fb_alloc(hist.LBinCount * sizeof(float), FB_ALLOC_NO_HINT);
-//             hist.ABins = NULL;
-//             hist.BBins = NULL;
-//             imlib_get_histogram(&hist, arg_img, &roi, &thresholds, invert, other);
-//             list_free(&thresholds);
-//             break;
-//         }
-//         case IMAGE_BPP_RGB565: {
-//             int l_bins = py_helper_keyword_int(n_args, args, n_args, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_bins),
-//                                                (COLOR_L_MAX-COLOR_L_MIN+1));
-//             PY_ASSERT_TRUE_MSG(l_bins >= 2, "bins must be >= 2");
-//             hist.LBinCount = py_helper_keyword_int(n_args, args, n_args, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_l_bins), l_bins);
-//             PY_ASSERT_TRUE_MSG(hist.LBinCount >= 2, "l_bins must be >= 2");
-//             int a_bins = py_helper_keyword_int(n_args, args, n_args, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_bins),
-//                                                (COLOR_A_MAX-COLOR_A_MIN+1));
-//             PY_ASSERT_TRUE_MSG(a_bins >= 2, "bins must be >= 2");
-//             hist.ABinCount = py_helper_keyword_int(n_args, args, n_args, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_a_bins), a_bins);
-//             PY_ASSERT_TRUE_MSG(hist.ABinCount >= 2, "a_bins must be >= 2");
-//             int b_bins = py_helper_keyword_int(n_args, args, n_args, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_bins),
-//                                                (COLOR_B_MAX-COLOR_B_MIN+1));
-//             PY_ASSERT_TRUE_MSG(b_bins >= 2, "bins must be >= 2");
-//             hist.BBinCount = py_helper_keyword_int(n_args, args, n_args, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_b_bins), b_bins);
-//             PY_ASSERT_TRUE_MSG(hist.BBinCount >= 2, "b_bins must be >= 2");
-//             fb_alloc_mark();
-//             hist.LBins = fb_alloc(hist.LBinCount * sizeof(float), FB_ALLOC_NO_HINT);
-//             hist.ABins = fb_alloc(hist.ABinCount * sizeof(float), FB_ALLOC_NO_HINT);
-//             hist.BBins = fb_alloc(hist.BBinCount * sizeof(float), FB_ALLOC_NO_HINT);
-//             imlib_get_histogram(&hist, arg_img, &roi, &thresholds, invert, other);
-//             list_free(&thresholds);
-//             break;
-//         }
-//         default: {
-//             return MP_OBJ_NULL;
-//         }
+//     for (int i = 0; i < hist.BBinCount; i++)
+//     {
+//         hist.BBins[i] = mp_obj_get_float(((mp_obj_list_t *)((py_histogram_obj_t *)self_in)->BBins)->items[i]);
 //     }
 
 //     statistics_t stats;
-//     imlib_get_statistics(&stats, arg_img->bpp, &hist);
+//     imlib_get_statistics(&stats, ((py_histogram_obj_t *)self_in)->bpp, &hist);
 //     fb_alloc_free_till_mark();
 
 //     py_statistics_obj_t *o = m_new_obj(py_statistics_obj_t);
 //     o->base.type = &py_statistics_type;
-//     o->bpp = arg_img->bpp;
+//     o->bpp = ((py_histogram_obj_t *)self_in)->bpp;
 
 //     o->LMean = mp_obj_new_int(stats.LMean);
 //     o->LMedian = mp_obj_new_int(stats.LMedian);
-//     o->LMode= mp_obj_new_int(stats.LMode);
+//     o->LMode = mp_obj_new_int(stats.LMode);
 //     o->LSTDev = mp_obj_new_int(stats.LSTDev);
 //     o->LMin = mp_obj_new_int(stats.LMin);
 //     o->LMax = mp_obj_new_int(stats.LMax);
@@ -6169,7 +5848,7 @@ int *arg_krn = fb_alloc(n * sizeof(int));
 //     o->LUQ = mp_obj_new_int(stats.LUQ);
 //     o->AMean = mp_obj_new_int(stats.AMean);
 //     o->AMedian = mp_obj_new_int(stats.AMedian);
-//     o->AMode= mp_obj_new_int(stats.AMode);
+//     o->AMode = mp_obj_new_int(stats.AMode);
 //     o->ASTDev = mp_obj_new_int(stats.ASTDev);
 //     o->AMin = mp_obj_new_int(stats.AMin);
 //     o->AMax = mp_obj_new_int(stats.AMax);
@@ -6177,7 +5856,7 @@ int *arg_krn = fb_alloc(n * sizeof(int));
 //     o->AUQ = mp_obj_new_int(stats.AUQ);
 //     o->BMean = mp_obj_new_int(stats.BMean);
 //     o->BMedian = mp_obj_new_int(stats.BMedian);
-//     o->BMode= mp_obj_new_int(stats.BMode);
+//     o->BMode = mp_obj_new_int(stats.BMode);
 //     o->BSTDev = mp_obj_new_int(stats.BSTDev);
 //     o->BMin = mp_obj_new_int(stats.BMin);
 //     o->BMax = mp_obj_new_int(stats.BMax);
@@ -6187,641 +5866,248 @@ int *arg_krn = fb_alloc(n * sizeof(int));
 //     return o;
 // }
 
-// static PyObject *
-// py_image_get_regression(PyObject *self, PyObject *args, PyObject* keywds)
-// {
-//     image_t *arg_img = &self_image_img;
-
-//     list_t thresholds;
-//     list_init(&thresholds, sizeof(color_thresholds_list_lnk_data_t));
-//     py_helper_arg_to_thresholds(args[1], &thresholds);
-//     if (!list_size(&thresholds)) return mp_const_none;
-//     bool invert = py_helper_keyword_int(n_args, args, 2, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_invert), false);
-
-//     rectangle_t roi;
-//     py_helper_keyword_rectangle_roi(arg_img, n_args, args, 3, kw_args, &roi);
-
-//     unsigned int x_stride = py_helper_keyword_int(n_args, args, 4, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_x_stride), 2);
-//     PY_ASSERT_TRUE_MSG(x_stride > 0, "x_stride must not be zero.");
-//     unsigned int y_stride = py_helper_keyword_int(n_args, args, 5, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_y_stride), 1);
-//     PY_ASSERT_TRUE_MSG(y_stride > 0, "y_stride must not be zero.");
-//     unsigned int area_threshold = py_helper_keyword_int(n_args, args, 6, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_area_threshold), 10);
-//     unsigned int pixels_threshold = py_helper_keyword_int(n_args, args, 7, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_pixels_threshold), 10);
-//     bool robust = py_helper_keyword_int(n_args, args, 8, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_robust), false);
-
-//     find_lines_list_lnk_data_t out;
-//     fb_alloc_mark();
-//     bool result = imlib_get_regression(&out, arg_img, &roi, x_stride, y_stride, &thresholds, invert, area_threshold, pixels_threshold, robust);
-//     fb_alloc_free_till_mark();
-//     list_free(&thresholds);
-//     if (!result) {
-//         return mp_const_none;
-//     }
-
-//     py_line_obj_t *o = m_new_obj(py_line_obj_t);
-//     o->base.type = &py_line_type;
-//     o->x1 = mp_obj_new_int(out.line.x1);
-//     o->y1 = mp_obj_new_int(out.line.y1);
-//     o->x2 = mp_obj_new_int(out.line.x2);
-//     o->y2 = mp_obj_new_int(out.line.y2);
-//     int x_diff = out.line.x2 - out.line.x1;
-//     int y_diff = out.line.y2 - out.line.y1;
-//     o->length = mp_obj_new_int(fast_roundf(fast_sqrtf((x_diff * x_diff) + (y_diff * y_diff))));
-//     o->magnitude = mp_obj_new_int(out.magnitude);
-//     o->theta = mp_obj_new_int(out.theta);
-//     o->rho = mp_obj_new_int(out.rho);
-
-//     return o;
-// }
-
-// static PyObject *
-// py_image_find_blobs(PyObject *self, PyObject *args, PyObject* keywds)
-// {
-//     image_t *arg_img = &self_image_img;
-
-//     list_t thresholds;
-//     list_init(&thresholds, sizeof(color_thresholds_list_lnk_data_t));
-//     py_helper_arg_to_thresholds(args[1], &thresholds);
-//     if (!list_size(&thresholds)) return mp_obj_new_list(0, NULL);
-//     bool invert = py_helper_keyword_int(n_args, args, 2, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_invert), false);
-
-//     rectangle_t roi;
-//     py_helper_keyword_rectangle_roi(arg_img, n_args, args, 3, kw_args, &roi);
-
-//     unsigned int x_stride =
-//         py_helper_keyword_int(n_args, args, 4, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_x_stride), 2);
-//     PY_ASSERT_TRUE_MSG(x_stride > 0, "x_stride must not be zero.");
-//     unsigned int y_stride =
-//         py_helper_keyword_int(n_args, args, 5, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_y_stride), 1);
-//     PY_ASSERT_TRUE_MSG(y_stride > 0, "y_stride must not be zero.");
-//     unsigned int area_threshold =
-//         py_helper_keyword_int(n_args, args, 6, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_area_threshold), 10);
-//     unsigned int pixels_threshold =
-//         py_helper_keyword_int(n_args, args, 7, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_pixels_threshold), 10);
-//     bool merge =
-//         py_helper_keyword_int(n_args, args, 8, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_merge), false);
-//     int margin =
-//         py_helper_keyword_int(n_args, args, 9, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_margin), 0);
-//     mp_obj_t threshold_cb =
-//         py_helper_keyword_object(n_args, args, 10, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_threshold_cb), NULL);
-//     mp_obj_t merge_cb =
-//         py_helper_keyword_object(n_args, args, 11, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_merge_cb), NULL);
-//     unsigned int x_hist_bins_max =
-//         py_helper_keyword_int(n_args, args, 12, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_x_hist_bins_max), 0);
-//     unsigned int y_hist_bins_max =
-//         py_helper_keyword_int(n_args, args, 13, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_y_hist_bins_max), 0);
-
-//     list_t out;
-//     fb_alloc_mark();
-//     imlib_find_blobs(&out, arg_img, &roi, x_stride, y_stride, &thresholds, invert,
-//             area_threshold, pixels_threshold, merge, margin,
-//             py_image_find_blobs_threshold_cb, threshold_cb, py_image_find_blobs_merge_cb, merge_cb, x_hist_bins_max, y_hist_bins_max);
-//     fb_alloc_free_till_mark();
-//     list_free(&thresholds);
-
-//     mp_obj_list_t *objects_list = mp_obj_new_list(list_size(&out), NULL);
-//     for (size_t i = 0; list_size(&out); i++) {
-//         find_blobs_list_lnk_data_t lnk_data;
-//         list_pop_front(&out, &lnk_data);
-
-//         py_blob_obj_t *o = m_new_obj(py_blob_obj_t);
-//         o->base.type = &py_blob_type;
-//         o->corners = mp_obj_new_tuple(4, (mp_obj_t [])
-//             {mp_obj_new_tuple(2, (mp_obj_t (PyObject *self, PyObject *args, PyObject *keywds)[]) {mp_obj_new_int(lnk_data.corners[(FIND_BLOBS_CORNERS_RESOLUTION*0)/4].x),
-//                                                 mp_obj_new_int(lnk_data.corners[(FIND_BLOBS_CORNERS_RESOLUTION*0)/4].y)}),
-//              mp_obj_new_tuple(2, (mp_obj_t []) {mp_obj_new_int(lnk_data.corners[(FIND_BLOBS_CORNERS_RESOLUTION*1)/4].x),
-//                                                 mp_obj_new_int(lnk_data.corners[(FIND_BLOBS_CORNERS_RESOLUTION*1)/4].y)}),
-//              mp_obj_new_tuple(2, (mp_obj_t []) {mp_obj_new_int(lnk_data.corners[(FIND_BLOBS_CORNERS_RESOLUTION*2)/4].x),
-//                                                 mp_obj_new_int(lnk_data.corners[(FIND_BLOBS_CORNERS_RESOLUTION*2)/4].y)}),
-//              mp_obj_new_tuple(2, (mp_obj_t []) {mp_obj_new_int(lnk_data.corners[(FIND_BLOBS_CORNERS_RESOLUTION*3)/4].x),
-//                                                 mp_obj_new_int(lnk_data.corners[(FIND_BLOBS_CORNERS_RESOLUTION*3)/4].y)})});
-//         point_t min_corners[4];
-//         point_min_area_rectangle(lnk_data.corners, min_corners, FIND_BLOBS_CORNERS_RESOLUTION);
-//         o->min_corners = mp_obj_new_tuple(4, (mp_obj_t [])
-//             {mp_obj_new_tuple(2, (mp_obj_t []) {mp_obj_new_int(min_corners[0].x), mp_obj_new_int(min_corners[0].y)}),
-//              mp_obj_new_tuple(2, (mp_obj_t []) {mp_obj_new_int(min_corners[1].x), mp_obj_new_int(min_corners[1].y)}),
-//              mp_obj_new_tuple(2, (mp_obj_t []) {mp_obj_new_int(min_corners[2].x), mp_obj_new_int(min_corners[2].y)}),
-//              mp_obj_new_tuple(2, (mp_obj_t []) {mp_obj_new_int(min_corners[3].x), mp_obj_new_int(min_corners[3].y)})});
-//         o->x = mp_obj_new_int(lnk_data.rect.x);
-//         o->y = mp_obj_new_int(lnk_data.rect.y);
-//         o->w = mp_obj_new_int(lnk_data.rect.w);
-//         o->h = mp_obj_new_int(lnk_data.rect.h);
-//         o->pixels = mp_obj_new_int(lnk_data.pixels);
-//         o->cx = mp_obj_new_float(lnk_data.centroid_x);
-//         o->cy = mp_obj_new_float(lnk_data.centroid_y);
-//         o->rotation = mp_obj_new_float(lnk_data.rotation);
-//         o->code = mp_obj_new_int(lnk_data.code);
-//         o->count = mp_obj_new_int(lnk_data.count);
-//         o->perimeter = mp_obj_new_int(lnk_data.perimeter);
-//         o->roundness = mp_obj_new_float(lnk_data.roundness);
-//         o->x_hist_bins = mp_obj_new_list(lnk_data.x_hist_bins_count, NULL);
-//         o->y_hist_bins = mp_obj_new_list(lnk_data.y_hist_bins_count, NULL);
-
-//         for (int i = 0; i < lnk_data.x_hist_bins_count; i++) {
-//             ((mp_obj_list_t *) o->x_hist_bins)->items[i] = mp_obj_new_int(lnk_data.x_hist_bins[i]);
-//         }
-
-//         for (int i = 0; i < lnk_data.y_hist_bins_count; i++) {
-//             ((mp_obj_list_t *) o->y_hist_bins)->items[i] = mp_obj_new_int(lnk_data.y_hist_bins[i]);
-//         }
-
-//         objects_list->items[i] = o;
-//         if (lnk_data.x_hist_bins) xfree(lnk_data.x_hist_bins);
-//         if (lnk_data.y_hist_bins) xfree(lnk_data.y_hist_bins);
-//     }
-
-//     return objects_list;
-// }
-
-// static PyObject *
-// py_image_find_lines(PyObject *self, PyObject *args, PyObject *keywds)
-// {
-//     image_t *arg_img = &self_image_img;
-
-//     rectangle_t roi;
-//     PyObject *py_roi = Py_None;
-//     unsigned int x_stride = 2;
-//     // PY_ASSERT_TRUE_MSG(x_stride > 0, "x_stride must not be zero.");
-//     unsigned int y_stride = 1;
-//     // PY_ASSERT_TRUE_MSG(y_stride > 0, "y_stride must not be zero.");
-//     uint32_t threshold = 1000;
-//     unsigned int theta_margin = 25;
-//     unsigned int rho_margin = 25;
-
-// 	static char *kwlist[] = {"roi", "x_stride", "y_stride", "threshold", "theta_margin", "rho_margin", NULL};
-// 	if (!PyArg_ParseTupleAndKeywords(args, keywds, "|Oiiiii", kwlist,
-// 									 &py_roi, &x_stride, &y_stride, &threshold, &theta_margin, &rho_margin))
-
-//     list_t out;
-//     fb_alloc_mark();
-//     imlib_find_lines(&out, arg_img, &roi, x_stride, y_stride, threshold, theta_margin, rho_margin);
-//     fb_alloc_free_till_mark();
-
-//     mp_obj_list_t *objects_list = mp_obj_new_list(list_size(&out), NULL);
-//     PyObject *objects_list = PyList_New(0);
-//     for (size_t i = 0; list_size(&out); i++) {
-//         find_lines_list_lnk_data_t lnk_data;
-//         list_pop_front(&out, &lnk_data);
-
-//         py_line_obj_t *o = m_new_obj(py_line_obj_t);
-//         o->base.type = &py_line_type;
-//         o->x1 = mp_obj_new_int(lnk_data.line.x1);
-//         o->y1 = mp_obj_new_int(lnk_data.line.y1);
-//         o->x2 = mp_obj_new_int(lnk_data.line.x2);
-//         o->y2 = mp_obj_new_int(lnk_data.line.y2);
-//         int x_diff = lnk_data.line.x2 - lnk_data.line.x1;
-//         int y_diff = lnk_data.line.y2 - lnk_data.line.y1;
-//         o->length = mp_obj_new_int(fast_roundf(fast_sqrtf((x_diff * x_diff) + (y_diff * y_diff))));
-//         o->magnitude = mp_obj_new_int(lnk_data.magnitude);
-//         o->theta = mp_obj_new_int(lnk_data.theta);
-//         o->rho = mp_obj_new_int(lnk_data.rho);
-
-//         objects_list->items[i] = o;
-//     }
-
-//     return objects_list;
-// }
-
-// static PyObject * py_image_find_line_segments(PyObject *self, PyObject *args, PyObject *keywds)
-// {
-//     image_t *arg_img = &self_image_img;
-
-//     rectangle_t roi;
-//     py_helper_keyword_rectangle_roi(arg_img, n_args, args, 1, kw_args, &roi);
-
-//     unsigned int merge_distance = py_helper_keyword_int(n_args, args, 2, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_merge_distance), 0);
-//     unsigned int max_theta_diff = py_helper_keyword_int(n_args, args, 3, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_max_theta_diff), 15);
-
-//     list_t out;
-//     fb_alloc_mark();
-//     imlib_lsd_find_line_segments(&out, arg_img, &roi, merge_distance, max_theta_diff);
-//     fb_alloc_free_till_mark();
-
-//     mp_obj_list_t *objects_list = mp_obj_new_list(list_size(&out), NULL);
-//     for (size_t i = 0; list_size(&out); i++) {
-//         find_lines_list_lnk_data_t lnk_data;
-//         list_pop_front(&out, &lnk_data);
-
-//         py_line_obj_t *o = m_new_obj(py_line_obj_t);
-//         o->base.type = &py_line_type;
-//         o->x1 = mp_obj_new_int(lnk_data.line.x1);
-//         o->y1 = mp_obj_new_int(lnk_data.line.y1);
-//         o->x2 = mp_obj_new_int(lnk_data.line.x2);
-//         o->y2 = mp_obj_new_int(lnk_data.line.y2);
-//         int x_diff = lnk_data.line.x2 - lnk_data.line.x1;
-//         int y_diff = lnk_data.line.y2 - lnk_data.line.y1;
-//         o->length = mp_obj_new_int(fast_roundf(fast_sqrtf((x_diff * x_diff) + (y_diff * y_diff))));
-//         o->magnitude = mp_obj_new_int(lnk_data.magnitude);
-//         o->theta = mp_obj_new_int(lnk_data.theta);
-//         o->rho = mp_obj_new_int(lnk_data.rho);
-
-//         objects_list->items[i] = o;
-//     }
-
-//     return objects_list;
-// }
-// static PyObject * py_image_find_circles(PyObject *self, PyObject *args, PyObject *keywds)
-// {
-//     image_t *arg_img = &self_image_img;
-
-//     rectangle_t roi;
-//     py_helper_keyword_rectangle_roi(arg_img, n_args, args, 1, kw_args, &roi);
-
-//     unsigned int x_stride = py_helper_keyword_int(n_args, args, 2, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_x_stride), 2);
-//     PY_ASSERT_TRUE_MSG(x_stride > 0, "x_stride must not be zero.");
-//     unsigned int y_stride = py_helper_keyword_int(n_args, args, 3, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_y_stride), 1);
-//     PY_ASSERT_TRUE_MSG(y_stride > 0, "y_stride must not be zero.");
-//     uint32_t threshold = py_helper_keyword_int(n_args, args, 4, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_threshold), 2000);
-//     unsigned int x_margin = py_helper_keyword_int(n_args, args, 5, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_x_margin), 10);
-//     unsigned int y_margin = py_helper_keyword_int(n_args, args, 6, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_y_margin), 10);
-//     unsigned int r_margin = py_helper_keyword_int(n_args, args, 7, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_r_margin), 10);
-//     unsigned int r_min = IM_MAX(py_helper_keyword_int(n_args, args, 8, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_r_min),
-//             2), 2);
-//     unsigned int r_max = IM_MIN(py_helper_keyword_int(n_args, args, 9, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_r_max),
-//             IM_MIN((roi.w / 2), (roi.h / 2))), IM_MIN((roi.w / 2), (roi.h / 2)));
-//     unsigned int r_step = py_helper_keyword_int(n_args, args, 10, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_r_step), 2);
-
-//     list_t out;
-//     fb_alloc_mark();
-//     imlib_find_circles(&out, arg_img, &roi, x_stride, y_stride, threshold, x_margin, y_margin, r_margin,
-//                        r_min, r_max, r_step);
-//     fb_alloc_free_till_mark();
-
-//     mp_obj_list_t *objects_list = mp_obj_new_list(list_size(&out), NULL);
-//     for (size_t i = 0; list_size(&out); i++) {
-//         find_circles_list_lnk_data_t lnk_data;
-//         list_pop_front(&out, &lnk_data);
-
-//         py_circle_obj_t *o = m_new_obj(py_circle_obj_t);
-//         o->base.type = &py_circle_type;
-//         o->x = mp_obj_new_int(lnk_data.p.x);
-//         o->y = mp_obj_new_int(lnk_data.p.y);
-//         o->r = mp_obj_new_int(lnk_data.r);
-//         o->magnitude = mp_obj_new_int(lnk_data.magnitude);
-
-//         objects_list->items[i] = o;
-//     }
-
-//     return objects_list;
-// }
-// static PyObject * py_image_find_rects(PyObject *self, PyObject *args, PyObject *keywds)
-// {
-//     image_t *arg_img = &self_image_img;
-
-//     rectangle_t roi;
-//     py_helper_keyword_rectangle_roi(arg_img, n_args, args, 1, kw_args, &roi);
-
-//     uint32_t threshold = py_helper_keyword_int(n_args, args, 2, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_threshold), 1000);
-
-//     list_t out;
-//     fb_alloc_mark();
-//     imlib_find_rects(&out, arg_img, &roi, threshold);
-//     fb_alloc_free_till_mark();
-
-//     mp_obj_list_t *objects_list = mp_obj_new_list(list_size(&out), NULL);
-//     for (size_t i = 0; list_size(&out); i++) {
-//         find_rects_list_lnk_data_t lnk_data;
-//         list_pop_front(&out, &lnk_data);
-
-//         py_rect_obj_t *o = m_new_obj(py_rect_obj_t);
-//         o->base.type = &py_rect_type;
-//         o->corners = mp_obj_new_tuple(4, (mp_obj_t [])
-//             {mp_obj_new_tuple(2, (mp_obj_t []) {mp_obj_new_int(lnk_data.corners[0].x), mp_obj_new_int(lnk_data.corners[0].y)}),
-//              mp_obj_new_tuple(2, (mp_obj_t []) {mp_obj_new_int(lnk_data.corners[1].x), mp_obj_new_int(lnk_data.corners[1].y)}),
-//              mp_obj_new_tuple(2, (mp_obj_t []) {mp_obj_new_int(lnk_data.corners[2].x), mp_obj_new_int(lnk_data.corners[2].y)}),
-//              mp_obj_new_tuple(2, (mp_obj_t []) {mp_obj_new_int(lnk_data.corners[3].x), mp_obj_new_int(lnk_data.corners[3].y)})});
-//         o->x = mp_obj_new_int(lnk_data.rect.x);
-//         o->y = mp_obj_new_int(lnk_data.rect.y);
-//         o->w = mp_obj_new_int(lnk_data.rect.w);
-//         o->h = mp_obj_new_int(lnk_data.rect.h);
-//         o->magnitude = mp_obj_new_int(lnk_data.magnitude);
-
-//         objects_list->items[i] = o;
-//     }
-
-//     return objects_list;
-// }
-
-// static PyObject *
-// py_image_find_qrcodes(PyObject *self, PyObject *args, PyObject *keywds)
-// {
-//     image_t *arg_img = &self_image_img;
-
-//     rectangle_t roi;
-//     py_helper_keyword_rectangle_roi(arg_img, n_args, args, 1, kw_args, &roi);
-
-//     list_t out;
-//     fb_alloc_mark();
-//     imlib_find_qrcodes(&out, arg_img, &roi);
-//     fb_alloc_free_till_mark();
-
-//     mp_obj_list_t *objects_list = mp_obj_new_list(list_size(&out), NULL);
-//     for (size_t i = 0; list_size(&out); i++) {
-//         find_qrcodes_list_lnk_data_t lnk_data;
-//         list_pop_front(&out, &lnk_data);
-
-//         py_qrcode_obj_t *o = m_new_obj(py_qrcode_obj_t);
-//         o->base.type = &py_qrcode_type;
-//         o->corners = mp_obj_new_tuple(4, (mp_obj_t [])
-//             {mp_obj_new_tuple(2, (mp_obj_t []) {mp_obj_new_int(lnk_data.corners[0].x), mp_obj_new_int(lnk_data.corners[0].y)}),
-//              mp_obj_new_tuple(2, (mp_obj_t []) {mp_obj_new_int(lnk_data.corners[1].x), mp_obj_new_int(lnk_data.corners[1].y)}),
-//              mp_obj_new_tuple(2, (mp_obj_t []) {mp_obj_new_int(lnk_data.corners[2].x), mp_obj_new_int(lnk_data.corners[2].y)}),
-//              mp_obj_new_tuple(2, (mp_obj_t []) {mp_obj_new_int(lnk_data.corners[3].x), mp_obj_new_int(lnk_data.corners[3].y)})});
-//         o->x = mp_obj_new_int(lnk_data.rect.x);
-//         o->y = mp_obj_new_int(lnk_data.rect.y);
-//         o->w = mp_obj_new_int(lnk_data.rect.w);
-//         o->h = mp_obj_new_int(lnk_data.rect.h);
-//         o->payload = mp_obj_new_str(lnk_data.payload, lnk_data.payload_len);
-//         o->version = mp_obj_new_int(lnk_data.version);
-//         o->ecc_level = mp_obj_new_int(lnk_data.ecc_level);
-//         o->mask = mp_obj_new_int(lnk_data.mask);
-//         o->data_type = mp_obj_new_int(lnk_data.data_type);
-//         o->eci = mp_obj_new_int(lnk_data.eci);
-
-//         objects_list->items[i] = o;
-//         xfree(lnk_data.payload);
-//     }
-
-//     return objects_list;
-// }
-// static PyObject *
-// py_image_find_apriltags(PyObject *self, PyObject *args, PyObject *keywds)
-// {
-//     image_t *arg_img = &self_image_img;
-
-//     rectangle_t roi;
-//     PyObject *py_roi = Py_None;
-
-// #ifndef IMLIB_ENABLE_HIGH_RES_APRILTAGS
-//     // PY_ASSERT_TRUE_MSG((roi.w * roi.h) < 65536, "The maximum supported resolution for find_apriltags() is < 64K pixels.");
-// #endif
-//     if ((roi.w < 4) || (roi.h < 4)) {
-//         return PyList_New(0);
-//     }
-
-//     apriltag_families_t families = TAG36H11;
-//     // 2.8mm Focal Length w/ OV7725 sensor for reference.
-//     float fx = (2.8 / 3.984) * arg_img->w;
-//     // 2.8mm Focal Length w/ OV7725 sensor for reference.
-//     float fy =  (2.8 / 2.952) * arg_img->h;
-//     // Use the image versus the roi here since the image should be projected from the camera center.
-//     float cx = arg_img->w * 0.5;
-//     // Use the image versus the roi here since the image should be projected from the camera center.
-//     float cy = arg_img->h * 0.5;
-
-//     static char *kwlist[] = {"roi",NULL};
-// 	if (!PyArg_ParseTupleAndKeywords(args, keywds, "|O", kwlist,
-// 									 &py_roi)) return NULL;
-//     roi_tan(py_roi,&roi,arg_img->w,arg_img->h);
-
-//     list_t out;
-//     fb_alloc_mark();
-//     imlib_find_apriltags(&out, arg_img, &roi, families, fx, fy, cx, cy);
-//     fb_alloc_free_till_mark();
-
-//     mp_obj_list_t *objects_list = mp_obj_new_list(list_size(&out), NULL);
-//     for (size_t i = 0; list_size(&out); i++) {
-//         find_apriltags_list_lnk_data_t lnk_data;
-//         list_pop_front(&out, &lnk_data);
-
-//         py_apriltag_obj_t *o = m_new_obj(py_apriltag_obj_t);
-//         o->base.type = &py_apriltag_type;
-//         o->corners = mp_obj_new_tuple(4, (mp_obj_t [])
-//             {mp_obj_new_tuple(2, (mp_obj_t []) {mp_obj_new_int(lnk_data.corners[0].x), mp_obj_new_int(lnk_data.corners[0].y)}),
-//              mp_obj_new_tuple(2, (mp_obj_t []) {mp_obj_new_int(lnk_data.corners[1].x), mp_obj_new_int(lnk_data.corners[1].y)}),
-//              mp_obj_new_tuple(2, (mp_obj_t []) {mp_obj_new_int(lnk_data.corners[2].x), mp_obj_new_int(lnk_data.corners[2].y)}),
-//              mp_obj_new_tuple(2, (mp_obj_t []) {mp_obj_new_int(lnk_data.corners[3].x), mp_obj_new_int(lnk_data.corners[3].y)})});
-//         o->x = mp_obj_new_int(lnk_data.rect.x);
-//         o->y = mp_obj_new_int(lnk_data.rect.y);
-//         o->w = mp_obj_new_int(lnk_data.rect.w);
-//         o->h = mp_obj_new_int(lnk_data.rect.h);
-//         o->id = mp_obj_new_int(lnk_data.id);
-//         o->family = mp_obj_new_int(lnk_data.family);
-//         o->cx = mp_obj_new_int(lnk_data.centroid.x);
-//         o->cy = mp_obj_new_int(lnk_data.centroid.y);
-//         o->rotation = mp_obj_new_float(lnk_data.z_rotation);
-//         o->decision_margin = mp_obj_new_float(lnk_data.decision_margin);
-//         o->hamming = mp_obj_new_int(lnk_data.hamming);
-//         o->goodness = mp_obj_new_float(lnk_data.goodness);
-//         o->x_translation = mp_obj_new_float(lnk_data.x_translation);
-//         o->y_translation = mp_obj_new_float(lnk_data.y_translation);
-//         o->z_translation = mp_obj_new_float(lnk_data.z_translation);
-//         o->x_rotation = mp_obj_new_float(lnk_data.x_rotation);
-//         o->y_rotation = mp_obj_new_float(lnk_data.y_rotation);
-//         o->z_rotation = mp_obj_new_float(lnk_data.z_rotation);
-
-//         objects_list->items[i] = o;
-//     }
-
-//     return objects_list;
-// }
-
-// static PyObject *
-// py_image_find_datamatrices(PyObject *self, PyObject *args, PyObject *keywds)
-// {
-//     image_t *arg_img = &self_image_img;
-
-//     rectangle_t roi;
-//     py_helper_keyword_rectangle_roi(arg_img, n_args, args, 1, kw_args, &roi);
-
-//     int effort = py_helper_keyword_int(n_args, args, 2, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_effort), 200);
-
-//     list_t out;
-//     fb_alloc_mark();
-//     imlib_find_datamatrices(&out, arg_img, &roi, effort);
-//     fb_alloc_free_till_mark();
-
-//     mp_obj_list_t *objects_list = mp_obj_new_list(list_size(&out), NULL);
-//     for (size_t i = 0; list_size(&out); i++) {
-//         find_datamatrices_list_lnk_data_t lnk_data;
-//         list_pop_front(&out, &lnk_data);
-
-//         py_datamatrix_obj_t *o = m_new_obj(py_datamatrix_obj_t);
-//         o->base.type = &py_datamatrix_type;
-//         o->corners = mp_obj_new_tuple(4, (mp_obj_t [])
-//             {mp_obj_new_tuple(2, (mp_obj_t []) {mp_obj_new_int(lnk_data.corners[0].x), mp_obj_new_int(lnk_data.corners[0].y)}),
-//              mp_obj_new_tuple(2, (mp_obj_t []) {mp_obj_new_int(lnk_data.corners[1].x), mp_obj_new_int(lnk_data.corners[1].y)}),
-//              mp_obj_new_tuple(2, (mp_obj_t []) {mp_obj_new_int(lnk_data.corners[2].x), mp_obj_new_int(lnk_data.corners[2].y)}),
-//              mp_obj_new_tuple(2, (mp_obj_t []) {mp_obj_new_int(lnk_data.corners[3].x), mp_obj_new_int(lnk_data.corners[3].y)})});
-//         o->x = mp_obj_new_int(lnk_data.rect.x);
-//         o->y = mp_obj_new_int(lnk_data.rect.y);
-//         o->w = mp_obj_new_int(lnk_data.rect.w);
-//         o->h = mp_obj_new_int(lnk_data.rect.h);
-//         o->payload = mp_obj_new_str(lnk_data.payload, lnk_data.payload_len);
-//         o->rotation = mp_obj_new_float(IM_DEG2RAD(lnk_data.rotation));
-//         o->rows = mp_obj_new_int(lnk_data.rows);
-//         o->columns = mp_obj_new_int(lnk_data.columns);
-//         o->capacity = mp_obj_new_int(lnk_data.capacity);
-//         o->padding = mp_obj_new_int(lnk_data.padding);
-
-//         objects_list->items[i] = o;
-//         xfree(lnk_data.payload);
-//     }
-
-//     return objects_list;
-// }
-
-// static PyObject *
-// py_image_find_barcodes(PyObject *self, PyObject *args, PyObject *keywds)
-// {
-//     image_t *arg_img = &self_image_img;
-
-//     rectangle_t roi;
-
-//     PyObject *py_roi = Py_None;
-//     static char *kwlist[] = {"roi",NULL};
-// 	if (!PyArg_ParseTupleAndKeywords(args, keywds, "|O", kwlist,
-// 									 &py_roi)) return NULL;
-//     roi_tan(py_roi,&roi,arg_img->w,arg_img->h);
-
-//     list_t out;
-//     fb_alloc_mark();
-//     imlib_find_barcodes(&out, arg_img, &roi);
-//     fb_alloc_free_till_mark();
-
-//     PyObject *objects_list = PyList_New(list_size(&out));
-//     for (size_t i = 0; list_size(&out); i++) {
-//         find_barcodes_list_lnk_data_t lnk_data;
-//         list_pop_front(&out, &lnk_data);
-
-//         py_barcode_obj_t *o = m_new_obj(py_barcode_obj_t);
-//         o->base.type = &py_barcode_type;
-//         o->corners = mp_obj_new_tuple(4, (mp_obj_t [])
-//             {mp_obj_new_tuple(2, (mp_obj_t []) {mp_obj_new_int(lnk_data.corners[0].x), mp_obj_new_int(lnk_data.corners[0].y)}),
-//              mp_obj_new_tuple(2, (mp_obj_t []) {mp_obj_new_int(lnk_data.corners[1].x), mp_obj_new_int(lnk_data.corners[1].y)}),
-//              mp_obj_new_tuple(2, (mp_obj_t []) {mp_obj_new_int(lnk_data.corners[2].x), mp_obj_new_int(lnk_data.corners[2].y)}),
-//              mp_obj_new_tuple(2, (mp_obj_t []) {mp_obj_new_int(lnk_data.corners[3].x), mp_obj_new_int(lnk_data.corners[3].y)})});
-//         o->x = mp_obj_new_int(lnk_data.rect.x);
-//         o->y = mp_obj_new_int(lnk_data.rect.y);
-//         o->w = mp_obj_new_int(lnk_data.rect.w);
-//         o->h = mp_obj_new_int(lnk_data.rect.h);
-//         o->payload = mp_obj_new_str(lnk_data.payload, lnk_data.payload_len);
-//         o->type = mp_obj_new_int(lnk_data.type);
-//         o->rotation = mp_obj_new_float(IM_DEG2RAD(lnk_data.rotation));
-//         o->quality = mp_obj_new_int(lnk_data.quality);
-
-//         objects_list->items[i] = o;
-//         xfree(lnk_data.payload);
-//     }
-
-//     return objects_list;
-// }
-// static PyObject *
-// py_image_find_displacement(PyObject *self, PyObject *args, PyObject *keywds)
-// {
-//     image_t *arg_img = &self_image_img;
-//     image_t *arg_template_img = py_helper_arg_to_image_mutable(args[1]);
-
-//     rectangle_t roi;
-//     py_helper_keyword_rectangle_roi(arg_img, n_args, args, 2, kw_args, &roi);
-
-//     rectangle_t template_roi;
-//     py_helper_keyword_rectangle(arg_template_img, n_args, args, 3, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_template_roi), &template_roi);
-
-//     PY_ASSERT_FALSE_MSG((roi.w != template_roi.w) || (roi.h != template_roi.h), "ROI(w,h) != TEMPLATE_ROI(w,h)");
-
-//     bool logpolar = py_helper_keyword_int(n_args, args, 4, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_logpolar), false);
-//     bool fix_rotation_scale = py_helper_keyword_int(n_args, args, 5, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_fix_rotation_scale), false);
-
-//     float x, y, r, s, response;
-//     fb_alloc_mark();
-//     imlib_phasecorrelate(arg_img, arg_template_img, &roi, &template_roi, logpolar, fix_rotation_scale, &x, &y, &r, &s, &response);
-//     fb_alloc_free_till_mark();
-
-//     py_displacement_obj_t *o = m_new_obj(py_displacement_obj_t);
-//     o->base.type = &py_displacement_type;
-//     o->x_translation = mp_obj_new_float(x);
-//     o->y_translation = mp_obj_new_float(y);
-//     o->rotation = mp_obj_new_float(r);
-//     o->scale = mp_obj_new_float(s);
-//     o->response = mp_obj_new_float(response);
-
-//     return o;
-// }
-// static PyObject *
-// py_image_find_template(PyObject *self, PyObject *args, PyObject *keywds)
-// {
-//     image_t *arg_img = &self_image_img;
-//     image_t *arg_template = py_helper_arg_to_image_grayscale(args[1]);
-//     float arg_thresh = mp_obj_get_float(args[2]);
-
-//     rectangle_t roi;
-//     py_helper_keyword_rectangle_roi(arg_img, n_args, args, 3, kw_args, &roi);
-
-//     // Make sure ROI is bigger than or equal to template size
-//     PY_ASSERT_TRUE_MSG((roi.w >= arg_template->w && roi.h >= arg_template->h),
-//             "Region of interest is smaller than template!");
-
-//     // Make sure ROI is smaller than or equal to image size
-//     PY_ASSERT_TRUE_MSG(((roi.x + roi.w) <= arg_img->w && (roi.y + roi.h) <= arg_img->h),
-//             "Region of interest is bigger than image!");
-
-//     int step = py_helper_keyword_int(n_args, args, 4, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_step), 2);
-//     int search = py_helper_keyword_int(n_args, args, 5, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_search), SEARCH_EX);
-
-//     // Find template
-//     rectangle_t r;
-//     float corr;
-//     fb_alloc_mark();
-//     if (search == SEARCH_DS) {
-//         corr = imlib_template_match_ds(arg_img, arg_template, &r);
-//     } else {
-//         corr = imlib_template_match_ex(arg_img, arg_template, &roi, step, &r);
-//     }
-//     fb_alloc_free_till_mark();
-
-//     if (corr > arg_thresh) {
-//         mp_obj_t rec_obj[4] = {
-//             mp_obj_new_int(r.x),
-//             mp_obj_new_int(r.y),
-//             mp_obj_new_int(r.w),
-//             mp_obj_new_int(r.h)
-//         };
-//         return mp_obj_new_tuple(4, rec_obj);
-//     }
-//     return mp_const_none;
-// }
-// static PyObject *
-// py_image_find_features(PyObject *self, PyObject *args, PyObject *keywds)
-// {
-//     image_t *arg_img = &self_image_img;
-//     cascade_t *cascade ;
-//     PyObject *py_cascade;
-//     cascade->threshold = 0.5f;
-//     cascade->scale_factor = 1.5f;
-
-//     rectangle_t roi;
-//     PyObject *py_roi = Py_None;
-
-//     static char *kwlist[] = {"cascade", "threshold","scale","roi", NULL};
-// 	if (!PyArg_ParseTupleAndKeywords(args, keywds, "O|ffO", kwlist,
-// 									 &py_roi, &threshold,&normalized,&scale_factor,&max_keypoints,&corner_d)) return NULL;
-
-//     // Make sure ROI is bigger than feature size
-//     // PY_ASSERT_TRUE_MSG((roi.w > cascade->window.w && roi.h > cascade->window.h),
-//     //         "Region of interest is smaller than detector window!");
-
-//     // Detect objects
-//     fb_alloc_mark();
-//     array_t *objects_array = imlib_detect_objects(arg_img, cascade, &roi);
-//     fb_alloc_free_till_mark();
-
-//     // Add detected objects to a new Python list...
-//     mp_obj_t objects_list = mp_obj_new_list(0, NULL);
-//     for (int i=0; i<array_length(objects_array); i++) {
-//         rectangle_t *r = array_at(objects_array, i);
-//         mp_obj_t rec_obj[4] = {
-//             mp_obj_new_int(r->x),
-//             mp_obj_new_int(r->y),
-//             mp_obj_new_int(r->w),
-//             mp_obj_new_int(r->h),
-//         };
-//         mp_obj_list_append(objects_list, mp_obj_new_tuple(4, rec_obj));
-//     }
-//     array_free(objects_array);
-//     return objects_list;
-// }
-
+static PyObject *
+py_image_get_statistics(PyObject *self, PyObject *args, PyObject *keywds)
+{
+    image_t *arg_img = &self_image_img;
+
+    list_t thresholds;
+    PyObject *py_thresholds = Py_None;
+    bool invert = 0;
+    image_t *other = NULL;
+
+    rectangle_t roi;
+    PyObject *py_roi = Py_None;
+    PyObject *py_bins = Py_None;
+    PyObject *py_l_bins = Py_None;
+    PyObject *py_a_bins = Py_None;
+    PyObject *py_b_bins = Py_None;
+
+    static char *kwlist[] = {"thresholds", "invert", "roi", "bins", "l_bins", "a_bins", "b_bins", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "|OiOOOOO", kwlist,
+                                     &py_thresholds, &invert, &py_roi, &py_bins, &py_l_bins, &py_a_bins, &py_b_bins))
+        return NULL;
+    debug_line;
+    thresholds_tan(py_thresholds, &thresholds);
+    roi_tan(py_roi, &roi, arg_img->w, arg_img->h);
+
+    histogram_t hist;
+
+    switch (arg_img->bpp)
+    {
+    case IMAGE_BPP_BINARY:
+    {
+        int bins = PyLong_Check(py_bins) ? PyLong_AsLong(py_bins) : (COLOR_BINARY_MAX - COLOR_BINARY_MIN + 1);
+        // PY_ASSERT_TRUE_MSG(bins >= 2, "bins must be >= 2");
+        hist.LBinCount = PyLong_Check(py_l_bins) ? PyLong_AsLong(py_l_bins) : bins;
+        // PY_ASSERT_TRUE_MSG(hist.LBinCount >= 2, "l_bins must be >= 2");
+        hist.ABinCount = 0;
+        hist.BBinCount = 0;
+        fb_alloc_mark();
+        hist.LBins = fb_alloc(hist.LBinCount * sizeof(float));
+        hist.ABins = NULL;
+        hist.BBins = NULL;
+        imlib_get_histogram(&hist, arg_img, &roi, &thresholds, invert);
+        list_free(&thresholds);
+        break;
+    }
+    case IMAGE_BPP_GRAYSCALE:
+    {
+        int bins = PyLong_Check(py_bins) ? PyLong_AsLong(py_bins) : (COLOR_GRAYSCALE_MAX - COLOR_GRAYSCALE_MIN + 1);
+        // py_helper_keyword_int(n_args, args, n_args, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_bins),
+        //                                  (COLOR_GRAYSCALE_MAX - COLOR_GRAYSCALE_MIN + 1));
+        // PY_ASSERT_TRUE_MSG(bins >= 2, "bins must be >= 2");
+        hist.LBinCount = PyLong_Check(py_l_bins) ? PyLong_AsLong(py_l_bins) : bins;
+        // py_helper_keyword_int(n_args, args, n_args, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_l_bins), bins);
+        // PY_ASSERT_TRUE_MSG(hist.LBinCount >= 2, "l_bins must be >= 2");
+        hist.ABinCount = 0;
+        hist.BBinCount = 0;
+        fb_alloc_mark();
+        hist.LBins = fb_alloc(hist.LBinCount * sizeof(float));
+        hist.ABins = NULL;
+        hist.BBins = NULL;
+        imlib_get_histogram(&hist, arg_img, &roi, &thresholds, invert);
+        list_free(&thresholds);
+        break;
+    }
+    case IMAGE_BPP_RGB565:
+    {
+        int l_bins = PyLong_Check(py_bins) ? PyLong_AsLong(py_bins) : (COLOR_L_MAX - COLOR_L_MIN + 1);
+        // py_helper_keyword_int(n_args, args, n_args, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_bins),
+        //                                    (COLOR_L_MAX - COLOR_L_MIN + 1));
+        // PY_ASSERT_TRUE_MSG(l_bins >= 2, "bins must be >= 2");
+        hist.LBinCount = PyLong_Check(py_l_bins) ? PyLong_AsLong(py_l_bins) : l_bins;
+        // py_helper_keyword_int(n_args, args, n_args, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_l_bins), l_bins);
+        // PY_ASSERT_TRUE_MSG(hist.LBinCount >= 2, "l_bins must be >= 2");
+
+        int a_bins = PyLong_Check(py_bins) ? PyLong_AsLong(py_bins) : (COLOR_A_MAX - COLOR_A_MIN + 1);
+        // py_helper_keyword_int(n_args, args, n_args, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_bins),
+        //                                    (COLOR_A_MAX - COLOR_A_MIN + 1));
+        // PY_ASSERT_TRUE_MSG(a_bins >= 2, "bins must be >= 2");
+        hist.ABinCount = PyLong_Check(py_a_bins) ? PyLong_AsLong(py_a_bins) : a_bins;
+        // py_helper_keyword_int(n_args, args, n_args, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_a_bins), a_bins);
+        // PY_ASSERT_TRUE_MSG(hist.ABinCount >= 2, "a_bins must be >= 2");
+
+        int b_bins = PyLong_Check(py_bins) ? PyLong_AsLong(py_bins) : (COLOR_B_MAX - COLOR_B_MIN + 1);
+        // py_helper_keyword_int(n_args, args, n_args, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_bins),
+        //                                    (COLOR_B_MAX - COLOR_B_MIN + 1));
+        // PY_ASSERT_TRUE_MSG(b_bins >= 2, "bins must be >= 2");
+        hist.BBinCount = PyLong_Check(py_b_bins) ? PyLong_AsLong(py_b_bins) : b_bins;
+        // py_helper_keyword_int(n_args, args, n_args, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_b_bins), b_bins);
+        // PY_ASSERT_TRUE_MSG(hist.BBinCount >= 2, "b_bins must be >= 2");
+        fb_alloc_mark();
+        hist.LBins = fb_alloc(hist.LBinCount * sizeof(float));
+        hist.ABins = fb_alloc(hist.ABinCount * sizeof(float));
+        hist.BBins = fb_alloc(hist.BBinCount * sizeof(float));
+        imlib_get_histogram(&hist, arg_img, &roi, &thresholds, invert);
+        list_free(&thresholds);
+        break;
+    }
+    default:
+    {
+        return Py_None;
+    }
+    }
+    statistics_t stats;
+    imlib_get_statistics(&stats, arg_img->bpp, &hist);
+    fb_alloc_free_till_mark();
+
+    PyObject *o = PyDict_New();
+    PyObject *tmp1;
+    PyObject *tmp2;
+
+    tmp1 = Py_BuildValue("s", "LMean");
+    tmp2 = Py_BuildValue("i", stats.LMean);
+
+    PyDict_SetItem(o, tmp1, tmp2);
+    Py_DECREF(tmp1);
+    Py_DECREF(tmp2);
+
+    tmp1 = Py_BuildValue("s", "LMedian");
+    tmp2 = Py_BuildValue("i", stats.LMedian);
+
+    PyDict_SetItem(o, tmp1, tmp2);
+    Py_DECREF(tmp1);
+    Py_DECREF(tmp2);
+    tmp1 = Py_BuildValue("s", "LMode");
+    tmp2 = Py_BuildValue("i", stats.LMode);
+
+    PyDict_SetItem(o, tmp1, tmp2);
+    Py_DECREF(tmp1);
+    Py_DECREF(tmp2);
+
+    PyDict_SetItem(o, Py_BuildValue("s", "LSTDev"), Py_BuildValue("i", stats.LSTDev));
+    PyDict_SetItem(o, Py_BuildValue("s", "LMin"), Py_BuildValue("i", stats.LMin));
+    PyDict_SetItem(o, Py_BuildValue("s", "LMax"), Py_BuildValue("i", stats.LMax));
+    PyDict_SetItem(o, Py_BuildValue("s", "LLQ"), Py_BuildValue("i", stats.LLQ));
+    PyDict_SetItem(o, Py_BuildValue("s", "LUQ"), Py_BuildValue("i", stats.LUQ));
+    PyDict_SetItem(o, Py_BuildValue("s", "ASTDev"), Py_BuildValue("i", stats.ASTDev));
+    PyDict_SetItem(o, Py_BuildValue("s", "AMin"), Py_BuildValue("i", stats.AMin));
+    PyDict_SetItem(o, Py_BuildValue("s", "AMax"), Py_BuildValue("i", stats.AMax));
+    PyDict_SetItem(o, Py_BuildValue("s", "ALQ"), Py_BuildValue("i", stats.ALQ));
+    PyDict_SetItem(o, Py_BuildValue("s", "BMean"), Py_BuildValue("i", stats.BMean));
+    PyDict_SetItem(o, Py_BuildValue("s", "BMedian"), Py_BuildValue("i", stats.BMedian));
+    PyDict_SetItem(o, Py_BuildValue("s", "BMode"), Py_BuildValue("i", stats.BMode));
+    PyDict_SetItem(o, Py_BuildValue("s", "BSTDev"), Py_BuildValue("i", stats.BSTDev));
+    PyDict_SetItem(o, Py_BuildValue("s", "BMin"), Py_BuildValue("i", stats.BMin));
+    PyDict_SetItem(o, Py_BuildValue("s", "BMax"), Py_BuildValue("i", stats.BMax));
+    PyDict_SetItem(o, Py_BuildValue("s", "BLQ"), Py_BuildValue("i", stats.BLQ));
+    PyDict_SetItem(o, Py_BuildValue("s", "BUQ"), Py_BuildValue("i", stats.BUQ));
+
+    return o;
+}
+
+#endif //IMLIB_ENABLE_GET_STATISTICS
+
+/*
+static PyObject *
+py_image_find_template(PyObject *self, PyObject *args, PyObject *keywds)
+{
+    image_t *arg_img = &self_image_img;
+    image_t *arg_template = py_helper_arg_to_image_grayscale(args[1]);
+    float arg_thresh = mp_obj_get_float(args[2]);
+
+    rectangle_t roi;
+    py_helper_keyword_rectangle_roi(arg_img, n_args, args, 3, kw_args, &roi);
+
+    // Make sure ROI is bigger than or equal to template size
+    PY_ASSERT_TRUE_MSG((roi.w >= arg_template->w && roi.h >= arg_template->h),
+            "Region of interest is smaller than template!");
+
+    // Make sure ROI is smaller than or equal to image size
+    PY_ASSERT_TRUE_MSG(((roi.x + roi.w) <= arg_img->w && (roi.y + roi.h) <= arg_img->h),
+            "Region of interest is bigger than image!");
+
+    int step = py_helper_keyword_int(n_args, args, 4, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_step), 2);
+    int search = py_helper_keyword_int(n_args, args, 5, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_search), SEARCH_EX);
+
+    // Find template
+    rectangle_t r;
+    float corr;
+    fb_alloc_mark();
+    if (search == SEARCH_DS) {
+        corr = imlib_template_match_ds(arg_img, arg_template, &r);
+    } else {
+        corr = imlib_template_match_ex(arg_img, arg_template, &roi, step, &r);
+    }
+    fb_alloc_free_till_mark();
+
+    if (corr > arg_thresh) {
+        mp_obj_t rec_obj[4] = {
+            mp_obj_new_int(r.x),
+            mp_obj_new_int(r.y),
+            mp_obj_new_int(r.w),
+            mp_obj_new_int(r.h)
+        };
+        return mp_obj_new_tuple(4, rec_obj);
+    }
+    return mp_const_none;
+}
+*/
+
+/*
+static PyObject *
+py_image_find_features(PyObject *self, PyObject *args, PyObject *keywds)
+{
+    image_t *arg_img = &self_image_img;
+    cascade_t *cascade ;
+    PyObject *py_cascade;
+    cascade->threshold = 0.5f;
+    cascade->scale_factor = 1.5f;
+
+    rectangle_t roi;
+    PyObject *py_roi = Py_None;
+
+    static char *kwlist[] = {"cascade", "threshold","scale","roi", NULL};
+	if (!PyArg_ParseTupleAndKeywords(args, keywds, "O|ffO", kwlist,
+									 &py_roi, &threshold,&normalized,&scale_factor,&max_keypoints,&corner_d)) return NULL;
+
+     roi_tan(py_roi,&roi,arg_img->w,int arg_img->h);
+    // Make sure ROI is bigger than feature size
+    // PY_ASSERT_TRUE_MSG((roi.w > cascade->window.w && roi.h > cascade->window.h),
+    //         "Region of interest is smaller than detector window!");
+
+    // Detect objects
+    fb_alloc_mark();
+    array_t *objects_array = imlib_detect_objects(arg_img, cascade, &roi);
+    fb_alloc_free_till_mark();
+
+    // Add detected objects to a new Python list...
+    mp_obj_t objects_list = mp_obj_new_list(0, NULL);
+    for (int i=0; i<array_length(objects_array); i++) {
+        rectangle_t *r = array_at(objects_array, i);
+        mp_obj_t rec_obj[4] = {
+            mp_obj_new_int(r->x),
+            mp_obj_new_int(r->y),
+            mp_obj_new_int(r->w),
+            mp_obj_new_int(r->h),
+        };
+        mp_obj_list_append(objects_list, mp_obj_new_tuple(4, rec_obj));
+    }
+    array_free(objects_array);
+    return objects_list;
+}
+*/
 static PyObject *
 py_image_find_eye(PyObject *self, PyObject *args, PyObject *keywds)
 {
@@ -6840,147 +6126,150 @@ py_image_find_eye(PyObject *self, PyObject *args, PyObject *keywds)
 
     return Py_BuildValue("ii", iris.x, iris.y);
 }
+/*
+static PyObject *
+py_image_find_lbp(PyObject *self, PyObject *args, PyObject *keywds)
+{
+    image_t *arg_img = &self_image_img;
 
-// static PyObject *
-// py_image_find_lbp(PyObject *self, PyObject *args, PyObject *keywds)
-// {
-//     image_t *arg_img = &self_image_img;
+    rectangle_t roi;
+    PyObject *py_roi
 
-//     rectangle_t roi;
-//     PyObject *py_roi
+        static char *kwlist[] = {"roi", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "O", kwlist,
+                                     &py_roi))
+        return NULL;
+    roi_tan(py_roi, &roi, arg_img->w, arg_img->h);
 
-//         static char *kwlist[] = {"roi", NULL};
-//     if (!PyArg_ParseTupleAndKeywords(args, keywds, "O", kwlist,
-//                                      &py_roi))
-//         return NULL;
-//     roi_tan(py_roi, &roi, arg_img->w, arg_img->h);
+    uint8_t *hist = imlib_lbp_desc(arg_img, &roi);
+    return lbp_obj;
+}
+*/
+/*
+static PyObject *
+py_image_find_keypoints(PyObject *self, PyObject *args, PyObject *keywds)
+{
+    image_t *arg_img = &self_image_img;
 
-//     uint8_t *hist = imlib_lbp_desc(arg_img, &roi);
-//     return lbp_obj;
-// }
+    rectangle_t roi;
+    PyObject *py_roi = Py_None;
 
-// static PyObject *
-// py_image_find_keypoints(PyObject *self, PyObject *args, PyObject *keywds)
-// {
-//     image_t *arg_img = &self_image_img;
+    int threshold = 20;
+    bool normalized = 0;
+    float scale_factor = 1.5f;
+    int max_keypoints = 100;
+    corner_detector_t corner_detector = CORNER_AGAST;
+    int corner_d = 1;
 
-//     rectangle_t roi;
-//     PyObject *py_roi = Py_None;
+    static char *kwlist[] = {"roi", "threshold", "normalized", "scale_factor", "max_keypoints", "corner_detector", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "|Oiifii", kwlist,
+                                     &py_roi, &threshold, &normalized, &scale_factor, &max_keypoints, &corner_d))
+        return NULL;
 
-//     int threshold = 20;
-//     bool normalized = 0;
-//     float scale_factor = 1.5f;
-//     int max_keypoints = 100;
-//     corner_detector_t corner_detector = CORNER_AGAST;
-//     int corner_d = 1;
+    roi_tan(py_roi, &roi, arg_img->w, arg_img->h);
+    if (corner_d == 0)
+    {
+        corner_detector = CORNER_FAST;
+    }
+    else
+    {
+        corner_detector = CORNER_AGAST;
+    }
 
-//     static char *kwlist[] = {"roi", "threshold", "normalized", "scale_factor", "max_keypoints", "corner_detector", NULL};
-//     if (!PyArg_ParseTupleAndKeywords(args, keywds, "|Oiifii", kwlist,
-//                                      &py_roi, &threshold, &normalized, &scale_factor, &max_keypoints, &corner_d))
-//         return NULL;
+#ifndef IMLIB_ENABLE_FAST
+    // Force AGAST when FAST is disabled.
+    corner_detector = CORNER_AGAST;
+#endif
 
-//     roi_tan(py_roi, &roi, arg_img->w, arg_img->h);
-//     if (corner_d == 0)
-//     {
-//         corner_detector = CORNER_FAST;
-//     }
-//     else
-//     {
-//         corner_detector = CORNER_AGAST;
-//     }
+    // Find keypoints
+    fb_alloc_mark();
+    array_t *kpts = orb_find_keypoints(arg_img, normalized, threshold, scale_factor, max_keypoints, corner_detector, &roi);
+    fb_alloc_free_till_mark();
 
-// #ifndef IMLIB_ENABLE_FAST
-//     // Force AGAST when FAST is disabled.
-//     corner_detector = CORNER_AGAST;
-// #endif
+    if (array_length(kpts))
+    {
+        py_kp_obj_t *kp_obj = m_new_obj(py_kp_obj_t);
 
-//     // Find keypoints
-//     fb_alloc_mark();
-//     array_t *kpts = orb_find_keypoints(arg_img, normalized, threshold, scale_factor, max_keypoints, corner_detector, &roi);
-//     fb_alloc_free_till_mark();
+        kp_obj->base.type = &py_kp_type;
+        kp_obj->kpts = kpts;
+        kp_obj->threshold = threshold;
+        kp_obj->normalized = normalized;
 
-//     if (array_length(kpts))
-//     {
-//         py_kp_obj_t *kp_obj = m_new_obj(py_kp_obj_t);
+        return kp_obj;
+    }
 
-//         kp_obj->base.type = &py_kp_type;
-//         kp_obj->kpts = kpts;
-//         kp_obj->threshold = threshold;
-//         kp_obj->normalized = normalized;
+    return PyLong_FromLong(0);
+}
+*/
 
-//         return kp_obj;
-//     }
+static PyObject *
+py_image_find_edges(PyObject *self, PyObject *args, PyObject *keywds)
+{
+    image_t *arg_img = &self_image_img;
+    edge_detector_t edge_type;
+    int edge_t;
+    rectangle_t roi;
+    PyObject *py_thresh;
+    static char *kwlist[] = {"edge_type", "threshold", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "i|O", kwlist,
+                                     &edge_t, &py_thresh))
+        return NULL;
 
-//     return PyLong_FromLong(0);
-// }
+    int thresh[2] = {100, 200};
 
-// static PyObject *
-// py_image_find_edges(PyObject *self, PyObject *args, PyObject *keywds)
-// {
-//     image_t *arg_img = &self_image_img;
-//     edge_detector_t edge_type;
-//     int edge_t;
-//     rectangle_t roi;
-//     PyObject *py_thresh;
-//     static char *kwlist[] = {"edge_type", "threshold", NULL};
-//     if (!PyArg_ParseTupleAndKeywords(args, keywds, "i|O", kwlist,
-//                                      &edge_t, &py_thresh))
-//         return NULL;
+    if (PyTuple_Check(py_thresh) && (PyTuple_GET_SIZE(py_thresh) == 2))
+    {
+        thresh[0] = PyLong_AsLong(PyTuple_GetItem(py_thresh, 0));
+        thresh[1] = PyLong_AsLong(PyTuple_GetItem(py_thresh, 1));
+    }
+    if (edge_t == 0)
+    {
+        edge_type = EDGE_CANNY;
+    }
+    else
+    {
+        edge_type = EDGE_SIMPLE;
+    }
+    switch (edge_type)
+    {
+    case EDGE_SIMPLE:
+    {
+        fb_alloc_mark();
+        imlib_edge_simple(arg_img, &roi, thresh[0], thresh[1]);
+        fb_alloc_free_till_mark();
+        break;
+    }
+    case EDGE_CANNY:
+    {
+        fb_alloc_mark();
+        imlib_edge_canny(arg_img, &roi, thresh[0], thresh[1]);
+        fb_alloc_free_till_mark();
+        break;
+    }
+    }
 
-//     int thresh[2] = {100, 200};
+    return PyLong_FromLong(0);
+}
 
-//     if (PyTuple_Check(py_thresh) && (PyTuple_GET_SIZE(py_thresh) == 2))
-//     {
-//         thresh[0] = PyLong_AsLong(PyTuple_GetItem(py_thresh, 0));
-//         thresh[1] = PyLong_AsLong(PyTuple_GetItem(py_thresh, 1));
-//     }
-//     if (edge_t == 0)
-//     {
-//         edge_type = EDGE_CANNY;
-//     }
-//     else
-//     {
-//         edge_type = EDGE_SIMPLE;
-//     }
-//     switch (edge_type)
-//     {
-//     case EDGE_SIMPLE:
-//     {
-//         fb_alloc_mark();
-//         imlib_edge_simple(arg_img, &roi, thresh[0], thresh[1]);
-//         fb_alloc_free_till_mark();
-//         break;
-//     }
-//     case EDGE_CANNY:
-//     {
-//         fb_alloc_mark();
-//         imlib_edge_canny(arg_img, &roi, thresh[0], thresh[1]);
-//         fb_alloc_free_till_mark();
-//         break;
-//     }
-//     }
+static PyObject *
+py_image_find_hog(PyObject *self, PyObject *args, PyObject *keywds)
+{
+    image_t *arg_img = &self_image_img;
+    rectangle_t roi;
+    PyObject *py_roi = Py_None;
+    int size = 8;
+    static char *kwlist[] = {"roi", "size", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "|Oi", kwlist,
+                                     &roi, &size))
+        return NULL;
+    roi_tan(py_roi, &roi, arg_img->w, arg_img->h);
 
-//     return PyLong_FromLong(0);
-// }
+    fb_alloc_mark();
+    imlib_find_hog(arg_img, &roi, size);
+    fb_alloc_free_till_mark();
 
-// static PyObject *
-// py_image_find_hog(PyObject *self, PyObject *args, PyObject *keywds)
-//     image_t *arg_img = &self_image_img;
-// rectangle_t roi;
-// PyObject *py_roi = Py_None;
-// int size = 8;
-// static char *kwlist[] = {"roi", "size", NULL};
-// if (!PyArg_ParseTupleAndKeywords(args, keywds, "|Oi", kwlist,
-//                                  &roi, &size))
-//     return NULL;
-// roi_tan(py_roi, &roi, arg_img->w, arg_img->h);
-
-// fb_alloc_mark();
-// imlib_find_hog(arg_img, &roi, size);
-// fb_alloc_free_till_mark();
-
-// return PyLong_FromLong(0);
-// }
+    return PyLong_FromLong(0);
+}
 
 static PyObject *
 keywdarg_parrot(PyObject *self, PyObject *args, PyObject *keywds)
@@ -7086,7 +6375,7 @@ static PyMethodDef imageMethods[] = {
     {"draw_rectangle", (PyCFunction)py_image_draw_rectangle, METH_VARARGS | METH_KEYWORDS, "img draw line"},
     {"draw_circle", (PyCFunction)py_image_draw_circle, METH_VARARGS | METH_KEYWORDS, "img draw line"},
     //在图片上写字符串
-    
+
     {"draw_ellipse", (PyCFunction)py_image_draw_ellipse, METH_VARARGS | METH_KEYWORDS, "img draw line"},
     {"draw_cross", (PyCFunction)py_image_draw_cross, METH_VARARGS | METH_KEYWORDS, "img draw line"},
     {"draw_arrow", (PyCFunction)py_image_draw_arrow, METH_VARARGS | METH_KEYWORDS, "img draw line"},
