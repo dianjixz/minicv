@@ -130,7 +130,11 @@ int r24to_imgr16(PyObject *img_or_data, PyObject *w, PyObject *h, PyObject *bpp,
     image_t *arg_img = pt;
     uint8_t *r24_pixel;
     uint16_t *r16_pixel;
-    // arg_img = malloc(sizeof(image_t));
+    if(arg_img == NULL)
+    {
+        arg_img = malloc(sizeof(image_t));
+    }
+    
     debug_line;
     if (PyTuple_Check(img_or_data))
     {
