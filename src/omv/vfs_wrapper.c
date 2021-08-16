@@ -7,59 +7,50 @@
 #include <fcntl.h> 
 #include <stdio.h>
 
-// #define END_FILE_IO
+#define END_FILE_IO
 
 #ifdef END_FILE_IO
 
 /************ File OP ************/
-int file_write_open(mp_obj_t* fp, const char *path)
+FILE* file_write_open(const char *path)
 {
-    int err;
-    *fp = vfs_internal_open(path, "wb", &err);
-    return err;
+
+    return fopen(path, "wb");
 }
 
-int file_write_open_raise(mp_obj_t* fp, const char *path)
+FILE* file_write_open_raise( const char *path)
 {
-    int err;
-    *fp = vfs_internal_open(path, "wb", &err);
-    if(*fp == MP_OBJ_NULL || err != 0)
-        mp_raise_OSError(err);
-    return err;
+
+    return  fopen(path, "wb");
 }
 
-int file_read_open(mp_obj_t* fp, const char *path)
+FILE* file_read_open(const char *path)
 {
-    int err;
-    *fp = vfs_internal_open(path, "rb", &err);
-    return err;
+
+    return fopen(path, "rb");
 }
 
-int file_read_open_raise(mp_obj_t* fp, const char *path)
+FILE* file_read_open_raise(const char *path)
 {
-    int err;
-    *fp = vfs_internal_open(path, "rb", &err);
-    if(*fp == MP_OBJ_NULL || err != 0)
-        mp_raise_OSError(err);
-    return err;
+
+    return fopen(path, "rb");
 }
 
 
-int file_close(mp_obj_t fp)
+int file_close(FILE *fp)
 {
-    int err;
-    vfs_internal_close(fp, &err);
+    fclose(fp);
+    return 0;
+}
+
+FILE* file_seek(FILE *fp, int offset, uint8_t whence)
+{
+    int err = 0;
+    fseek( fp, offset, whence );
     return err;
 }
 
-int file_seek(mp_obj_t fp, mp_int_t offset, uint8_t whence)
-{
-    int err;
-    vfs_internal_seek(fp, offset, whence, &err);
-    return err;
-}
-
-bool file_eof(mp_obj_t fp)
+FILE* file_eof(FILE *fp)
 {
     //TODO: recode this function
     int err;
