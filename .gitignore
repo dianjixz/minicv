@@ -2,3 +2,12 @@ src/omv/libminiimg.so
 src/minicv.so
 *.o
 src/core*
+*.pyc
+.eggs
+build
+*.egg-info
+*.so
+*.log
+ports/unix/build-standard/
+.vscode/
+dist/

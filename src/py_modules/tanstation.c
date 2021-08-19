@@ -6,30 +6,39 @@
 // #define debug_line printf("[%s %s] %s:%d: %s\n", __DATE__, __TIME__, __FILE__, __LINE__, __func__)
 
 #define debug_line
+
 PyObject *back_img(image_t *img)
 {
-    PyObject *th_tup = Py_None;
     uint8_t *_888_data;
     if (img->data == NULL)
     {
-        return Py_None;
+        return Py_BuildValue("i", -1);
     }
-    th_tup = PyTuple_New(4);
     switch (img->bpp)
     {
     case IMAGE_BPP_BINARY:
     {
-        debug_line;
+        PyObject *th_tup = PyTuple_New(4);
+        PyTuple_SetItem(th_tup, 0, PyBytes_FromStringAndSize(img->data, img->w * img->h));
+        PyTuple_SetItem(th_tup, 1, PyLong_FromLong(img->w));
+        PyTuple_SetItem(th_tup, 2, PyLong_FromLong(img->h));
+        PyTuple_SetItem(th_tup, 3, PyLong_FromLong(IMAGE_BPP_BINARY));
+        return th_tup;
         break;
     }
     case IMAGE_BPP_GRAYSCALE:
     {
+        PyObject *th_tup = PyTuple_New(4);
         PyTuple_SetItem(th_tup, 0, PyBytes_FromStringAndSize(img->data, img->w * img->h));
-        debug_line;
+        PyTuple_SetItem(th_tup, 1, PyLong_FromLong(img->w));
+        PyTuple_SetItem(th_tup, 2, PyLong_FromLong(img->h));
+        PyTuple_SetItem(th_tup, 3, PyLong_FromLong(IMAGE_BPP_GRAYSCALE));
+        return th_tup;
         break;
     }
     case IMAGE_BPP_RGB565:
     {
+        PyObject *th_tup = PyTuple_New(4);
         _888_data = (uint8_t *)malloc(img->w * img->h * 3);
         uint16_t *r16_pixel;
         r16_pixel = (uint16_t *)img->data;
@@ -46,12 +55,17 @@ PyObject *back_img(image_t *img)
         }
         PyTuple_SetItem(th_tup, 0, PyBytes_FromStringAndSize(_888_data, img->w * img->h * 3));
         free(_888_data);
+        PyTuple_SetItem(th_tup, 1, PyLong_FromLong(img->w));
+        PyTuple_SetItem(th_tup, 2, PyLong_FromLong(img->h));
+        PyTuple_SetItem(th_tup, 3, PyLong_FromLong(IMAGE_BPP_RGB565));
+        return th_tup;
         break;
     }
     case IMAGE_BPP_BAYER:
     {
         debug_line;
-        
+
+        return Py_BuildValue("i", -1);
         // PyTuple_SetItem(th_tup, 0, PyBytes_FromStringAndSize(img->data, img->w * img->h));
         // for (int i = 0; i < 100; i++)
         // {
@@ -64,15 +78,10 @@ PyObject *back_img(image_t *img)
     default:
     {
         debug_line;
-        return Py_None;
+        return Py_BuildValue("i", -1);
         break;
     }
     }
-    debug_line;
-    PyTuple_SetItem(th_tup, 1, PyLong_FromLong(img->w));
-    PyTuple_SetItem(th_tup, 2, PyLong_FromLong(img->h));
-    PyTuple_SetItem(th_tup, 3, PyLong_FromLong(img->bpp));
-    return th_tup;
 }
 
 int thresholds_tan(PyObject *thr, list_t *pt)
@@ -105,7 +114,8 @@ int thresholds_tan(PyObject *thr, list_t *pt)
                 list_push_back(pt, &thrm);
                 break;
             case 2:
-
+                thrm.LMin = PyLong_AsLong(PyTuple_GetItem(thr0, 0));
+                thrm.LMax = PyLong_AsLong(PyTuple_GetItem(thr0, 1));
                 break;
             default:
                 break;
@@ -120,12 +130,11 @@ int r24to_imgr16(PyObject *img_or_data, PyObject *w, PyObject *h, PyObject *bpp,
     image_t *arg_img = pt;
     uint8_t *r24_pixel;
     uint16_t *r16_pixel;
-    // arg_img = malloc(sizeof(image_t));
-    if (arg_img->data != NULL)
+    if(arg_img == NULL)
     {
-        free(arg_img->data);
-        arg_img->data = NULL;
+        arg_img = malloc(sizeof(image_t));
     }
+    
     debug_line;
     if (PyTuple_Check(img_or_data))
     {
@@ -149,12 +158,20 @@ int r24to_imgr16(PyObject *img_or_data, PyObject *w, PyObject *h, PyObject *bpp,
     {
     case IMAGE_BPP_BINARY:
     {
-
+        if (arg_img->data == NULL)
+        {
+            arg_img->data = (uint8_t *)malloc(arg_img->w * arg_img->h);
+        }
+        memcpy(arg_img->data, r24_pixel, arg_img->w * arg_img->h);
         break;
     }
     case IMAGE_BPP_GRAYSCALE:
     {
-
+        if (arg_img->data == NULL)
+        {
+            arg_img->data = (uint8_t *)malloc(arg_img->w * arg_img->h);
+        }
+        memcpy(arg_img->data, r24_pixel, arg_img->w * arg_img->h);
         break;
     }
     case IMAGE_BPP_RGB565:
@@ -173,7 +190,7 @@ int r24to_imgr16(PyObject *img_or_data, PyObject *w, PyObject *h, PyObject *bpp,
     }
     case IMAGE_BPP_BAYER:
     {
-
+        return -1;
         break;
     }
     default:
@@ -211,7 +228,6 @@ int roi_tan(PyObject *roi, rectangle_t *pt, int w, int h)
     }
     else
     {
-        debug_line;
         pt->x = 0;
         pt->y = 0;
         pt->w = w;
