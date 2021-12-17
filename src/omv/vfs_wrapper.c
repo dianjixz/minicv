@@ -6,6 +6,7 @@
 #include <sys/stat.h>    
 #include <fcntl.h> 
 #include <stdio.h>
+#include <stdint.h>
 
 #define END_FILE_IO
 
@@ -56,7 +57,7 @@ FILE* file_eof(FILE *fp)
     int err;
     mp_uint_t size = vfs_internal_size(fp);
     mp_uint_t curr = vfs_internal_seek(fp, 0, VFS_SEEK_CUR, &err);
-    return curr<size;
+    return file_eof();
 }
 
 int file_seek_raise(mp_obj_t fp, mp_int_t offset, uint8_t whence)

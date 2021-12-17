@@ -284,6 +284,379 @@ void imlib_get_histogram(histogram_t *out, image_t *ptr, rectangle_t *roi, list_
     }
 }
 
+// bool imlib_get_regression(find_lines_list_lnk_data_t *out, image_t *ptr, rectangle_t *roi, unsigned int x_stride, unsigned int y_stride,
+//                           list_t *thresholds, bool invert, unsigned int area_threshold, unsigned int pixels_threshold, bool robust)
+// {
+//     bool result = false;
+//     memset(out, 0, sizeof(find_lines_list_lnk_data_t));
+
+//     if (!robust)
+//     { // Least Squares
+//         int blob_x1 = roi->x + roi->w - 1;
+//         int blob_y1 = roi->y + roi->h - 1;
+//         int blob_x2 = roi->x;
+//         int blob_y2 = roi->y;
+//         int blob_pixels = 0;
+//         int blob_cx = 0;
+//         int blob_cy = 0;
+//         long long blob_a = 0;
+//         long long blob_b = 0;
+//         long long blob_c = 0;
+
+//         for (list_lnk_t *it = iterator_start_from_head(thresholds); it; it = iterator_next(it))
+//         {
+//             color_thresholds_list_lnk_data_t lnk_data;
+//             iterator_get(thresholds, it, &lnk_data);
+
+//             switch (ptr->bpp)
+//             {
+//             case IMAGE_BPP_BINARY:
+//             {
+//                 for (int y = roi->y, yy = roi->y + roi->h; y < yy; y += y_stride)
+//                 {
+//                     uint32_t *row_ptr = IMAGE_COMPUTE_BINARY_PIXEL_ROW_PTR(ptr, y);
+//                     for (int x = roi->x + (y % x_stride), xx = roi->x + roi->w; x < xx; x += x_stride)
+//                     {
+//                         if (COLOR_THRESHOLD_BINARY(IMAGE_GET_BINARY_PIXEL_FAST(row_ptr, x), &lnk_data, invert))
+//                         {
+//                             blob_x1 = IM_MIN(blob_x1, x);
+//                             blob_y1 = IM_MIN(blob_y1, y);
+//                             blob_x2 = IM_MAX(blob_x2, x);
+//                             blob_y2 = IM_MAX(blob_y2, y);
+//                             blob_pixels += 1;
+//                             blob_cx += x;
+//                             blob_cy += y;
+//                             blob_a += x * x;
+//                             blob_b += x * y;
+//                             blob_c += y * y;
+//                         }
+//                     }
+//                 }
+//                 break;
+//             }
+//             case IMAGE_BPP_GRAYSCALE:
+//             {
+//                 for (int y = roi->y, yy = roi->y + roi->h; y < yy; y += y_stride)
+//                 {
+//                     uint8_t *row_ptr = IMAGE_COMPUTE_GRAYSCALE_PIXEL_ROW_PTR(ptr, y);
+//                     for (int x = roi->x + (y % x_stride), xx = roi->x + roi->w; x < xx; x += x_stride)
+//                     {
+//                         if (COLOR_THRESHOLD_GRAYSCALE(IMAGE_GET_GRAYSCALE_PIXEL_FAST(row_ptr, x), &lnk_data, invert))
+//                         {
+//                             blob_x1 = IM_MIN(blob_x1, x);
+//                             blob_y1 = IM_MIN(blob_y1, y);
+//                             blob_x2 = IM_MAX(blob_x2, x);
+//                             blob_y2 = IM_MAX(blob_y2, y);
+//                             blob_pixels += 1;
+//                             blob_cx += x;
+//                             blob_cy += y;
+//                             blob_a += x * x;
+//                             blob_b += x * y;
+//                             blob_c += y * y;
+//                         }
+//                     }
+//                 }
+//                 break;
+//             }
+//             case IMAGE_BPP_RGB565:
+//             {
+//                 for (int y = roi->y, yy = roi->y + roi->h; y < yy; y += y_stride)
+//                 {
+//                     uint16_t *row_ptr = IMAGE_COMPUTE_RGB565_PIXEL_ROW_PTR(ptr, y);
+//                     for (int x = roi->x + (y % x_stride), xx = roi->x + roi->w; x < xx; x += x_stride)
+//                     {
+//                         if (COLOR_THRESHOLD_RGB565(IMAGE_GET_RGB565_PIXEL_FAST(row_ptr, x), &lnk_data, invert))
+//                         {
+//                             blob_x1 = IM_MIN(blob_x1, x);
+//                             blob_y1 = IM_MIN(blob_y1, y);
+//                             blob_x2 = IM_MAX(blob_x2, x);
+//                             blob_y2 = IM_MAX(blob_y2, y);
+//                             blob_pixels += 1;
+//                             blob_cx += x;
+//                             blob_cy += y;
+//                             blob_a += x * x;
+//                             blob_b += x * y;
+//                             blob_c += y * y;
+//                         }
+//                     }
+//                 }
+//                 break;
+//             }
+//             default:
+//             {
+//                 break;
+//             }
+//             }
+//         }
+
+//         int w = blob_x2 - blob_x1;
+//         int h = blob_y2 - blob_y1;
+//         if (blob_pixels && ((w * h) >= area_threshold) && (blob_pixels >= pixels_threshold))
+//         {
+//             // http://www.cse.usf.edu/~r1k/MachineVisionBook/MachineVision.files/MachineVision_Chapter2.pdf
+//             // https://www.strchr.com/standard_deviation_in_one_pass
+//             //
+//             // a = sigma(x*x) + (mx*sigma(x)) + (mx*sigma(x)) + (sigma()*mx*mx)
+//             // b = sigma(x*y) + (mx*sigma(y)) + (my*sigma(x)) + (sigma()*mx*my)
+//             // c = sigma(y*y) + (my*sigma(y)) + (my*sigma(y)) + (sigma()*my*my)
+//             //
+//             // blob_a = sigma(x*x)
+//             // blob_b = sigma(x*y)
+//             // blob_c = sigma(y*y)
+//             // blob_cx = sigma(x)
+//             // blob_cy = sigma(y)
+//             // blob_pixels = sigma()
+
+//             int mx = blob_cx / blob_pixels; // x centroid
+//             int my = blob_cy / blob_pixels; // y centroid
+//             int small_blob_a = blob_a - ((mx * blob_cx) + (mx * blob_cx)) + (blob_pixels * mx * mx);
+//             int small_blob_b = blob_b - ((mx * blob_cy) + (my * blob_cx)) + (blob_pixels * mx * my);
+//             int small_blob_c = blob_c - ((my * blob_cy) + (my * blob_cy)) + (blob_pixels * my * my);
+
+//             float rotation = ((small_blob_a != small_blob_c) ? (atan2f(2 * small_blob_b, small_blob_a - small_blob_c) / 2.0f) : 1.570796f) + 1.570796f; // PI/2
+
+//             out->theta = (int)roundf(rotation * 57.295780) % 180; // * (180 / PI)
+//             if (out->theta < 0)
+//                 out->theta += 180;
+//             out->rho = roundf(((mx - roi->x) * __cos_table[out->theta]) + ((my - roi->y) * __sin_table[out->theta]));
+
+//             float part0 = (small_blob_a + small_blob_c) / 2.0f;
+//             float f_b = (float)small_blob_b;
+//             float f_a_c = (float)(small_blob_a - small_blob_c);
+//             float part1 = sqrtf((4 * f_b * f_b) + (f_a_c * f_a_c)) / 2.0f;
+//             float p_add = sqrtf(part0 + part1);
+//             float p_sub = sqrtf(part0 - part1);
+//             float e_min = IM_MIN(p_add, p_sub);
+//             float e_max = IM_MAX(p_add, p_sub);
+//             out->magnitude = roundf(e_max / e_min) - 1; // Circle -> [0, INF) -> Line
+
+//             if ((45 <= out->theta) && (out->theta < 135))
+//             {
+//                 // y = (r - x cos(t)) / sin(t)
+//                 out->line.x1 = 0;
+//                 out->line.y1 = roundf((out->rho - (out->line.x1 * __cos_table[out->theta])) / __sin_table[out->theta]);
+//                 out->line.x2 = roi->w - 1;
+//                 out->line.y2 = roundf((out->rho - (out->line.x2 * __cos_table[out->theta])) / __sin_table[out->theta]);
+//             }
+//             else
+//             {
+//                 // x = (r - y sin(t)) / cos(t);
+//                 out->line.y1 = 0;
+//                 out->line.x1 = roundf((out->rho - (out->line.y1 * __sin_table[out->theta])) / __cos_table[out->theta]);
+//                 out->line.y2 = roi->h - 1;
+//                 out->line.x2 = roundf((out->rho - (out->line.y2 * __sin_table[out->theta])) / __cos_table[out->theta]);
+//             }
+
+//             if (lb_clip_line(&out->line, 0, 0, roi->w, roi->h))
+//             {
+//                 out->line.x1 += roi->x;
+//                 out->line.y1 += roi->y;
+//                 out->line.x2 += roi->x;
+//                 out->line.y2 += roi->y;
+//                 // Move rho too.
+//                 out->rho += roundf((roi->x * __cos_table[out->theta]) + (roi->y * __sin_table[out->theta]));
+//                 result = true;
+//             }
+//             else
+//             {
+//                 memset(out, 0, sizeof(find_lines_list_lnk_data_t));
+//             }
+//         }
+//     }
+//     else
+//     {                                                           // Theil-Sen Estimator
+//         int *x_histogram = (int *)malloc(ptr->w * sizeof(int)); // Not roi so we don't have to adjust, we can burn the RAM.
+//         int *y_histogram = (int *)malloc(ptr->h * sizeof(int)); // Not roi so we don't have to adjust, we can burn the RAM.
+
+//         long long *x_delta_histogram = (long long *)malloc((2 * ptr->w) * sizeof(long long)); // Not roi so we don't have to adjust, we can burn the RAM.
+//         long long *y_delta_histogram = (long long *)malloc((2 * ptr->h) * sizeof(long long)); // Not roi so we don't have to adjust, we can burn the RAM.
+
+//         size_t points_max = 131072;
+//         point_t *points = (point_t *)malloc(sizeof(point_t) * points_max);
+//         // size_t points_max = size / sizeof(point_t);
+//         size_t points_count = 0;
+
+//         if (points_max)
+//         {
+//             int blob_x1 = roi->x + roi->w - 1;
+//             int blob_y1 = roi->y + roi->h - 1;
+//             int blob_x2 = roi->x;
+//             int blob_y2 = roi->y;
+//             int blob_pixels = 0;
+
+//             for (list_lnk_t *it = iterator_start_from_head(thresholds); it; it = iterator_next(it))
+//             {
+//                 color_thresholds_list_lnk_data_t lnk_data;
+//                 iterator_get(thresholds, it, &lnk_data);
+
+//                 switch (ptr->bpp)
+//                 {
+//                 case IMAGE_BPP_BINARY:
+//                 {
+//                     for (int y = roi->y, yy = roi->y + roi->h; y < yy; y += y_stride)
+//                     {
+//                         uint32_t *row_ptr = IMAGE_COMPUTE_BINARY_PIXEL_ROW_PTR(ptr, y);
+//                         for (int x = roi->x + (y % x_stride), xx = roi->x + roi->w; x < xx; x += x_stride)
+//                         {
+//                             if (COLOR_THRESHOLD_BINARY(IMAGE_GET_BINARY_PIXEL_FAST(row_ptr, x), &lnk_data, invert))
+//                             {
+//                                 blob_x1 = IM_MIN(blob_x1, x);
+//                                 blob_y1 = IM_MIN(blob_y1, y);
+//                                 blob_x2 = IM_MAX(blob_x2, x);
+//                                 blob_y2 = IM_MAX(blob_y2, y);
+//                                 blob_pixels += 1;
+//                                 x_histogram[x]++;
+//                                 y_histogram[y]++;
+
+//                                 if (points_count < points_max)
+//                                 {
+//                                     point_init(&points[points_count], x, y);
+//                                     points_count += 1;
+//                                 }
+//                             }
+//                         }
+//                     }
+//                     break;
+//                 }
+//                 case IMAGE_BPP_GRAYSCALE:
+//                 {
+//                     for (int y = roi->y, yy = roi->y + roi->h; y < yy; y += y_stride)
+//                     {
+//                         uint8_t *row_ptr = IMAGE_COMPUTE_GRAYSCALE_PIXEL_ROW_PTR(ptr, y);
+//                         for (int x = roi->x + (y % x_stride), xx = roi->x + roi->w; x < xx; x += x_stride)
+//                         {
+//                             if (COLOR_THRESHOLD_GRAYSCALE(IMAGE_GET_GRAYSCALE_PIXEL_FAST(row_ptr, x), &lnk_data, invert))
+//                             {
+//                                 blob_x1 = IM_MIN(blob_x1, x);
+//                                 blob_y1 = IM_MIN(blob_y1, y);
+//                                 blob_x2 = IM_MAX(blob_x2, x);
+//                                 blob_y2 = IM_MAX(blob_y2, y);
+//                                 blob_pixels += 1;
+//                                 x_histogram[x]++;
+//                                 y_histogram[y]++;
+//                                 if (points_count < points_max)
+//                                 {
+//                                     point_init(&points[points_count], x, y);
+//                                     points_count += 1;
+//                                 }
+//                             }
+//                         }
+//                     }
+//                     break;
+//                 }
+//                 case IMAGE_BPP_RGB565:
+//                 {
+//                     for (int y = roi->y, yy = roi->y + roi->h; y < yy; y += y_stride)
+//                     {
+//                         uint16_t *row_ptr = IMAGE_COMPUTE_RGB565_PIXEL_ROW_PTR(ptr, y);
+//                         for (int x = roi->x + (y % x_stride), xx = roi->x + roi->w; x < xx; x += x_stride)
+//                         {
+//                             if (COLOR_THRESHOLD_RGB565(IMAGE_GET_RGB565_PIXEL_FAST(row_ptr, x), &lnk_data, invert))
+//                             {
+//                                 blob_x1 = IM_MIN(blob_x1, x);
+//                                 blob_y1 = IM_MIN(blob_y1, y);
+//                                 blob_x2 = IM_MAX(blob_x2, x);
+//                                 blob_y2 = IM_MAX(blob_y2, y);
+//                                 blob_pixels += 1;
+//                                 x_histogram[x]++;
+//                                 y_histogram[y]++;
+//                                 if (points_count < points_max)
+//                                 {
+//                                     point_init(&points[points_count], x, y);
+//                                     points_count += 1;
+//                                 }
+//                             }
+//                         }
+//                     }
+//                     break;
+//                 }
+//                 default:
+//                 {
+//                     break;
+//                 }
+//                 }
+//             }
+
+//             int w = blob_x2 - blob_x1;
+//             int h = blob_y2 - blob_y1;
+//             if (blob_pixels && ((w * h) >= area_threshold) && (blob_pixels >= pixels_threshold))
+//             {
+//                 long long delta_sum = (points_count * (points_count - 1)) / 2;
+
+//                 if (delta_sum)
+//                 {
+//                     // The code below computes the average slope between all pairs of points.
+//                     // This is a N^2 operation that can easily blow up if the image is not threshold carefully...
+
+//                     for (int i = 0; i < points_count; i++)
+//                     {
+//                         point_t *p0 = &points[i];
+//                         for (int j = i + 1; j < points_count; j++)
+//                         {
+//                             point_t *p1 = &points[j];
+//                             x_delta_histogram[p0->x - p1->x + ptr->w]++; // Note we allocated 1 extra above so we can do ptr->w instead of (ptr->w-1).
+//                             y_delta_histogram[p0->y - p1->y + ptr->h]++; // Note we allocated 1 extra above so we can do ptr->h instead of (ptr->h-1).
+//                         }
+//                     }
+
+//                     int mx = get_median(x_histogram, blob_pixels, ptr->w);                     // Output doesn't need adjustment.
+//                     int my = get_median(y_histogram, blob_pixels, ptr->h);                     // Output doesn't need adjustment.
+//                     int mdx = get_median_l(x_delta_histogram, delta_sum, 2 * ptr->w) - ptr->w; // Fix offset.
+//                     int mdy = get_median_l(y_delta_histogram, delta_sum, 2 * ptr->h) - ptr->h; // Fix offset.
+
+//                     float rotation = (mdx ? atan2f(mdy, mdx) : 1.570796f) + 1.570796f; // PI/2
+
+//                     out->theta = (int)roundf(rotation * 57.295780) % 180; // * (180 / PI)
+//                     if (out->theta < 0)
+//                         out->theta += 180;
+//                     out->rho = roundf(((mx - roi->x) * __cos_table[out->theta]) + ((my - roi->y) * __sin_table[out->theta]));
+
+//                     out->magnitude = roundf(sqrtf((mdx * mdx) + (mdy * mdy)));
+
+//                     if ((45 <= out->theta) && (out->theta < 135))
+//                     {
+//                         // y = (r - x cos(t)) / sin(t)
+//                         out->line.x1 = 0;
+//                         out->line.y1 = roundf((out->rho - (out->line.x1 * __cos_table[out->theta])) / __sin_table[out->theta]);
+//                         out->line.x2 = roi->w - 1;
+//                         out->line.y2 = roundf((out->rho - (out->line.x2 * __cos_table[out->theta])) / __sin_table[out->theta]);
+//                     }
+//                     else
+//                     {
+//                         // x = (r - y sin(t)) / cos(t);
+//                         out->line.y1 = 0;
+//                         out->line.x1 = roundf((out->rho - (out->line.y1 * __sin_table[out->theta])) / __cos_table[out->theta]);
+//                         out->line.y2 = roi->h - 1;
+//                         out->line.x2 = roundf((out->rho - (out->line.y2 * __sin_table[out->theta])) / __cos_table[out->theta]);
+//                     }
+
+//                     if (lb_clip_line(&out->line, 0, 0, roi->w, roi->h))
+//                     {
+//                         out->line.x1 += roi->x;
+//                         out->line.y1 += roi->y;
+//                         out->line.x2 += roi->x;
+//                         out->line.y2 += roi->y;
+//                         // Move rho too.
+//                         out->rho += roundf((roi->x * __cos_table[out->theta]) + (roi->y * __sin_table[out->theta]));
+//                         result = true;
+//                     }
+//                     else
+//                     {
+//                         memset(out, 0, sizeof(find_lines_list_lnk_data_t));
+//                     }
+//                 }
+//             }
+//         }
+//         free(points);
+//         free(y_delta_histogram);
+//         free(x_delta_histogram);
+//         free(y_histogram);
+//         free(x_histogram);
+//     }
+
+//     return result;
+// }
+
 void imlib_get_percentile(percentile_t *out, image_bpp_t bpp, histogram_t *ptr, float percentile)
 {
     memset(out, 0, sizeof(percentile_t));

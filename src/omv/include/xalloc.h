@@ -8,6 +8,15 @@
  */
 #ifndef __XALLOC_H__
 #define __XALLOC_H__
+
+#define malloc malloc
+#define free free
+#define calloc calloc
+#define memcpy memcpy
+#define memmove memmove
+#define memset memset
+
+
 #include <stdint.h>
 void *xalloc(uint32_t size);
 void *xalloc_try_alloc(uint32_t size);
