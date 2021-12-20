@@ -1,0 +1,53 @@
+
+
+menuconfig IMLIB_ENABLED
+    bool "Enable imlib"
+    default y
+    menu "Imlib configuration"
+        visible if IMLIB_ENABLED
+        config IMLIB_ENABLE_FLOOD_FILL
+            bool "IMLIB_ENABLE_FLOOD_FILL"
+            default n
+            depends on IMLIB_ENABLED
+            help
+                enable IMLIB_ENABLE_FLOOD_FILL FUN!
+    endmenu
+
+    
+
+
+
+
+
+
+
+
+# menu "Imlib configuration"
+#     config IMLIB_ENABLED
+#         bool "Enable imlib"
+#         help
+#             Select this option to enable imlib and show the submenu.
+#     menu "Imlib configuration menu2"
+#         visible if IMLIB_ENABLED
+#         config IMLIB_ENABLE_FLOOD_FILL
+#             bool "IMLIB_ENABLE_FLOOD_FILL"
+#             help
+#                 enable IMLIB_ENABLE_FLOOD_FILL FUN!
+#     endmenu
+# endmenu
+
+        # choice IMLIB_TEST_STR
+        #     prompt "Component2 test string"
+        #     depends on IMLIB_ENABLED
+        #     help
+        #         Component2 test string in lib2_test func.
+
+        #     config IMLIB_TEST_STR1
+        #         bool "imlib test string 1"
+
+        #     config IMLIB_TEST_STR2
+        #         bool "imlib test string 2"
+
+        #     config IMLIB_TEST_STR3
+        #         bool "imlib test string 3"
+        # endchoice
