@@ -1,0 +1,98 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	Development	//
+IMAGE_BPP_BAYER	include/imlib.h	/^    IMAGE_BPP_BAYER,        \/\/ BPP = 3$/;"	e	enum:image_bpp
+IMAGE_BPP_BINARY	include/imlib.h	/^    IMAGE_BPP_BINARY,       \/\/ BPP = 0$/;"	e	enum:image_bpp
+IMAGE_BPP_GRAYSCALE	include/imlib.h	/^    IMAGE_BPP_GRAYSCALE,    \/\/ BPP = 1$/;"	e	enum:image_bpp
+IMAGE_BPP_JPEG	include/imlib.h	/^    IMAGE_BPP_JPEG,         \/\/ BPP = 4$/;"	e	enum:image_bpp
+IMAGE_BPP_RGB565	include/imlib.h	/^    IMAGE_BPP_RGB565,       \/\/ BPP = 2$/;"	e	enum:image_bpp
+IMAGE_BPP_RGB888	include/imlib.h	/^    IMAGE_BPP_RGB888,       \/\/ BPP = 5$/;"	e	enum:image_bpp
+IMAGE_BPP_RGBA8888	include/imlib.h	/^    IMAGE_BPP_RGBA8888,     \/\/ BPP = 6$/;"	e	enum:image_bpp
+IMAGE_GET_BINARY_PIXEL	include/imlib.h	633;"	d
+IMLIB_CONFIG_H	include/imlib_config.h	2;"	d
+IMLIB_INTERFACE_H	include/imlib_interface.h	2;"	d
+IM_LOG2	include/imlib.h	52;"	d
+IM_LOG2_16	include/imlib.h	50;"	d
+IM_LOG2_2	include/imlib.h	47;"	d
+IM_LOG2_32	include/imlib.h	51;"	d
+IM_LOG2_4	include/imlib.h	48;"	d
+IM_LOG2_8	include/imlib.h	49;"	d
+SMLAD	src/imlib.c	/^static uint32_t SMLAD(uint32_t x,uint32_t y,uint32_t sum)$/;"	f	file:
+UINT32_T_BITS	include/imlib.h	83;"	d
+UINT32_T_MASK	include/imlib.h	84;"	d
+UINT32_T_SHIFT	include/imlib.h	85;"	d
+__IMDEFS_H	include/imdefs.h	2;"	d
+__IMLIB_H__	include/imlib.h	26;"	d
+bpp	include/imdefs.h	/^    int bpp;$/;"	m	struct:image
+checkCPU	src/libinterface.c	/^int checkCPU(void)$/;"	f
+data	include/imdefs.h	/^        uint8_t *data;$/;"	m	union:image::__anon1
+fast_atanf	include/imlib_interface.h	28;"	d
+fast_fabsf	include/imlib_interface.h	29;"	d
+fast_floorf	include/imlib_interface.h	30;"	d
+fast_roundf	include/imlib_interface.h	31;"	d
+h	include/imdefs.h	/^    int h;$/;"	m	struct:image
+image	include/imdefs.h	/^typedef struct image {$/;"	s
+image_bpp	include/imlib.h	/^typedef enum image_bpp$/;"	g
+image_bpp_t	include/imlib.h	/^image_bpp_t;$/;"	t	typeref:enum:image_bpp
+image_copy	src/imlib.c	/^void image_copy(image_t *dst, image_t *src)$/;"	f
+image_get_mask_pixel	src/imlib.c	/^bool image_get_mask_pixel(image_t *ptr, int x, int y)$/;"	f
+image_init	src/imlib.c	/^void image_init(image_t *ptr, int w, int h, int bpp, void *data)$/;"	f
+image_size	src/imlib.c	/^size_t image_size(image_t *ptr)$/;"	f
+image_t	include/imdefs.h	/^} __attribute__((aligned(8)))image_t;$/;"	t	typeref:struct:image
+imblib_parse_extension	src/imlib.c	/^static save_image_format_t imblib_parse_extension(image_t *img, const char *path)$/;"	f	file:
+imlib_bayer_to_rgb565	src/imlib.c	/^void imlib_bayer_to_rgb565(image_t *img, int w, int h, int xoffs, int yoffs, uint16_t *rgbbuf)$/;"	f
+imlib_draw_circle	src/draw.c	/^void imlib_draw_circle(image_t *img, int cx, int cy, int r, int c, int thickness, bool fill)$/;"	f
+imlib_draw_ellipse	src/draw.c	/^void imlib_draw_ellipse(image_t *img, int cx, int cy, int rx, int ry, int rotation, int c, int thickness, bool fill)$/;"	f
+imlib_draw_image	src/draw.c	/^void imlib_draw_image(image_t *img, image_t *other, int x_off, int y_off, float x_scale, float y_scale, float alpha, image_t *mask)$/;"	f
+imlib_draw_line	src/draw.c	/^void imlib_draw_line(image_t *img, int x0, int y0, int x1, int y1, int c, int thickness)$/;"	f
+imlib_draw_rectangle	src/draw.c	/^void imlib_draw_rectangle(image_t *img, int rx, int ry, int rw, int rh, int c, int thickness, bool fill)$/;"	f
+imlib_flood_fill	src/draw.c	/^size_t imlib_flood_fill(image_t *img, int x, int y,$/;"	f
+imlib_get_pixel	src/draw.c	/^int imlib_get_pixel(image_t *img, int x, int y)$/;"	f
+imlib_grayscale_to_rgb	src/imlib.c	/^void imlib_grayscale_to_rgb(simple_color_t *grayscale, simple_color_t *rgb)$/;"	f
+imlib_image_mean	src/imlib.c	/^int imlib_image_mean(image_t *src, int *r_mean, int *g_mean, int *b_mean)$/;"	f
+imlib_image_operation	src/imlib.c	/^void imlib_image_operation(image_t *img, const char *path, image_t *other, int scalar, line_op_t op, void *data)$/;"	f
+imlib_image_std	src/imlib.c	/^int imlib_image_std(image_t *src)$/;"	f
+imlib_lab_to_rgb	src/imlib.c	/^void imlib_lab_to_rgb(simple_color_t *lab, simple_color_t *rgb)$/;"	f
+imlib_lens_corr	src/imlib.c	/^void imlib_lens_corr(image_t *img, float strength, float zoom)$/;"	f
+imlib_rgb_to_grayscale	src/imlib.c	/^void imlib_rgb_to_grayscale(simple_color_t *rgb, simple_color_t *grayscale)$/;"	f
+imlib_rgb_to_lab	src/imlib.c	/^void imlib_rgb_to_lab(simple_color_t *rgb, simple_color_t *lab)$/;"	f
+imlib_sepconv3	src/imlib.c	/^void imlib_sepconv3(image_t *img, const int8_t *krn, const float m, const int b)$/;"	f
+imlib_set_pixel	src/draw.c	/^void imlib_set_pixel(image_t *img, int x, int y, int p)$/;"	f
+imlib_yuv_to_rgb	src/imlib.c	/^ALWAYS_INLINE uint16_t imlib_yuv_to_rgb(uint8_t y, int8_t u, int8_t v)$/;"	f
+imlib_zero	src/imlib.c	/^void imlib_zero(image_t *img, image_t *mask, bool invert)$/;"	f
+kernel_gauss_3	src/imlib.c	/^const int8_t kernel_gauss_3[3*3] = {$/;"	v
+kernel_gauss_5	src/imlib.c	/^const int8_t kernel_gauss_5[5*5] = {$/;"	v
+kernel_high_pass_3	src/imlib.c	/^const int kernel_high_pass_3[3*3] = {$/;"	v
+kernel_laplacian_3	src/imlib.c	/^const int kernel_laplacian_3[3*3] = {$/;"	v
+lb_clip_line	src/imlib.c	/^bool lb_clip_line(line_t *l, int x, int y, int w, int h) \/\/ line is drawn if this returns true$/;"	f
+pixels	include/imdefs.h	/^        uint8_t *pixels;$/;"	m	union:image::__anon1
+point_copy	src/imlib.c	/^void point_copy(point_t *dst, point_t *src)$/;"	f
+point_equal_fast	src/imlib.c	/^bool point_equal_fast(point_t *ptr0, point_t *ptr1)$/;"	f
+point_fill	src/draw.c	/^static void point_fill(image_t *img, int cx, int cy, int r0, int r1, int c)$/;"	f	file:
+point_init	src/imlib.c	/^void point_init(point_t *ptr, int x, int y)$/;"	f
+point_quadrance	src/imlib.c	/^int point_quadrance(point_t *ptr0, point_t *ptr1)$/;"	f
+rectangle_copy	src/imlib.c	/^void rectangle_copy(rectangle_t *dst, rectangle_t *src)$/;"	f
+rectangle_equal_fast	src/imlib.c	/^bool rectangle_equal_fast(rectangle_t *ptr0, rectangle_t *ptr1)$/;"	f
+rectangle_init	src/imlib.c	/^void rectangle_init(rectangle_t *ptr, int x, int y, int w, int h)$/;"	f
+rectangle_intersected	src/imlib.c	/^void rectangle_intersected(rectangle_t *dst, rectangle_t *src)$/;"	f
+rectangle_overlap	src/imlib.c	/^bool rectangle_overlap(rectangle_t *ptr0, rectangle_t *ptr1)$/;"	f
+rectangle_united	src/imlib.c	/^void rectangle_united(rectangle_t *dst, rectangle_t *src)$/;"	f
+safe_map_pixel	src/draw.c	/^static int safe_map_pixel(image_t *dst, image_t *src, int pixel)$/;"	f	file:
+scratch_draw_line	src/draw.c	/^static void scratch_draw_line(image_t *img, int x0, int y0, int dx, int dy0, int dy1, float shear_dx, float shear_dy, int c)$/;"	f	file:
+scratch_draw_pixel	src/draw.c	/^static void scratch_draw_pixel(image_t *img, int x0, int y0, int dx, int dy, float shear_dx, float shear_dy, int r0, int r1, int c)$/;"	f	file:
+scratch_draw_rotated_ellipse	src/draw.c	/^static void scratch_draw_rotated_ellipse(image_t *img, int x, int y, int x_axis, int y_axis, int rotation, bool filled, int c, int thickness)$/;"	f	file:
+scratch_draw_sheared_ellipse	src/draw.c	/^static void scratch_draw_sheared_ellipse(image_t *img, int x0, int y0, int width, int height, bool filled, float shear_dx, float shear_dy, int c, int thickness)$/;"	f	file:
+uint8_t	include/imdefs.h	/^typedef unsigned char uint8_t;$/;"	t
+w	include/imdefs.h	/^    int w;$/;"	m	struct:image
+xLine	src/draw.c	/^static void xLine(image_t *img, int x1, int x2, int y, int c)$/;"	f	file:
+xalloc	include/imlib_interface.h	17;"	d
+xemcpy	include/imlib_interface.h	20;"	d
+xemmove	include/imlib_interface.h	21;"	d
+xemset	include/imlib_interface.h	22;"	d
+xlloc	include/imlib_interface.h	19;"	d
+xpen	include/imlib_interface.h	25;"	d
+xree	include/imlib_interface.h	18;"	d
+yLine	src/draw.c	/^static void yLine(image_t *img, int x, int y1, int y2, int c)$/;"	f	file:

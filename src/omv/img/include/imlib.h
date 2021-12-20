@@ -13,8 +13,7 @@
 #include <limits.h>
 #include <float.h>
 #include <math.h>
-//#include <bits/mathcalls.h>
-// #include <ff.h>
+#include <ff.h>
 #include "fb_alloc.h"
 #include "umm_malloc.h"
 #include "xalloc.h"
@@ -22,21 +21,9 @@
 #include "fmath.h"
 #include "collections.h"
 #include "imlib_config.h"
-// #include "py/obj.h"
+#include "py/obj.h"
 #include "imdefs.h"
 
-/*********************************/
-typedef void *mp_obj_t;
-
-#define MSGLOG(sts,...) do {}while(0)
-#define MSGERR(str,...) do {}while(0)
-// #define FB_ALLOC_NO_HINT 0
-
-
-
-
-
-/**********************************/
 #define IM_LOG2_2(x)    (((x) &                0x2ULL) ? ( 2                        ) :             1) // NO ({ ... }) !
 #define IM_LOG2_4(x)    (((x) &                0xCULL) ? ( 2 +  IM_LOG2_2((x) >>  2)) :  IM_LOG2_2(x)) // NO ({ ... }) !
 #define IM_LOG2_8(x)    (((x) &               0xF0ULL) ? ( 4 +  IM_LOG2_4((x) >>  4)) :  IM_LOG2_4(x)) // NO ({ ... }) !
@@ -205,7 +192,8 @@ color_thresholds_list_lnk_data_t;
 #define COLOR_RGB565_BINARY_MIN 0x0000
 #define COLOR_RGB565_BINARY_MAX 0xFFFF
 
-IMAGE_COMPUTE_RGB565_PIXEL_ROW_PTR
+#define COLOR_GRAYSCALE_MIN 0
+#define COLOR_GRAYSCALE_MAX 255
 
 #define COLOR_R5_MIN 0
 #define COLOR_R5_MAX 31
@@ -1239,8 +1227,8 @@ int imlib_image_std(image_t *src); // grayscale only
 /* Template Matching */
 void imlib_midpoint_pool(image_t *img_i, image_t *img_o, int x_div, int y_div, const int bias);
 void imlib_mean_pool(image_t *img_i, image_t *img_o, int x_div, int y_div);
-// float imlib_template_match_ds(image_t *image, image_t *template, rectangle_t *r);
-// float imlib_template_match_ex(image_t *image, image_t *template, rectangle_t *roi, int step, rectangle_t *r);
+float imlib_template_match_ds(image_t *image, image_t *template, rectangle_t *r);
+float imlib_template_match_ex(image_t *image, image_t *template, rectangle_t *roi, int step, rectangle_t *r);
 
 /* Clustering functions */
 array_t *cluster_kmeans(array_t *points, int k, cluster_dist_t dist_func);
@@ -1377,19 +1365,11 @@ void imlib_get_statistics(statistics_t *out, image_bpp_t bpp, histogram_t *ptr);
 bool imlib_get_regression(find_lines_list_lnk_data_t *out, image_t *ptr, rectangle_t *roi, unsigned int x_stride, unsigned int y_stride,
                           list_t *thresholds, bool invert, unsigned int area_threshold, unsigned int pixels_threshold, bool robust);
 // Color Tracking
-//原定义
-// void imlib_find_blobs(list_t *out, image_t *ptr, rectangle_t *roi, unsigned int x_stride, unsigned int y_stride,
-//                       list_t *thresholds, bool invert, unsigned int area_threshold, unsigned int pixels_threshold,
-//                       bool merge, int margin,
-//                       bool (*threshold_cb)(void*,find_blobs_list_lnk_data_t*), void *threshold_cb_arg,
-//                       bool (*merge_cb)(void*,find_blobs_list_lnk_data_t*,find_blobs_list_lnk_data_t*), void *merge_cb_arg);
-//现定义
 void imlib_find_blobs(list_t *out, image_t *ptr, rectangle_t *roi, unsigned int x_stride, unsigned int y_stride,
-                     list_t *thresholds, bool invert, unsigned int area_threshold, unsigned int pixels_threshold,
-                     bool merge, int margin);
-
-
-
+                      list_t *thresholds, bool invert, unsigned int area_threshold, unsigned int pixels_threshold,
+                      bool merge, int margin,
+                      bool (*threshold_cb)(void*,find_blobs_list_lnk_data_t*), void *threshold_cb_arg,
+                      bool (*merge_cb)(void*,find_blobs_list_lnk_data_t*,find_blobs_list_lnk_data_t*), void *merge_cb_arg);
 // Shape Detection
 size_t trace_line(image_t *ptr, line_t *l, int *theta_buffer, uint32_t *mag_buffer, point_t *point_buffer); // helper/internal
 void merge_alot(list_t *out, int threshold, int theta_threshold); // helper/internal
@@ -1417,7 +1397,7 @@ void imlib_phasecorrelate(image_t *img0, image_t *img1, rectangle_t *roi0, recta
 array_t *imlib_selective_search(image_t *src, float t, int min_size, float a1, float a2, float a3);
 
 // MAIX conv acc
-// void imlib_conv3(image_t *img, float *krn);
+void imlib_conv3(image_t *img, float *krn);
 
 
 void pix_fill_8yuv(uint16_t* pixels, uint32_t ofs, int8_t* y, int8_t* u, int8_t* v);
@@ -1429,9 +1409,4 @@ void pix_fill_yuv(uint32_t idx, int8_t* y, int8_t* u, int8_t* v);
 void imlib_affine_getTansform(uint16_t *src, uint16_t *dst, uint16_t cnt, float* TT);
 int imlib_affine_ai(image_t* src_img, image_t* dst_img, float* TT);
 int imlib_affine(image_t* src_img, image_t* dst_img, float* TT);
-void imlib_zero(image_t *img, image_t *mask, bool invert);
-
-
-
-
 #endif //__IMLIB_H__
