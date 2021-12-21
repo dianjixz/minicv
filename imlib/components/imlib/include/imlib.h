@@ -42,6 +42,106 @@ one fun:
 #include "imdefs.h"
 
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
+#define rgb24_Color(_r8, _g8, _b8) \
+({                                    \
+    ((_r8 << 16) | (_g8 << 8) | _b8); \
+})
+
+#if defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
+#define PIXFORMAT_STRUCT            \
+struct {                            \
+  union {                           \
+    struct {                        \
+        uint32_t bpp            :8; \
+        uint32_t subfmt_id      :8; \
+        uint32_t pixfmt_id      :8; \
+        uint32_t is_bayer       :1; \
+        uint32_t is_compressed  :1; \
+        uint32_t is_color       :1; \
+        uint32_t is_mutable     :1; \
+        uint32_t is_yuv         :1; \
+        uint32_t /*reserved*/   :3; \
+    };                              \
+    uint32_t pixfmt;                \
+  };                                \
+  uint32_t size; /* for compressed images */ \
+}
+#elif defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+#define PIXFORMAT_STRUCT            \
+struct {                            \
+  union {                           \
+    struct {                        \
+        uint32_t /*reserved*/   :3; \
+        uint32_t is_yuv         :1; \
+        uint32_t is_mutable     :1; \
+        uint32_t is_color       :1; \
+        uint32_t is_compressed  :1; \
+        uint32_t is_bayer       :1; \
+        uint32_t pixfmt_id      :8; \
+        uint32_t subfmt_id      :8; \
+        uint32_t bpp            :8; \
+    };                              \
+    uint32_t pixfmt;                \
+  };                                \
+  uint32_t size; /* for compressed images */ \
+}
+#else
+#error "Byte order is not defined."
+#endif
+
+
+
+typedef struct image {
+    uint32_t w;
+    uint32_t h;
+    PIXFORMAT_STRUCT;
+    union {
+        uint8_t *pixels;
+        uint8_t *data;
+    };
+} image_t;
+
+typedef struct pixel_s {
+    char red;
+    char green;
+    char blue;
+} pixel24_t;
+
+#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+
+#else
+//cpu is little
+//input pixel24_t，output uint32_t
+#define pixel24232(_u24_t) \
+({\
+    __typeof__ (_u24_t) ___u24_t = _u24_t;\
+    ((*((uint32_t*)((void*)&___u24_t))) & 0x00ffffff);\
+})
+//input_ uint32_t，output pixel24_t
+#define pixel32224(_u32_t) \
+({\
+    __typeof__ (_u32_t) __u32_t = _u32_t;\
+    __u32_t = __builtin_bswap32(__u32_t) >> 8;\
+    (*((pixel24_t*)((void*)&__u32_t)));\
+})
+
+#endif //__BYTE_ORDER__
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -530,8 +630,8 @@ void imlib_draw_line(image_t *img, int x0, int y0, int x1, int y1, int c, int th
 void imlib_draw_rectangle(image_t *img, int rx, int ry, int rw, int rh, int c, int thickness, bool fill);
 void imlib_draw_circle(image_t *img, int cx, int cy, int r, int c, int thickness, bool fill);
 void imlib_draw_ellipse(image_t *img, int cx, int cy, int rx, int ry, int rotation, int c, int thickness, bool fill);
-// void imlib_draw_font(image_t *img, int x_off, int y_off, int c, float scale, uint8_t font_h, uint8_t font_w, const uint8_t *font);
-// void imlib_draw_string(image_t *img, int x_off, int y_off, mp_obj_t str, int c, float scale, int x_spacing, int y_spacing, bool mono_space);
+void imlib_draw_font(image_t *img, int x_off, int y_off, int c, float scale, uint8_t font_h, uint8_t font_w, const uint8_t *font);
+void imlib_draw_string(image_t *img, int x_off, int y_off, const char *arg_str, int c, float scale, int x_spacing, int y_spacing, bool mono_space);
 // void imlib_draw_image(image_t *img, image_t *other, int x_off, int y_off, float x_scale, float y_scale, float alpha, image_t *mask);
 // size_t imlib_flood_fill(image_t *img, int x, int y,
 //                       float seed_threshold, float floating_threshold,
@@ -661,7 +761,8 @@ void imlib_draw_ellipse(image_t *img, int cx, int cy, int rx, int ry, int rotati
 
 
 
-
-
+#ifdef __cplusplus
+}
+#endif
 
 #endif //__IMLIB_H__

@@ -52,7 +52,7 @@ if(CONFIG_IMLIB_ENABLED)
 
     ############ Add static libs ##################
     #### Update parent's variables like CMAKE_C_LINK_FLAGS
-    set(CMAKE_C_LINK_FLAGS "${CMAKE_C_LINK_FLAGS} -lm " PARENT_SCOPE)
+    # set(CMAKE_C_LINK_FLAGS "${CMAKE_C_LINK_FLAGS} -lm " PARENT_SCOPE)
     ###############################################
 
     # register component, DYNAMIC or SHARED flags will make component compiled to dynamic(shared) lib

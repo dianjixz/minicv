@@ -11,3 +11,4 @@ menuconfig :
 
 clean :
 	python3 project.py clean
+	rm -r build 
