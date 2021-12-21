@@ -20,7 +20,7 @@
 #include <math.h>
 // #include <arm_math.h>
 // #include <ff.h>
-// #include "fb_alloc.h"
+#include "fb_alloc.h"
 // #include "umm_malloc.h"
 // #include "xalloc.h"
 // #include "array.h"
@@ -1208,9 +1208,9 @@ extern const int kernel_high_pass_3[9];
 
 // typedef void (*imlib_draw_row_callback_t)(int x_start, int x_end, int y_row, imlib_draw_row_data_t *data);
 
-// // Library Hardware Init
-// void imlib_init_all();
-// void imlib_deinit_all();
+// Library Hardware Init
+void imlib_init_all();
+void imlib_deinit_all();
 
 // // Generic Helper Functions
 // void imlib_fill_image_from_float(image_t *img, int w, int h, float *data, float min, float max,

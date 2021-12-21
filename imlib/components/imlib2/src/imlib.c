@@ -17,24 +17,24 @@
 // #include "ff_wrapper.h"
 #include "imlib.h"
 #include "common.h"
-// #include "omv_boardconfig.h"
+#include "omv_boardconfig.h"
 
-// void imlib_init_all()
-// {
-//     #if (OMV_HARDWARE_JPEG == 1)
-//     imlib_jpeg_compress_init();
-//     #endif
-// }
+void imlib_init_all()
+{
+    #if (OMV_HARDWARE_JPEG == 1)
+    imlib_jpeg_compress_init();
+    #endif
+}
 
-// void imlib_deinit_all()
-// {
-//     #ifdef IMLIB_ENABLE_DMA2D
-//     imlib_draw_row_deinit_all();
-//     #endif
-//     #if (OMV_HARDWARE_JPEG == 1)
-//     imlib_jpeg_compress_deinit();
-//     #endif
-// }
+void imlib_deinit_all()
+{
+    #ifdef IMLIB_ENABLE_DMA2D
+    imlib_draw_row_deinit_all();
+    #endif
+    #if (OMV_HARDWARE_JPEG == 1)
+    imlib_jpeg_compress_deinit();
+    #endif
+}
 
 // /////////////////
 // // Point Stuff //

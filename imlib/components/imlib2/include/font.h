@@ -11,10 +11,17 @@
 #ifndef __FONT_H__
 #define __FONT_H__
 #include <stdint.h>
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 typedef struct {
     int w;
     int h;
     uint8_t data[10];
 } glyph_t;
 extern const glyph_t font[95];
+#ifdef __cplusplus
+}
+#endif
 #endif // __FONT_H__
