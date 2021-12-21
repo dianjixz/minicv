@@ -6,22 +6,14 @@
  *
  * This work is licensed under the MIT license, see the file LICENSE for details.
  *
- * Font data.
+ * Memory allocation functions.
  */
-#ifndef __FONT_H__
-#define __FONT_H__
+#ifndef __XALLOC_H__
+#define __XALLOC_H__
 #include <stdint.h>
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-typedef struct {
-    int w;
-    int h;
-    uint8_t data[10];
-} glyph_t;
-extern const glyph_t font[95];
-#ifdef __cplusplus
-}
-#endif
-#endif // __FONT_H__
+void *xalloc(uint32_t size);
+void *xalloc_try_alloc(uint32_t size);
+void *xalloc0(uint32_t size);
+void xfree(void *mem);
+void *xrealloc(void *mem, uint32_t size);
+#endif // __XALLOC_H__

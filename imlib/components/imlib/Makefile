@@ -6,7 +6,7 @@ CXX = $(CROSS)g++
 
 DEBUG = 
 CFLAGS = $(DEBUG) -Wall -c -fPIC
-LDFLAGS = -fPIC -shared
+LDFLAGS = -fPIC -shared -lm
 MV = mv -f
 RM = rm -rf
 LN = ln -sf
@@ -16,8 +16,12 @@ TARGET = libimlib.so
 
 TOP_PATH = $(shell pwd)
 SRC_PATH = $(TOP_PATH)/src
+SRC_PATH += $(TOP_PATH)/common
+SRC_PATH += $(TOP_PATH)/alloc
 INC_PATH = 
 INC_PATH += -I$(TOP_PATH)/include 
+INC_PATH += -I$(TOP_PATH)/common 
+INC_PATH += -I$(TOP_PATH)/alloc 
 
 
 MOD_PATH = $(TOP_PATH)/modules
@@ -73,17 +77,17 @@ $(TARGET) : $(OBJS_CPP) $(OBJS_CC) $(OBJS_C)
 	make -C $$i; \
 	done
 
-	@ $(CXX) $^ -o $@ $(LIB_PATH) $(LIBS) $(LDFLAGS)
+	$(CC) $^ -o $@ $(LIB_PATH) $(LIBS) $(LDFLAGS)
 	@ echo Create $(TARGET) ok...
 
 $(OBJS_CPP):%.o : %.cpp
 	$(CXX) $(CFLAGS) $< -o $@ $(INC_PATH)
 
 $(OBJS_CC):%.o : %.cc
-	$(CXX) $(CFLAGS) $< -o $@ $(INC_PATH)
+	$(CC) $(CFLAGS) $< -o $@ $(INC_PATH)
 
 $(OBJS_C):%.o : %.c
-	$(CXX) $(CFLAGS) $< -o $@ $(INC_PATH)
+	$(CC) $(CFLAGS) $< -o $@ $(INC_PATH)
 
 .PHONY : clean
 clean:

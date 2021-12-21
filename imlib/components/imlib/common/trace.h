@@ -6,22 +6,11 @@
  *
  * This work is licensed under the MIT license, see the file LICENSE for details.
  *
- * Font data.
+ * Trace buffer.
  */
-#ifndef __FONT_H__
-#define __FONT_H__
+#ifndef __TRACE_H__
+#define __TRACE_H__
 #include <stdint.h>
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-typedef struct {
-    int w;
-    int h;
-    uint8_t data[10];
-} glyph_t;
-extern const glyph_t font[95];
-#ifdef __cplusplus
-}
-#endif
-#endif // __FONT_H__
+void trace_init();
+void trace_insert(uint32_t x);
+#endif /* __TRACE_H__ */

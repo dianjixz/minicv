@@ -2,7 +2,7 @@
 
 menuconfig IMLIB_ENABLED
     bool "Enable imlib"
-    default n
+    default y
     menu "Imlib configuration"
         visible if IMLIB_ENABLED
         config IMLIB_ENABLE_FLOOD_FILL
