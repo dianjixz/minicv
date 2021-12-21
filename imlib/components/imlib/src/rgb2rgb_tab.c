@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include "imlib_interface.h"
 const uint8_t rb528_table[32] = {
       0,   8,  16,  25,  33,  41,  49,  58,
      66,  74,  82,  90,  99, 107, 115, 123,

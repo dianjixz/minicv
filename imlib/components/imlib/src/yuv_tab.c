@@ -1,13 +1,40 @@
 #include <stdint.h>
 #include "imlib_config.h"
+#include "imlib_interface.h"
+
+
+// #define IMLIB_ENABLE_YUV_LAB_FUNC
 
 #ifdef IMLIB_ENABLE_YUV_LAB_FUNC
 
 #include "math.h"
 
-#if 0
+#if 1
 // https://github.com/openmv/openmv/blob/master/tools/gen_rgb2yuv.py
 int8_t yuv_table(uint32_t idx)
+{
+    int8_t y = 0, u = 0, v = 0;
+    float r = 0, g = 0, b = 0;
+
+    uint16_t pixel;
+    uint8_t yuv;
+
+    pixel = idx / 3;
+    yuv = idx % 3;
+
+    r = (uint8_t)(((((pixel >> 3) & 31) * 255) + 15.5) / 31);
+    g = (uint8_t)((((((pixel & 7) << 3) | (pixel >> 13)) * 255) + 31.5) / 63);
+    b = (uint8_t)(((((pixel >> 8) & 31) * 255) + 15.5) / 31);
+
+    //  https://en.wikipedia.org/wiki/YCbCr (ITU-R BT.601 conversion)
+    y = (int8_t)((r * 0.299) + (g * 0.587) + (b * 0.114) - 128);
+    u = (int8_t)((-(r * 0.168736)) - (g * 0.331264) + (b * 0.5));
+    v = (int8_t)((r * 0.5) - (g * 0.418688) - (b * 0.081312));
+
+    return (int8_t)(yuv == 0) ? y : (yuv == 1) ? u : (yuv == 2) ? v : 0;
+}
+
+int8_t yuv_table_b(uint32_t idx)
 {
     int8_t y = 0, u = 0, v = 0;
     float r = 0, g = 0, b = 0;

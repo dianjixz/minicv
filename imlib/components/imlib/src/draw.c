@@ -3,7 +3,7 @@
  * This work is licensed under the MIT license, see the file LICENSE for details.
  */
 
-// #include "font.h"
+#include "font.h"
 #include "imlib.h"
 #include "imlib_interface.h"
 #include "imlib_config.h"
@@ -130,7 +130,7 @@ void imlib_draw_rectangle(image_t *img, int rx, int ry, int rw, int rh, int c, i
     }
 }
 
-// // https://stackoverflow.com/questions/27755514/circle-with-thickness-drawing-algorithm
+// https://stackoverflow.com/questions/27755514/circle-with-thickness-drawing-algorithm
 void imlib_draw_circle(image_t *img, int cx, int cy, int r, int c, int thickness, bool fill)
 {
     if (fill) {
@@ -282,7 +282,7 @@ void imlib_draw_ellipse(image_t *img, int cx, int cy, int rx, int ry, int rotati
 {
     scratch_draw_rotated_ellipse(img, cx, cy, rx * 2, ry * 2, rotation, fill, c, thickness);
 }
-
+// typedef uint16_t glyph_t;
 // static void imlib_draw_string(image_t *img, int x_off, int y_off, const char *str, int c, float scale, int x_spacing, int y_spacing, bool mono_space)
 // {
 //     const int anchor = x_off;
@@ -444,7 +444,12 @@ static int safe_map_pixel(image_t *dst, image_t *src, int pixel)
 void imlib_draw_image(image_t *img, image_t *other, int x_off, int y_off, float x_scale, float y_scale, float alpha, image_t *mask)
 {
     float over_xscale = IM_DIV(1.0, x_scale), over_yscale = IM_DIV(1.0f, y_scale);
+    switch (img->bpp)
+    {
+    case IMAGE_BPP_RGB888:
 
+        break;
+    case IMAGE_BPP_RGB565:
     for (int y = 0, yy = fast_roundf(other->h * y_scale); y < yy; y++)
     {
         int other_y = fast_roundf(y * over_yscale);
@@ -486,6 +491,11 @@ void imlib_draw_image(image_t *img, image_t *other, int x_off, int y_off, float 
             }
         }
     }
+        break;
+    default:
+        break;
+    }
+
 }
 
 #ifdef IMLIB_ENABLE_FLOOD_FILL
