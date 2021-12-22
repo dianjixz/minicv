@@ -79,6 +79,35 @@ void imlib_midpoint_pool(image_t *img_i, image_t *img_o, int x_div, int y_div, c
             }
             break;
         }
+        case PIXFORMAT_RGB888: {
+            for (int y = 0, yy = img_i->h / y_div, yyy = (img_i->h % y_div) / 2; y < yy; y++) {
+                pixel24_t *row_ptr = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(img_o, y);
+                for (int x = 0, xx = img_i->w / x_div, xxx = (img_i->w % x_div) / 2; x < xx; x++) {
+                    int r_min = COLOR_R8_MAX, r_max = COLOR_R8_MIN;
+                    int g_min = COLOR_G8_MAX, g_max = COLOR_G8_MIN;
+                    int b_min = COLOR_B8_MAX, b_max = COLOR_B8_MIN;
+                    for (int i = 0; i < y_div; i++) {
+                        for (int j = 0; j < x_div; j++) {
+                            const uint32_t pixel = IM_GET_RGB888_PIXEL(img_i, xxx + (x * x_div) + j, yyy + (y * y_div) + i);
+                            int r = COLOR_RGB888_TO_R8(pixel);
+                            int g = COLOR_RGB888_TO_G8(pixel);
+                            int b = COLOR_RGB888_TO_B8(pixel);
+                            r_min = IM_MIN(r_min, r);
+                            r_max = IM_MAX(r_max, r);
+                            g_min = IM_MIN(g_min, g);
+                            g_max = IM_MAX(g_max, g);
+                            b_min = IM_MIN(b_min, b);
+                            b_max = IM_MAX(b_max, b);
+                        }
+                    }
+                    IMAGE_PUT_RGB888_PIXEL_FAST(row_ptr, x,
+                        COLOR_R8_G8_B8_TO_RGB888(((r_min*min_bias)+(r_max*max_bias))>>8,
+                                                 ((g_min*min_bias)+(g_max*max_bias))>>8,
+                                                 ((b_min*min_bias)+(b_max*max_bias))>>8));
+                }
+            }
+            break;
+        }
         default: {
             break;
         }
@@ -139,6 +168,26 @@ void imlib_mean_pool(image_t *img_i, image_t *img_o, int x_div, int y_div)
                         }
                     }
                     IMAGE_PUT_RGB565_PIXEL_FAST(row_ptr, x, COLOR_R5_G6_B5_TO_RGB565(r_acc / n, g_acc / n, b_acc / n));
+                }
+            }
+            break;
+        }
+        case PIXFORMAT_RGB888: {
+            for (int y = 0, yy = img_i->h / y_div, yyy = (img_i->h % y_div) / 2; y < yy; y++) {
+                uint16_t *row_ptr = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(img_o, y);
+                for (int x = 0, xx = img_i->w / x_div, xxx = (img_i->w % x_div) / 2; x < xx; x++) {
+                    int r_acc = 0;
+                    int g_acc = 0;
+                    int b_acc = 0;
+                    for (int i = 0; i < y_div; i++) {
+                        for (int j = 0; j < x_div; j++) {
+                            int pixel = IMAGE_GET_RGB888_PIXEL(img_i, xxx + (x * x_div) + j, yyy + (y * y_div) + i);
+                            r_acc += COLOR_RGB888_TO_R8(pixel);
+                            g_acc += COLOR_RGB888_TO_G8(pixel);
+                            b_acc += COLOR_RGB888_TO_B8(pixel);
+                        }
+                    }
+                    IMAGE_PUT_RGB888_PIXEL_FAST(row_ptr, x, COLOR_R8_G8_B8_TO_RGB888(r_acc / n, g_acc / n, b_acc / n));
                 }
             }
             break;

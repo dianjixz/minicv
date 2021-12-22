@@ -120,7 +120,7 @@ void imlib_deyuv_line(int x_start, int x_end, int y_row, void *dst_row_ptr, pixf
                 g0 = IM_MIN(IM_MAX(g0, COLOR_G8_MIN), COLOR_G8_MAX);
                 b0 = IM_MIN(IM_MAX(b0, COLOR_B8_MIN), COLOR_B8_MAX);
                 int rgb888_0 = COLOR_R8_G8_B8_TO_RGB888(r0, g0, b0);
-                IMAGE_PUT_RGB888_PIXEL_FAST(row_ptr_24, x, pixel32224(rgb888_0));
+                IMAGE_PUT_RGB888_PIXEL_FAST(row_ptr_24, x, rgb888_0);
 
                 if (x != w_limit) {
                     int r1 = y1 + ry, g1 = y1 - gy, b1 = y1 + by;
@@ -128,7 +128,7 @@ void imlib_deyuv_line(int x_start, int x_end, int y_row, void *dst_row_ptr, pixf
                     g1 = IM_MIN(IM_MAX(g1, COLOR_G8_MIN), COLOR_G8_MAX);
                     b1 = IM_MIN(IM_MAX(b1, COLOR_B8_MIN), COLOR_B8_MAX);
                     int rgb888_1 = COLOR_R8_G8_B8_TO_RGB888(r1, g1, b1);
-                    IMAGE_PUT_RGB888_PIXEL_FAST(row_ptr_24, x + 1, pixel32224(rgb888_1));
+                    IMAGE_PUT_RGB888_PIXEL_FAST(row_ptr_24, x + 1, rgb888_1);
                 }
 
                 break;

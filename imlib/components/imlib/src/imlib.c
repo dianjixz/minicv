@@ -894,7 +894,7 @@ void imlib_zero(image_t *img, image_t *mask, bool invert)
         }
         case PIXFORMAT_RGB888: {
             for (int y = 0, yy = img->h; y < yy; y++) {
-                uint16_t *row_ptr = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(img, y);
+                pixel24_t *row_ptr = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(img, y);
                 for (int x = 0, xx = img->w; x < xx; x++) {
                     if (image_get_mask_pixel(mask, x, y) ^ invert) {
                         IMAGE_PUT_RGB888_PIXEL_FAST(row_ptr, x, 0);

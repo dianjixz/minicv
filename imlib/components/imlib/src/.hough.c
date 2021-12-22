@@ -21,12 +21,14 @@ void imlib_find_lines(list_t *out, image_t *ptr, rectangle_t *roi, unsigned int 
         r_diag_len_div = (r_diag_len + hough_divide - 1) / hough_divide;
         theta_size = 1 + ((180 + hough_divide - 1) / hough_divide) + 1; // left & right padding
         r_size = (r_diag_len_div * 2) + 1; // -r_diag_len to +r_diag_len
-        if ((sizeof(uint32_t) * theta_size * r_size) <= fb_avail()) break;
-        hough_divide = hough_divide << 1; // powers of 2...
-        if (hough_divide > 4) fb_alloc_fail(); // support 1, 2, 4
+        /*****************************************will be change******************************************************/
+        // if ((sizeof(uint32_t) * theta_size * r_size) <= fb_avail()) break;
+        // hough_divide = hough_divide << 1; // powers of 2...
+        // if (hough_divide > 4) fb_alloc_fail(); // support 1, 2, 4
+        /*************************************************************************************************************/
     }
 
-    uint32_t *acc = fb_alloc0(sizeof(uint32_t) * theta_size * r_size, FB_ALLOC_NO_HINT);
+    uint32_t *acc = malloc(sizeof(uint32_t) * theta_size * r_size);
 
     switch (ptr->pixfmt) {
         case PIXFORMAT_BINARY: {
@@ -227,6 +229,72 @@ void imlib_find_lines(list_t *out, image_t *ptr, rectangle_t *roi, unsigned int 
             }
             break;
         }
+        case PIXFORMAT_RGB888: {
+            for (int y = roi->y + 1, yy = roi->y + roi->h - 1; y < yy; y += y_stride) {
+                pixel24_t *row_ptr = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(ptr, y);
+                for (int x = roi->x + (y % x_stride) + 1, xx = roi->x + roi->w - 1; x < xx; x += x_stride) {
+                    int pixel; // Sobel Algorithm Below
+                    int x_acc = 0;
+                    int y_acc = 0;
+
+                    row_ptr -= ptr->w;
+
+                    pixel = COLOR_RGB888_TO_GRAYSCALE(IMAGE_GET_RGB888_PIXEL_FAST(row_ptr, x - 1));
+                    x_acc += pixel * +1; // x[0,0] -> pixel * +1
+                    y_acc += pixel * +1; // y[0,0] -> pixel * +1
+
+                    pixel = COLOR_RGB888_TO_GRAYSCALE(IMAGE_GET_RGB888_PIXEL_FAST(row_ptr, x));
+                                         // x[0,1] -> pixel * 0
+                    y_acc += pixel * +2; // y[0,1] -> pixel * +2
+
+                    pixel = COLOR_RGB888_TO_GRAYSCALE(IMAGE_GET_RGB888_PIXEL_FAST(row_ptr, x + 1));
+                    x_acc += pixel * -1; // x[0,2] -> pixel * -1
+                    y_acc += pixel * +1; // y[0,2] -> pixel * +1
+
+                    row_ptr += ptr->w;
+
+                    pixel = COLOR_RGB888_TO_GRAYSCALE(IMAGE_GET_RGB888_PIXEL_FAST(row_ptr, x - 1));
+                    x_acc += pixel * +2; // x[1,0] -> pixel * +2
+                                         // y[1,0] -> pixel * 0
+
+                    // pixel = COLOR_RGB888_TO_GRAYSCALE(IMAGE_GET_RGB888_PIXEL_FAST(row_ptr, x));
+                    // x[1,1] -> pixel * 0
+                    // y[1,1] -> pixel * 0
+
+                    pixel = COLOR_RGB888_TO_GRAYSCALE(IMAGE_GET_RGB888_PIXEL_FAST(row_ptr, x + 1));
+                    x_acc += pixel * -2; // x[1,2] -> pixel * -2
+                                         // y[1,2] -> pixel * 0
+
+                    row_ptr += ptr->w;
+
+                    pixel = COLOR_RGB888_TO_GRAYSCALE(IMAGE_GET_RGB888_PIXEL_FAST(row_ptr, x - 1));
+                    x_acc += pixel * +1; // x[2,0] -> pixel * +1
+                    y_acc += pixel * -1; // y[2,0] -> pixel * -1
+
+                    pixel = COLOR_RGB888_TO_GRAYSCALE(IMAGE_GET_RGB888_PIXEL_FAST(row_ptr, x));
+                                         // x[2,1] -> pixel * 0
+                    y_acc += pixel * -2; // y[2,1] -> pixel * -2
+
+                    pixel = COLOR_RGB888_TO_GRAYSCALE(IMAGE_GET_RGB888_PIXEL_FAST(row_ptr, x + 1));
+                    x_acc += pixel * -1; // x[2,2] -> pixel * -1
+                    y_acc += pixel * -1; // y[2,2] -> pixel * -1
+
+                    row_ptr -= ptr->w;
+
+                    int mag = (abs(x_acc) + abs(y_acc)) / 2;
+                    if (mag < 126)
+                    	continue;
+
+                    int theta = (int)fast_roundf((x_acc ? fast_atan2f(y_acc, x_acc) : 1.570796f) * 57.295780) % 180; // * (180 / PI)
+                    if (theta < 0) theta += 180;
+                    int rho = (fast_roundf(((x - roi->x) * cos_table[theta]) +
+                                ((y - roi->y) * sin_table[theta])) / hough_divide) + r_diag_len_div;
+                    int acc_index = (rho * theta_size) + ((theta / hough_divide) + 1); // add offset
+                    acc[acc_index] += mag;
+                }
+            }
+            break;
+        }
         default: {
             break;
         }
@@ -260,7 +328,7 @@ void imlib_find_lines(list_t *out, image_t *ptr, rectangle_t *roi, unsigned int 
         }
     }
 
-    fb_free(); // acc
+    free(acc); // acc
 
     for (;;) { // Merge overlapping.
         bool merge_occured = false;
@@ -376,9 +444,9 @@ void imlib_find_line_segments(list_t *out, image_t *ptr, rectangle_t *roi, unsig
     list_init(out, sizeof(find_lines_list_lnk_data_t));
 
     const int r_diag_len = fast_roundf(fast_sqrtf((roi->w * roi->w) + (roi->h * roi->h))) * 2;
-    int *theta_buffer = fb_alloc(sizeof(int) * r_diag_len, FB_ALLOC_NO_HINT);
-    uint32_t *mag_buffer = fb_alloc(sizeof(uint32_t) * r_diag_len, FB_ALLOC_NO_HINT);
-    point_t *point_buffer = fb_alloc(sizeof(point_t) * r_diag_len, FB_ALLOC_NO_HINT);
+    int *theta_buffer =     fb_alloc(sizeof(int) * r_diag_len       );
+    uint32_t *mag_buffer =  fb_alloc(sizeof(uint32_t) * r_diag_len  );
+    point_t *point_buffer = fb_alloc(sizeof(point_t) * r_diag_len   );
 
     for (size_t i = 0; list_size(&temp_out); i++) {
         find_lines_list_lnk_data_t lnk_data;
@@ -456,9 +524,9 @@ void imlib_find_line_segments(list_t *out, image_t *ptr, rectangle_t *roi, unsig
 
     merge_alot(out, max_gap_pixels + 1, max_theta_diff);
 
-    fb_free(); // point_buffer
-    fb_free(); // mag_buffer
-    fb_free(); // theta_buffer
+    free(point_buffer); // point_buffer
+    free(mag_buffer); // mag_buffer
+    free(theta_buffer); // theta_buffer
 }
 #endif //IMLIB_ENABLE_FIND_LINE_SEGMENTS
 
@@ -467,8 +535,8 @@ void imlib_find_circles(list_t *out, image_t *ptr, rectangle_t *roi, unsigned in
                         uint32_t threshold, unsigned int x_margin, unsigned int y_margin, unsigned int r_margin,
                         unsigned int r_min, unsigned int r_max, unsigned int r_step)
 {
-    uint16_t *theta_acc = fb_alloc0(sizeof(uint16_t) * roi->w * roi->h, FB_ALLOC_NO_HINT);
-    uint16_t *magnitude_acc = fb_alloc0(sizeof(uint16_t) * roi->w * roi->h, FB_ALLOC_NO_HINT);
+    uint16_t *theta_acc = malloc(sizeof(uint16_t) * roi->w * roi->h);
+    uint16_t *magnitude_acc = malloc(sizeof(uint16_t) * roi->w * roi->h);
 
     switch (ptr->pixfmt) {
         case PIXFORMAT_BINARY: {
@@ -660,6 +728,69 @@ void imlib_find_circles(list_t *out, image_t *ptr, rectangle_t *roi, unsigned in
             }
             break;
         }
+        case PIXFORMAT_RGB888: {
+            for (int y = roi->y + 1, yy = roi->y + roi->h - 1; y < yy; y += y_stride) {
+                pixel24_t *row_ptr = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(ptr, y);
+                for (int x = roi->x + (y % x_stride) + 1, xx = roi->x + roi->w - 1; x < xx; x += x_stride) {
+                    int pixel; // Sobel Algorithm Below
+                    int x_acc = 0;
+                    int y_acc = 0;
+
+                    row_ptr -= ptr->w;
+
+                    pixel = COLOR_RGB888_TO_GRAYSCALE(IMAGE_GET_RGB888_PIXEL_FAST(row_ptr, x - 1));
+                    x_acc += pixel * +1; // x[0,0] -> pixel * +1
+                    y_acc += pixel * +1; // y[0,0] -> pixel * +1
+
+                    pixel = COLOR_RGB888_TO_GRAYSCALE(IMAGE_GET_RGB888_PIXEL_FAST(row_ptr, x));
+                                         // x[0,1] -> pixel * 0
+                    y_acc += pixel * +2; // y[0,1] -> pixel * +2
+
+                    pixel = COLOR_RGB888_TO_GRAYSCALE(IMAGE_GET_RGB888_PIXEL_FAST(row_ptr, x + 1));
+                    x_acc += pixel * -1; // x[0,2] -> pixel * -1
+                    y_acc += pixel * +1; // y[0,2] -> pixel * +1
+
+                    row_ptr += ptr->w;
+
+                    pixel = COLOR_RGB888_TO_GRAYSCALE(IMAGE_GET_RGB888_PIXEL_FAST(row_ptr, x - 1));
+                    x_acc += pixel * +2; // x[1,0] -> pixel * +2
+                                         // y[1,0] -> pixel * 0
+
+                    // pixel = COLOR_RGB888_TO_GRAYSCALE(IMAGE_GET_RGB888_PIXEL_FAST(row_ptr, x));
+                    // x[1,1] -> pixel * 0
+                    // y[1,1] -> pixel * 0
+
+                    pixel = COLOR_RGB888_TO_GRAYSCALE(IMAGE_GET_RGB888_PIXEL_FAST(row_ptr, x + 1));
+                    x_acc += pixel * -2; // x[1,2] -> pixel * -2
+                                         // y[1,2] -> pixel * 0
+
+                    row_ptr += ptr->w;
+
+                    pixel = COLOR_RGB888_TO_GRAYSCALE(IMAGE_GET_RGB888_PIXEL_FAST(row_ptr, x - 1));
+                    x_acc += pixel * +1; // x[2,0] -> pixel * +1
+                    y_acc += pixel * -1; // y[2,0] -> pixel * -1
+
+                    pixel = COLOR_RGB888_TO_GRAYSCALE(IMAGE_GET_RGB888_PIXEL_FAST(row_ptr, x));
+                                         // x[2,1] -> pixel * 0
+                    y_acc += pixel * -2; // y[2,1] -> pixel * -2
+
+                    pixel = COLOR_RGB888_TO_GRAYSCALE(IMAGE_GET_RGB888_PIXEL_FAST(row_ptr, x + 1));
+                    x_acc += pixel * -1; // x[2,2] -> pixel * -1
+                    y_acc += pixel * -1; // y[2,2] -> pixel * -1
+
+                    row_ptr -= ptr->w;
+
+                    int theta = (int)fast_roundf((x_acc ? fast_atan2f(y_acc, x_acc) : 1.570796f) * 57.295780) % 360; // * (180 / PI)
+                    if (theta < 0) theta += 360;
+                    int magnitude = fast_roundf(fast_sqrtf((x_acc * x_acc) + (y_acc * y_acc)));
+                    int index = (roi->w * (y - roi->y)) + (x - roi->x);
+
+                    theta_acc[index] = theta;
+                    magnitude_acc[index] = magnitude;
+                }
+            }
+            break;
+        }
         default: {
             break;
         }
@@ -696,15 +827,17 @@ void imlib_find_circles(list_t *out, image_t *ptr, rectangle_t *roi, unsigned in
         for (;;) { // shrink to fit...
             a_size = 1 + ((w_size + hough_divide - 1) / hough_divide) + 1; // left & right padding
             b_size = 1 + ((h_size + hough_divide - 1) / hough_divide) + 1; // top & bottom padding
-            if ((sizeof(uint32_t) * a_size * b_size) <= fb_avail()) break;
-            hough_divide = hough_divide << 1; // powers of 2...
-            hough_shift++;
-            if (hough_divide > 4) fb_alloc_fail(); // support 1, 2, 4
+            /*********************************will be change***********************/
+            // if ((sizeof(uint32_t) * a_size * b_size) <= fb_avail()) break;
+            // hough_divide = hough_divide << 1; // powers of 2...
+            // hough_shift++;
+            // if (hough_divide > 4) fb_alloc_fail(); // support 1, 2, 4
+            /**********************************************************************/
         }
 
-        uint32_t *acc = fb_alloc0(sizeof(uint32_t) * a_size * b_size, FB_ALLOC_NO_HINT);
-        int16_t *rcos = fb_alloc(sizeof(int16_t)*360, FB_ALLOC_NO_HINT);
-        int16_t *rsin = fb_alloc(sizeof(int16_t)*360, FB_ALLOC_NO_HINT);
+        uint32_t *acc = malloc(sizeof(uint32_t) * a_size * b_size);
+        int16_t *rcos = malloc(sizeof(int16_t)*360);
+        int16_t *rsin = malloc(sizeof(int16_t)*360);
         for (int i=0; i<360; i++)
         {
             rcos[i] = (int16_t)roundf(r * cos_table[i]);
@@ -774,13 +907,13 @@ void imlib_find_circles(list_t *out, image_t *ptr, rectangle_t *roi, unsigned in
             }
         }
 
-        fb_free(); // rsin
-        fb_free(); // rcos
-        fb_free(); // acc
+        free(rsin); // rsin
+        free(rcos); // rcos
+        free(acc); // acc
     }
 
-    fb_free(); // magnitude_acc
-    fb_free(); // theta_acc
+    free(magnitude_acc); // magnitude_acc
+    free(theta_acc); // theta_acc
 
     for (;;) { // Merge overlapping.
         bool merge_occured = false;

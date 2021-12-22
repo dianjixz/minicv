@@ -178,6 +178,61 @@ static void pixel_magnitude(image_t *ptr, int x, int y, int *theta, uint32_t *ma
             *mag = fast_roundf(fast_sqrtf((x_acc * x_acc) + (y_acc * y_acc)));
             break;
         }
+        case PIXFORMAT_RGB888: {
+            pixel24_t *row_ptr = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(ptr, y);
+            int pixel; // Sobel Algorithm Below... w/ Scharr...
+            int x_acc = 0;
+            int y_acc = 0;
+
+            if (y != 0) row_ptr -= ptr->w;
+
+            pixel = COLOR_RGB888_TO_GRAYSCALE(IMAGE_GET_RGB888_PIXEL_FAST(row_ptr, IM_MAX(x - 1, 0)));
+            x_acc += pixel * +1; // x[0,0] -> pixel * +1
+            y_acc += pixel * +1; // y[0,0] -> pixel * +1
+
+            pixel = COLOR_RGB888_TO_GRAYSCALE(IMAGE_GET_RGB888_PIXEL_FAST(row_ptr, x));
+                                 // x[0,1] -> pixel * 0
+            y_acc += pixel * +2; // y[0,1] -> pixel * +2
+
+            pixel = COLOR_RGB888_TO_GRAYSCALE(IMAGE_GET_RGB888_PIXEL_FAST(row_ptr, IM_MIN(x + 1, ptr->w - 1)));
+            x_acc += pixel * -1; // x[0,2] -> pixel * -1
+            y_acc += pixel * +1; // y[0,2] -> pixel * +1
+
+            if (y != 0) row_ptr += ptr->w;
+
+            pixel = COLOR_RGB888_TO_GRAYSCALE(IMAGE_GET_RGB888_PIXEL_FAST(row_ptr, IM_MAX(x - 1, 0)));
+            x_acc += pixel * +2; // x[1,0] -> pixel * +2
+                                 // y[1,0] -> pixel * 0
+
+            // pixel = COLOR_RGB565_TO_GRAYSCALE(IMAGE_GET_RGB565_PIXEL_FAST(row_ptr, x));
+            // x[1,1] -> pixel * 0
+            // y[1,1] -> pixel * 0
+
+            pixel = COLOR_RGB888_TO_GRAYSCALE(IMAGE_GET_RGB888_PIXEL_FAST(row_ptr, IM_MIN(x + 1, ptr->w - 1)));
+            x_acc += pixel * -2; // x[1,2] -> pixel * -2
+                                 // y[1,2] -> pixel * 0
+
+            if (y != (ptr->h - 1)) row_ptr += ptr->w;
+
+            pixel = COLOR_RGB888_TO_GRAYSCALE(IMAGE_GET_RGB888_PIXEL_FAST(row_ptr, IM_MAX(x - 1, 0)));
+            x_acc += pixel * +1; // x[2,0] -> pixel * +1
+            y_acc += pixel * -1; // y[2,0] -> pixel * -1
+
+            pixel = COLOR_RGB888_TO_GRAYSCALE(IMAGE_GET_RGB888_PIXEL_FAST(row_ptr, x));
+                                 // x[2,1] -> pixel * 0
+            y_acc += pixel * -2; // y[2,1] -> pixel * -2
+
+            pixel = COLOR_RGB888_TO_GRAYSCALE(IMAGE_GET_RGB888_PIXEL_FAST(row_ptr, IM_MIN(x + 1, ptr->w - 1)));
+            x_acc += pixel * -1; // x[2,2] -> pixel * -1
+            y_acc += pixel * -1; // y[2,2] -> pixel * -1
+
+            if (y != (ptr->h - 1)) row_ptr -= ptr->w;
+
+            *theta = (int)fast_roundf((x_acc ? fast_atan2f(y_acc, x_acc) : 1.570796f) * 57.295780) % 180; // * (180 / PI)
+            if (*theta < 0) *theta += 180;
+            *mag = fast_roundf(fast_sqrtf((x_acc * x_acc) + (y_acc * y_acc)));
+            break;
+        }
         default: {
             break;
         }

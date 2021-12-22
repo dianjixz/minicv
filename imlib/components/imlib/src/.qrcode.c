@@ -2982,8 +2982,8 @@ void imlib_find_qrcodes(list_t *out, image_t *ptr, rectangle_t *roi)
     list_init(out, sizeof(find_qrcodes_list_lnk_data_t));
 
     for (int i = 0, j = quirc_count(controller); i < j; i++) {
-        struct quirc_code *code = fb_alloc(sizeof(struct quirc_code), FB_ALLOC_NO_HINT);
-        struct quirc_data *data = fb_alloc(sizeof(struct quirc_data), FB_ALLOC_NO_HINT);
+        struct quirc_code *code = malloc(sizeof(struct quirc_code));
+        struct quirc_data *data = malloc(sizeof(struct quirc_data));
         quirc_extract(controller, i, code);
 
         if(quirc_decode(code, data) == QUIRC_SUCCESS) {
@@ -3008,7 +3008,7 @@ void imlib_find_qrcodes(list_t *out, image_t *ptr, rectangle_t *roi)
 
             // Payload is already null terminated.
             lnk_data.payload_len = data->payload_len;
-            lnk_data.payload = xalloc(data->payload_len);
+            lnk_data.payload = malloc(data->payload_len);
             memcpy(lnk_data.payload, data->payload, data->payload_len);
 
             lnk_data.version = data->version;
@@ -3020,8 +3020,8 @@ void imlib_find_qrcodes(list_t *out, image_t *ptr, rectangle_t *roi)
             list_push_back(out, &lnk_data);
         }
 
-        fb_free();
-        fb_free();
+        free(data);
+        free(code);
     }
 
     quirc_destroy(controller);

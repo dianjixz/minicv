@@ -336,6 +336,9 @@ color_thresholds_list_lnk_data_t;
 #define COLOR_R8_G8_B8_TO_RGB888(r8, g8, b8) ((r8 << 16) | (g8 << 8) | ( b8 ))
 
 #define COLOR_RGB888_TO_Y(r8, g8, b8) ((((r8) * 38) + ((g8) * 75) + ((b8) * 15)) >> 7) // 0.299R + 0.587G + 0.114B
+
+// #define COLOR_RGB888_TO_Y(rgb888) COLOR_RGB888_TO_Y_O(COLOR_RGB888_TO_R8(rgb888), COLOR_RGB888_TO_G8(rgb888), COLOR_RGB888_TO_B8(rgb888)) // 0.299R + 0.587G + 0.114B
+
 #define COLOR_RGB565_TO_Y(rgb565) \
 ({ \
     __typeof__ (rgb565) __rgb565 = (rgb565); \
@@ -807,7 +810,7 @@ bool image_get_mask_pixel(image_t *ptr, int x, int y);
     __typeof__ (row_ptr) _row_ptr = (row_ptr); \
     __typeof__ (x) _x = (x); \
     __typeof__ (v) _v = (v); \
-    _row_ptr[_x] = _v; \
+    _row_ptr[_x] = pixel32224(_v); \
 })
 
 #define IMAGE_COMPUTE_BAYER_PIXEL_ROW_PTR(image, y) \

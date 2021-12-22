@@ -15,7 +15,7 @@
 #include <stdlib.h>
 
 #include "imlib.h"
-#include "xalloc.h"
+// #include "xalloc.h"
 // #include "ff.h"
 #ifdef IMLIB_ENABLE_FIND_LBP
 

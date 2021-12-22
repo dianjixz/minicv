@@ -13,8 +13,8 @@
 #include <string.h>
 #include <stdint.h>
 #include "imlib.h"
-#include "fb_alloc.h"
-#include "xalloc.h"
+// #include "fb_alloc.h"
+// #include "xalloc.h"
 #ifdef IMLIB_ENABLE_SELECTIVE_SEARCH
 
 #define THRESHOLD(size, c) (c/size)
@@ -50,7 +50,7 @@ extern uint32_t rng_randint(uint32_t min, uint32_t max);
 
 static universe *universe_create(int elements)
 {
-    universe * uni = (universe*) fb_alloc(sizeof(universe), FB_ALLOC_NO_HINT);
+    universe * uni = (universe*) fb_alloc(sizeof(universe),   FB_ALLOC_NO_HINT);
     uni->elts = (uni_elt*) fb_alloc(sizeof(uni_elt)*elements, FB_ALLOC_NO_HINT);
     uni->num = elements;
     for (int i=0; i<elements; ++i) {
@@ -145,7 +145,21 @@ static inline float diff(image_t *img, int x1, int y1, int x2, int y2)
    // dissimilarity measure between pixels
    return  sqrtf((r1-r2) * (r1-r2) + (g1-g2) * (g1-g2) + (b1-b2) * (b1-b2));
 }
+static inline float diff888(image_t *img, int x1, int y1, int x2, int y2)
+{
+    uint32_t p1 = IMAGE_GET_RGB888_PIXEL(img, x1, y1);
+    uint32_t p2 = IMAGE_GET_RGB888_PIXEL(img, x2, y2);
+    uint8_t r1  = COLOR_RGB888_TO_R8(p1);
+    uint8_t r2  = COLOR_RGB888_TO_R8(p2);
 
+    uint8_t g1  = COLOR_RGB888_TO_G8(p1);
+    uint8_t g2  = COLOR_RGB888_TO_G8(p2);
+
+    uint8_t b1  = COLOR_RGB888_TO_B8(p1);
+    uint8_t b2  = COLOR_RGB888_TO_B8(p2);
+   // dissimilarity measure between pixels
+   return  sqrtf((r1-r2) * (r1-r2) + (g1-g2) * (g1-g2) + (b1-b2) * (b1-b2));
+}
 int comp (const void * elem1, const void * elem2) 
 {
     edge *f = (edge*) elem1;
@@ -159,7 +173,7 @@ static void segment_graph(universe *u, int num_vertices, int num_edges, edge *ed
 {
     qsort (edges, num_edges, sizeof(edge), comp);
 
-    float *threshold = fb_alloc(num_vertices * sizeof(float), FB_ALLOC_NO_HINT);
+    float *threshold = malloc(num_vertices * sizeof(float));
     for (int i=0; i<num_vertices; i++) {
         threshold[i] = THRESHOLD(1, c);
     }
@@ -178,7 +192,7 @@ static void segment_graph(universe *u, int num_vertices, int num_edges, edge *ed
     }
 
     // Free thresholds.
-    fb_free();
+    free(threshold);
 }
 
 static void image_scale(image_t *src, image_t *dst)
@@ -202,7 +216,7 @@ array_t *imlib_selective_search(image_t *src, float t, int min_size, float a1, f
     int width=0, height=0;
     image_t *img = NULL;
 
-    fb_alloc_mark();
+    // fb_alloc_mark();
 
     if ((src->w * src->h) <= (80 * 60)) {
         img    = src;

@@ -9,7 +9,7 @@
  * Phase correlation.
  */
 #include "imlib.h"
-#include "fft.h"
+// #include "fft.h"
 
 void imlib_logpolar_int(image_t *dst, image_t *src, rectangle_t *roi, bool linear, bool reverse)
 {
@@ -112,6 +112,33 @@ void imlib_logpolar_int(image_t *dst, image_t *src, rectangle_t *roi, bool linea
                 }
                 break;
             }
+            case PIXFORMAT_RGB888: {
+                pixel24_t *tmp = (pixel24_t *) src->data;
+                int tmp_w = src->w, tmp_h = src->h, tmp_x = roi->x + w_2 - 1, tmp_y = roi->y + h_2;
+
+                for (int y = 0, yy = h; y < yy; y++) {
+                    pixel24_t *row_ptr = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(dst, y);
+                    float rho = y * rho_scale;
+                    if (!linear) rho = fast_expf(rho);
+                    for (int x = 0, xx = w_2; x < xx; x++) {
+
+                        int theta = fast_roundf(m_pi_1_5_d - (x * theta_scale_d));
+                        if (theta < 0) theta += m_pi_2_0_d_i; // wrap for table access
+                        int sourceX = tmp_x + fast_roundf(rho * cos_table[theta]); // rounding is necessary
+                        int sourceY = tmp_y + fast_roundf(rho * sin_table[theta]); // rounding is necessary
+
+                        if ((0 <= sourceX) && (0 <= sourceY) && (sourceY < tmp_h)) { // plot the 2 symmetrical pixels
+                            pixel24_t *ptr, pixel;
+                            ptr = tmp + (tmp_w * sourceY);
+                            pixel = ptr[sourceX];
+                            row_ptr[x] = pixel;
+                            pixel = ptr[tmp_w - 1 - sourceX];
+                            row_ptr[w - 1 - x] = pixel;
+                        }
+                    }
+                }
+                break;
+            }
             default: {
                 break;
             }
@@ -200,6 +227,36 @@ void imlib_logpolar_int(image_t *dst, image_t *src, rectangle_t *roi, bool linea
 
                         // plot the 2 symmetrical pixels
                         uint16_t *ptr, pixel;
+                        ptr = tmp + (tmp_w * sourceY);
+                        pixel = ptr[sourceX];
+                        row_ptr[x] = pixel;
+                        pixel = ptr[tmp_w - 1 - sourceX];
+                        row_ptr[w - 1 - x] = pixel;
+                    }
+                }
+                break;
+            }
+            case PIXFORMAT_RGB888: {
+                pixel24_t *tmp = (uinpixel24_tt16_t *) src->data;
+                int tmp_w = src->w, tmp_x = roi->x, tmp_y = roi->y;
+
+                for (int y = 0, yy = h; y < yy; y++) {
+                    pixel24_t *row_ptr = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(dst, y);
+                    int y_2 = y - h_2;
+                    int y_2_2 = y_2 * y_2;
+
+                    for (int x = 0, xx = w_2; x < xx; x++) {
+                        int x_2 = x - w_2;
+                        int x_2_2 = x_2 * x_2;
+
+                        float rho = fast_sqrtf(x_2_2 + y_2_2);
+                        if (!linear) rho = fast_log(rho);
+                        float theta = m_pi_1_5 - fast_atan2f(y_2, x_2);
+                        int sourceX = tmp_x + fast_roundf(theta * theta_scale_inv); // rounding is necessary
+                        int sourceY = tmp_y + fast_roundf(rho * rho_scale_inv); // rounding is necessary
+
+                        // plot the 2 symmetrical pixels
+                        pixel24_t *ptr, pixel;
                         ptr = tmp + (tmp_w * sourceY);
                         pixel = ptr[sourceX];
                         row_ptr[x] = pixel;
@@ -423,6 +480,15 @@ void imlib_phasecorrelate(image_t *img0, image_t *img1, rectangle_t *roi0, recta
                 }
                 break;
             }
+            case PIXFORMAT_RGB888: {
+                for (int y = roi0->y, yy = roi0->y + roi0->h; y < yy; y++) {
+                    uint16_t *row_ptr = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(img0, y);
+                    for (int x = roi0->x, xx = roi0->x + roi0->w; x < xx; x++) {
+                        IMAGE_PUT_RGB888_PIXEL(&img0_fixed, x, y, IMAGE_GET_RGB888_PIXEL_FAST(row_ptr, x));
+                    }
+                }
+                break;
+            }
             default: {
                 memset(img0_fixed.data, 0, image_size(&img0_fixed));
                 break;
@@ -444,7 +510,7 @@ void imlib_phasecorrelate(image_t *img0, image_t *img1, rectangle_t *roi0, recta
             img0alt.w = roi0_fixed.w;
             img0alt.h = roi0_fixed.h;
             img0alt.pixfmt = img0_fixed.pixfmt;
-            img0alt.data = fb_alloc0(image_size(&img0alt), FB_ALLOC_NO_HINT);
+            img0alt.data = malloc(image_size(&img0alt));
             imlib_logpolar_int(&img0alt, &img0_fixed, &roi0_fixed, false, false);
             roi0alt.x = 0;
             roi0alt.y = 0;
@@ -454,7 +520,7 @@ void imlib_phasecorrelate(image_t *img0, image_t *img1, rectangle_t *roi0, recta
             img1alt.w = roi1->w;
             img1alt.h = roi1->h;
             img1alt.pixfmt = img1->pixfmt;
-            img1alt.data = fb_alloc0(image_size(&img1alt), FB_ALLOC_NO_HINT);
+            img1alt.data = malloc(image_size(&img1alt));
             imlib_logpolar_int(&img1alt, img1, roi1, false, false);
             roi1alt.x = 0;
             roi1alt.y = 0;
@@ -569,8 +635,8 @@ void imlib_phasecorrelate(image_t *img0, image_t *img1, rectangle_t *roi0, recta
         fft2d_dealloc(); // fft0
 
         if (logpolar) {
-            fb_free(); // img1alt
-            fb_free(); // img0alt
+            free(img1alt.data); // img1alt
+            free(img0alt.data); // img0alt
 
             float w_2 = roi0->w / 2.0f;
             float h_2 = roi0->h / 2.0f;

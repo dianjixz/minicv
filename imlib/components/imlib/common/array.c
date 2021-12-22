@@ -46,7 +46,7 @@ void array_clear(array_t *array)
             array->dtor(array->data[i]);
         }
     }
-    xfree(array->data);
+    free(array->data);
     array->index = 0;
     array->length = 0;
     array->data = NULL;
@@ -57,7 +57,7 @@ void array_clear(array_t *array)
 void array_free(array_t *array)
 {
     array_clear(array);
-    xfree(array);
+    free(array);
 }
 
 int array_length(array_t *array)
