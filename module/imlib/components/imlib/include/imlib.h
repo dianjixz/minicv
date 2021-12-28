@@ -335,9 +335,9 @@ color_thresholds_list_lnk_data_t;
 
 #define COLOR_R8_G8_B8_TO_RGB888(r8, g8, b8) ((r8 << 16) | (g8 << 8) | ( b8 ))
 
-#define COLOR_RGB888_TO_Y(r8, g8, b8) ((((r8) * 38) + ((g8) * 75) + ((b8) * 15)) >> 7) // 0.299R + 0.587G + 0.114B
+#define COLOR_RGB888_TO_Y_(r8, g8, b8) ((((r8) * 38) + ((g8) * 75) + ((b8) * 15)) >> 7) // 0.299R + 0.587G + 0.114B
 
-// #define COLOR_RGB888_TO_Y(rgb888) COLOR_RGB888_TO_Y_O(COLOR_RGB888_TO_R8(rgb888), COLOR_RGB888_TO_G8(rgb888), COLOR_RGB888_TO_B8(rgb888)) // 0.299R + 0.587G + 0.114B
+#define COLOR_RGB888_TO_Y(rgb888) COLOR_RGB888_TO_Y_(COLOR_RGB888_TO_R8(rgb888), COLOR_RGB888_TO_G8(rgb888), COLOR_RGB888_TO_B8(rgb888)) // 0.299R + 0.587G + 0.114B
 
 #define COLOR_RGB565_TO_Y(rgb565) \
 ({ \
@@ -345,7 +345,7 @@ color_thresholds_list_lnk_data_t;
     int r = COLOR_RGB565_TO_R8(__rgb565); \
     int g = COLOR_RGB565_TO_G8(__rgb565); \
     int b = COLOR_RGB565_TO_B8(__rgb565); \
-    COLOR_RGB888_TO_Y(r, g, b); \
+    COLOR_RGB888_TO_Y_(r, g, b); \
 })
 
 #define COLOR_Y_TO_RGB888(pixel) ((pixel) * 0x010101)
@@ -402,6 +402,7 @@ extern const int8_t lab_table[196608/2];
 #define COLOR_BINARY_TO_RGB888(pixel) COLOR_YUV_TO_RGB888(((pixel) ? 127 : -128), 0, 0)
 #define COLOR_RGB565_TO_BINARY(pixel) (COLOR_RGB565_TO_Y(pixel) > (((COLOR_Y_MAX - COLOR_Y_MIN) / 2) + COLOR_Y_MIN))
 #define COLOR_RGB565_TO_GRAYSCALE(pixel) COLOR_RGB565_TO_Y(pixel)
+#define COLOR_RGB888_TO_GRAYSCALE(pixel) COLOR_RGB888_TO_Y(pixel)
 #define COLOR_GRAYSCALE_TO_BINARY(pixel) ((pixel) > (((COLOR_GRAYSCALE_MAX - COLOR_GRAYSCALE_MIN) / 2) + COLOR_GRAYSCALE_MIN))
 #define COLOR_GRAYSCALE_TO_RGB565(pixel) COLOR_YUV_TO_RGB565(((pixel) - 128), 0, 0)
 #define COLOR_GRAYSCALE_TO_RGB888(pixel) COLOR_YUV_TO_RGB888(((pixel) - 128), 0, 0)

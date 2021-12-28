@@ -9,7 +9,7 @@
  * Phase correlation.
  */
 #include "imlib.h"
-// #include "fft.h"
+#include "fft.h"
 
 void imlib_logpolar_int(image_t *dst, image_t *src, rectangle_t *roi, bool linear, bool reverse)
 {
@@ -237,7 +237,7 @@ void imlib_logpolar_int(image_t *dst, image_t *src, rectangle_t *roi, bool linea
                 break;
             }
             case PIXFORMAT_RGB888: {
-                pixel24_t *tmp = (uinpixel24_tt16_t *) src->data;
+                pixel24_t *tmp = (pixel24_t *) src->data;
                 int tmp_w = src->w, tmp_x = roi->x, tmp_y = roi->y;
 
                 for (int y = 0, yy = h; y < yy; y++) {
@@ -482,7 +482,7 @@ void imlib_phasecorrelate(image_t *img0, image_t *img1, rectangle_t *roi0, recta
             }
             case PIXFORMAT_RGB888: {
                 for (int y = roi0->y, yy = roi0->y + roi0->h; y < yy; y++) {
-                    uint16_t *row_ptr = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(img0, y);
+                    pixel24_t *row_ptr = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(img0, y);
                     for (int x = roi0->x, xx = roi0->x + roi0->w; x < xx; x++) {
                         IMAGE_PUT_RGB888_PIXEL(&img0_fixed, x, y, IMAGE_GET_RGB888_PIXEL_FAST(row_ptr, x));
                     }
