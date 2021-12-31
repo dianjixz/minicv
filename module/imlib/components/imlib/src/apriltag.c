@@ -9154,10 +9154,10 @@ static inline unionfind_t *unionfind_create(uint32_t maxid)
     return uf;
 }
 
-static inline void unionfind_destroy()
+static inline void unionfind_destroy(unionfind_t *pt)
 {
-    fb_free();
-    fb_free();
+    fb_free(pt->data);
+    fb_free(pt);
 }
 
 /*
@@ -9364,7 +9364,7 @@ static inline void ptsort(struct pt *pts, int sz)
     if (bpos < bsz)
         memcpy(&pts[outpos], &bs[bpos], (bsz-bpos)*sizeof(struct pt));
 
-    fb_free(); // tmp
+    fb_free(tmp); // tmp
 
 #undef MERGE
 }
@@ -9610,9 +9610,9 @@ int quad_segment_maxima(apriltag_detector_t *td, zarray_t *cluster, struct line_
             y[iy] = acc;
         }
 
-        fb_free(); // f
+        fb_free(f); // f
         memcpy(errs, y, sz * sizeof(float));
-        fb_free(); // y
+        fb_free(y); // y
     }
 
     int *maxima = fb_alloc(sz * sizeof(int), FB_ALLOC_NO_HINT);
@@ -9650,12 +9650,12 @@ int quad_segment_maxima(apriltag_detector_t *td, zarray_t *cluster, struct line_
         }
         nmaxima = out;
 
-        fb_free(); // maxima_errs_copy
+        fb_free(maxima_errs_copy); // maxima_errs_copy
     }
 
-    fb_free(); // maxima_errs
-    fb_free(); // maxima
-    fb_free(); // errs
+    fb_free(maxima_errs); // maxima_errs
+    fb_free(maxima); // maxima
+    fb_free(errs); // errs
 
     int best_indices[4];
     float best_error = HUGE_VALF;
@@ -10133,7 +10133,7 @@ int fit_quad(apriltag_detector_t *td, image_u8_t *im, zarray_t *cluster, struct 
 */
   finish:
 
-    fb_free(); // lfps
+    fb_free(lfps); // lfps
 
     return res;
 }
@@ -10408,8 +10408,8 @@ image_u8_t *threshold(apriltag_detector_t *td, image_u8_t *im)
 #endif
         memcpy(im_max, im_max_tmp, tw*th*sizeof(uint8_t));
         memcpy(im_min, im_min_tmp, tw*th*sizeof(uint8_t));
-        fb_free(); // im_min_tmp
-        fb_free(); // im_max_tmp
+        fb_free(im_min_tmp); // im_min_tmp
+        fb_free(im_max_tmp); // im_max_tmp
     }
 #if defined( OPTIMIZED ) && (defined(ARM_MATH_CM7) || defined(ARM_MATH_CM4))
     if ((s & 0x3) == 0 && tilesz == 4) // if each line is a multiple of 4, we can do this faster
@@ -10531,8 +10531,8 @@ image_u8_t *threshold(apriltag_detector_t *td, image_u8_t *im)
         }
     }
 
-    fb_free(); // im_min
-    fb_free(); // im_max
+    fb_free(im_min); // im_min
+    fb_free(im_max); // im_max
 
     // this is a dilate/erode deglitching scheme that does not improve
     // anything as far as I can tell.
@@ -10571,8 +10571,8 @@ image_u8_t *threshold(apriltag_detector_t *td, image_u8_t *im)
             }
         }
 
-        fb_free(); // tmp->buf
-        fb_free(); // tmp
+        fb_free(tmp->buf); // tmp->buf
+        fb_free(tmp); // tmp
     }
 
     return threshim;
@@ -10716,13 +10716,13 @@ zarray_t *apriltag_quad_thresh(apriltag_detector_t *td, image_u8_t *im, bool ove
           entry = tmp;
         }
       }
-      fb_free(); // clustermap
+      fb_free(clustermap); // clustermap
     }
 
-    unionfind_destroy();
+    unionfind_destroy(uf);
 
-    fb_free(); // threshim->buf
-    fb_free(); // threshim
+    fb_free(threshim->buf); // threshim->buf
+    fb_free(threshim); // threshim
 
     zarray_t *quads = zarray_create_fail_ok(sizeof(struct quad));
 
@@ -12064,9 +12064,9 @@ void imlib_find_apriltags(list_t *out, image_t *ptr, rectangle_t *roi, apriltag_
     }
 
     apriltag_detections_destroy(detections);
-    fb_free(); // grayscale_image;
+    fb_free(img.data); // grayscale_image;
     apriltag_detector_destroy(td);
-    fb_free(); // umm_init_x();
+    fb_free(NULL); // umm_init_x();
 }
 
 #ifdef IMLIB_ENABLE_FIND_RECTS
@@ -12254,14 +12254,14 @@ void imlib_find_rects(list_t *out, image_t *ptr, rectangle_t *roi, uint32_t thre
         list_push_back(out, &lnk_data);
     }
 
-    fb_free(); // point_buffer
-    fb_free(); // mag_buffer
-    fb_free(); // theta_buffer
+    fb_free(point_buffer); // point_buffer
+    fb_free(mag_buffer); // mag_buffer
+    fb_free(theta_buffer); // theta_buffer
 
     zarray_destroy(detections);
-    fb_free(); // grayscale_image;
+    fb_free(img.data); // grayscale_image;
     apriltag_detector_destroy(td);
-    fb_free(); // umm_init_x();
+    fb_free(NULL); // umm_init_x();
 }
 #endif //IMLIB_ENABLE_FIND_RECTS
 
@@ -12437,6 +12437,24 @@ void imlib_rotation_corr(image_t *img, float x_rotation, float y_rotation, float
                     }
                     break;
                 }
+                case PIXFORMAT_RGB888: {
+                    pixel24_t *tmp = (pixel24_t *) data;
+
+                    for (int y = 0, yy = h; y < yy; y++) {
+                        pixel24_t *row_ptr = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(img, y);
+                        for (int x = 0, xx = w; x < xx; x++) {
+                            int sourceX = fast_roundf(T4_00*x + T4_01*y + T4_02);
+                            int sourceY = fast_roundf(T4_10*x + T4_11*y + T4_12);
+
+                            if ((0 <= sourceX) && (sourceX < w) && (0 <= sourceY) && (sourceY < h)) {
+                                pixel24_t *ptr = tmp + (w * sourceY);
+                                int pixel = IMAGE_GET_RGB888_PIXEL_FAST(ptr, sourceX);
+                                IMAGE_PUT_RGB888_PIXEL_FAST(row_ptr, x, pixel);
+                            }
+                        }
+                    }
+                    break;
+                }
                 default: {
                     break;
                 }
@@ -12506,6 +12524,27 @@ void imlib_rotation_corr(image_t *img, float x_rotation, float y_rotation, float
                     }
                     break;
                 }
+                case PIXFORMAT_RGB888: {
+                    pixel24_t *tmp = (pixel24_t *) data;
+
+                    for (int y = 0, yy = h; y < yy; y++) {
+                        pixel24_t *row_ptr = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(img, y);
+                        for (int x = 0, xx = w; x < xx; x++) {
+                            float xxx = T4_00*x + T4_01*y + T4_02;
+                            float yyy = T4_10*x + T4_11*y + T4_12;
+                            float zzz = T4_20*x + T4_21*y + T4_22;
+                            int sourceX = fast_roundf(xxx / zzz);
+                            int sourceY = fast_roundf(yyy / zzz);
+
+                            if ((0 <= sourceX) && (sourceX < w) && (0 <= sourceY) && (sourceY < h)) {
+                                pixel24_t *ptr = tmp + (w * sourceY);
+                                int pixel = IMAGE_GET_RGB888_PIXEL_FAST(ptr, sourceX);
+                                IMAGE_PUT_RGB888_PIXEL_FAST(row_ptr, x, pixel);
+                            }
+                        }
+                    }
+                    break;
+                }
                 default: {
                     break;
                 }
@@ -12526,9 +12565,9 @@ void imlib_rotation_corr(image_t *img, float x_rotation, float y_rotation, float
     matd_destroy(RX);
     matd_destroy(A1);
 
-    fb_free(); // umm_init_x();
+    fb_free(NULL); // umm_init_x();
 
-    fb_free();
+    fb_free(data);
 }
 #endif //IMLIB_ENABLE_ROTATION_CORR
 #pragma GCC diagnostic pop

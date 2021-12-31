@@ -7,3 +7,4 @@ blob.c
 stats.c
 zbar.c
 line.c
+apriltag.c

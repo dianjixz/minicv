@@ -111,6 +111,8 @@ void file_truncate(FIL *fp)
 
 void file_sync(FIL *fp)
 {
+    int fd = fileno(fp); 
+    fsync(fd);
     // FRESULT res = f_sync(fp);
     // if (res != FR_OK) ff_fail(fp, res);
 }
@@ -118,7 +120,7 @@ void file_sync(FIL *fp)
 // These wrapper functions are used for backward compatibility with
 // OpenMV code using vanilla FatFS. Note: Extracted from cc3200 ftp.c
 
-STATIC FATFS *lookup_path(const TCHAR **path) {
+// FATFS *lookup_path(const TCHAR **path) {
     // mp_vfs_mount_t *fs = mp_vfs_lookup_path(*path, path);
     // if (fs == MP_VFS_NONE || fs == MP_VFS_ROOT) {
     //     return NULL;
@@ -212,10 +214,10 @@ OMV_ATTR_ALWAYS_INLINE static void file_fill(FIL *fp)
         file_buffer_size += file_buffer_offset;
         file_buffer_offset = 0;
         file_buffer_index = 0;
-        uint32_t file_remaining = f_size(fp) - f_tell(fp);
+        uint32_t file_remaining = fsize(fp) - ftell(fp);
         uint32_t can_do = FF_MIN(file_buffer_size, file_remaining);
         UINT bytes;
-        FRESULT res = f_read(fp, file_buffer_pointer, can_do, &bytes);
+        FRESULT res = fread(fp, file_buffer_pointer, can_do, &bytes);
         if (res != FR_OK) ff_fail(fp, res);
         if (bytes != can_do) ff_read_fail(fp);
     }
