@@ -12,10 +12,10 @@
 // #include "framebuffer.h"
 #include "omv_boardconfig.h"
 #include "xalloc.h"
+#include <stdio.h>
 #define true 1
 #define false 0
 #define bool uint8_t
-#define NULL 0
 #ifndef __DCACHE_PRESENT
 #define FB_ALLOC_ALIGNMENT 32 // Use 32-byte alignment on MCUs with no cache for DMA buffer alignment.
 #else

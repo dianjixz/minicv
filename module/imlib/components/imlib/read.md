@@ -4,3 +4,5 @@
 draw.c
 imlib.c
 blob.c
+stats.c
+zbar.c

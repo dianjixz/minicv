@@ -19,10 +19,10 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// #define free(ptr) ({ umm_free(ptr); })
-// #define xalloc(size) ({ void *_r = umm_xalloc(size); if(!_r) fb_alloc_fail(); _r; })
-// #define realloc(ptr, size) ({ void *_r = umm_realloc((ptr), (size)); if(!_r) fb_alloc_fail(); _r; })
-// #define calloc(num, item_size) ({ void *_r = umm_calloc((num), (item_size)); if(!_r) fb_alloc_fail(); _r; })
+#define free(ptr) ({ umm_free(ptr); })
+#define malloc(size) ({ void *_r = umm_malloc(size); if(!_r) fb_alloc_fail(); _r; })
+#define realloc(ptr, size) ({ void *_r = umm_realloc((ptr), (size)); if(!_r) fb_alloc_fail(); _r; })
+#define calloc(num, item_size) ({ void *_r = umm_calloc((num), (item_size)); if(!_r) fb_alloc_fail(); _r; })
 #define assert(expression)
 #define zprintf(...)
 #define dbprintf(...) while(0)
@@ -1739,7 +1739,7 @@ _zbar_image_scanner_alloc_sym (zbar_image_scanner_t *iscn,
             if(sym->data)
                 free(sym->data);
             sym->data_alloc = datalen;
-            sym->data = xalloc(datalen);
+            sym->data = malloc(datalen);
         }
     }
     else {
@@ -7934,7 +7934,7 @@ zbar_decoder_t *zbar_decoder_create ()
 {
     zbar_decoder_t *dcode = calloc(1, sizeof(zbar_decoder_t));
     dcode->buf_alloc = BUFFER_MIN;
-    dcode->buf = xalloc(dcode->buf_alloc);
+    dcode->buf = malloc(dcode->buf_alloc);
 
     /* initialize default configs */
 #ifdef ENABLE_EAN
@@ -8469,7 +8469,7 @@ struct zbar_scanner_s {
 
 zbar_scanner_t *zbar_scanner_create (zbar_decoder_t *dcode)
 {
-    zbar_scanner_t *scn = xalloc(sizeof(zbar_scanner_t));
+    zbar_scanner_t *scn = malloc(sizeof(zbar_scanner_t));
     scn->decoder = dcode;
     scn->y1_min_thresh = ZBAR_SCANNER_THRESH_MIN;
     zbar_scanner_reset(scn);
@@ -8713,7 +8713,7 @@ void zbar_scanner_get_state (const zbar_scanner_t *scn,
 
 void imlib_find_barcodes(list_t *out, image_t *ptr, rectangle_t *roi)
 {
-    uint8_t *grayscale_image = (ptr->pixfmt == PIXFORMAT_GRAYSCALE) ? ptr->data : xalloc(roi->w * roi->h);
+    uint8_t *grayscale_image = (ptr->pixfmt == PIXFORMAT_GRAYSCALE) ? ptr->data : fb_alloc(roi->w * roi->h, FB_ALLOC_NO_HINT);
 
     if (ptr->pixfmt != PIXFORMAT_GRAYSCALE) {
         image_t img;
@@ -8724,7 +8724,7 @@ void imlib_find_barcodes(list_t *out, image_t *ptr, rectangle_t *roi)
         imlib_draw_image(&img, ptr, 0, 0, 1.f, 1.f, roi, -1, 256, NULL, NULL, 0, NULL, NULL);
     }
 
-    // umm_init_x(fb_avail());
+    umm_init_x(fb_avail());
 
     zbar_image_scanner_t *scanner = zbar_image_scanner_create();
     zbar_image_scanner_set_config(scanner, 0, ZBAR_CFG_ENABLE, 1);
@@ -8857,9 +8857,9 @@ void imlib_find_barcodes(list_t *out, image_t *ptr, rectangle_t *roi)
     }
 
     zbar_image_scanner_destroy(scanner);
-    // fb_free(); // umm_init_x();
+    fb_free(NULL); // umm_init_x();
     if (ptr->pixfmt != PIXFORMAT_GRAYSCALE) {
-        free(grayscale_image); // grayscale_image;
+        fb_free(grayscale_image); // grayscale_image;
     }
 }
 

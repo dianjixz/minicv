@@ -14,6 +14,7 @@
 // #include "py/mphal.h"
 #include "xalloc.h"
 #include <stdio.h>
+#include <stdlib.h>
 
 static void xalloc_fail(uint32_t size)
 {
