@@ -20,7 +20,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // #define free(ptr) ({ umm_free(ptr); })
-// #define malloc(size) ({ void *_r = umm_malloc(size); if(!_r) fb_alloc_fail(); _r; })
+// #define xalloc(size) ({ void *_r = umm_xalloc(size); if(!_r) fb_alloc_fail(); _r; })
 // #define realloc(ptr, size) ({ void *_r = umm_realloc((ptr), (size)); if(!_r) fb_alloc_fail(); _r; })
 // #define calloc(num, item_size) ({ void *_r = umm_calloc((num), (item_size)); if(!_r) fb_alloc_fail(); _r; })
 #define assert(expression)
@@ -1739,7 +1739,7 @@ _zbar_image_scanner_alloc_sym (zbar_image_scanner_t *iscn,
             if(sym->data)
                 free(sym->data);
             sym->data_alloc = datalen;
-            sym->data = malloc(datalen);
+            sym->data = xalloc(datalen);
         }
     }
     else {
@@ -7934,7 +7934,7 @@ zbar_decoder_t *zbar_decoder_create ()
 {
     zbar_decoder_t *dcode = calloc(1, sizeof(zbar_decoder_t));
     dcode->buf_alloc = BUFFER_MIN;
-    dcode->buf = malloc(dcode->buf_alloc);
+    dcode->buf = xalloc(dcode->buf_alloc);
 
     /* initialize default configs */
 #ifdef ENABLE_EAN
@@ -8469,7 +8469,7 @@ struct zbar_scanner_s {
 
 zbar_scanner_t *zbar_scanner_create (zbar_decoder_t *dcode)
 {
-    zbar_scanner_t *scn = malloc(sizeof(zbar_scanner_t));
+    zbar_scanner_t *scn = xalloc(sizeof(zbar_scanner_t));
     scn->decoder = dcode;
     scn->y1_min_thresh = ZBAR_SCANNER_THRESH_MIN;
     zbar_scanner_reset(scn);
@@ -8713,7 +8713,7 @@ void zbar_scanner_get_state (const zbar_scanner_t *scn,
 
 void imlib_find_barcodes(list_t *out, image_t *ptr, rectangle_t *roi)
 {
-    uint8_t *grayscale_image = (ptr->pixfmt == PIXFORMAT_GRAYSCALE) ? ptr->data : malloc(roi->w * roi->h);
+    uint8_t *grayscale_image = (ptr->pixfmt == PIXFORMAT_GRAYSCALE) ? ptr->data : xalloc(roi->w * roi->h);
 
     if (ptr->pixfmt != PIXFORMAT_GRAYSCALE) {
         image_t img;
@@ -8775,7 +8775,7 @@ void imlib_find_barcodes(list_t *out, image_t *ptr, rectangle_t *roi)
 
                 // Payload is already null terminated.
                 lnk_data.payload_len = zbar_symbol_get_data_length(symbol);
-                lnk_data.payload = malloc(zbar_symbol_get_data_length(symbol));
+                lnk_data.payload = xalloc(zbar_symbol_get_data_length(symbol));
                 memcpy(lnk_data.payload, zbar_symbol_get_data(symbol), zbar_symbol_get_data_length(symbol));
 
                 switch (zbar_symbol_get_type(symbol)) {

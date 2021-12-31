@@ -22,10 +22,14 @@
 
 #define perror(str)
 #define fprintf(stream, format, ...)
-#define free(ptr) ({ umm_free(ptr); })
-#define malloc(size) ({ void *_r = umm_malloc(size); if(!_r) fb_alloc_fail(); _r; })
-#define realloc(ptr, size) ({ void *_r = umm_realloc((ptr), (size)); if(!_r) fb_alloc_fail(); _r; })
-#define calloc(num, item_size) ({ void *_r = umm_calloc((num), (item_size)); if(!_r) fb_alloc_fail(); _r; })
+// #define free(ptr) ({ umm_free(ptr); })
+// #define malloc(size) ({ void *_r = umm_malloc(size); if(!_r) fb_alloc_fail(); _r; })
+// #define realloc(ptr, size) ({ void *_r = umm_realloc((ptr), (size)); if(!_r) fb_alloc_fail(); _r; })
+// #define calloc(num, item_size) ({ void *_r = umm_calloc((num), (item_size)); if(!_r) fb_alloc_fail(); _r; })
+#define free(ptr) xfree(ptr)
+#define malloc(size) xalloc(size)
+#define realloc(ptr, size) xrealloc(ptr, size)
+#define calloc(num, item_size) xcalloc(num, item_size)
 #define assert(expression)
 #define sqrt(x) fast_sqrtf(x)
 #define sqrtf(x) fast_sqrtf(x)
@@ -6309,7 +6313,7 @@ dmtxMatrix3Print(DmtxMatrix3 m)
 
 void imlib_find_datamatrices(list_t *out, image_t *ptr, rectangle_t *roi, int effort)
 {
-    uint8_t *grayscale_image = (ptr->pixfmt == PIXFORMAT_GRAYSCALE) ? ptr->data : fb_alloc(roi->w * roi->h, FB_ALLOC_NO_HINT);
+    uint8_t *grayscale_image = (ptr->pixfmt == PIXFORMAT_GRAYSCALE) ? ptr->data : xalloc(roi->w * roi->h);
 
     if (ptr->pixfmt != PIXFORMAT_GRAYSCALE) {
         image_t img;
@@ -6320,7 +6324,7 @@ void imlib_find_datamatrices(list_t *out, image_t *ptr, rectangle_t *roi, int ef
         imlib_draw_image(&img, ptr, 0, 0, 1.f, 1.f, roi, -1, 256, NULL, NULL, 0, NULL, NULL);
     }
 
-    umm_init_x(fb_avail());
+   //  umm_init_x(fb_avail());
 
     DmtxImage *image = dmtxImageCreate(grayscale_image,
                                        (ptr->pixfmt == PIXFORMAT_GRAYSCALE) ? ptr->w : roi->w,
@@ -6401,9 +6405,9 @@ void imlib_find_datamatrices(list_t *out, image_t *ptr, rectangle_t *roi, int ef
     dmtxDecodeDestroy(&decode);
     dmtxImageDestroy(&image);
 
-    fb_free(); // umm_init_x();
+   //  fb_free(); // umm_init_x();
     if (ptr->pixfmt != PIXFORMAT_GRAYSCALE) {
-        fb_free(); // grayscale_image;
+        xfree(grayscale_image); // grayscale_image;
     }
 }
 

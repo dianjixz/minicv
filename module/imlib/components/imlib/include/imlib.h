@@ -20,7 +20,7 @@
 #include <math.h>
 // #include <arm_math.h>
 // #include <ff.h>
-#include "fb_alloc.h"
+// #include "fb_alloc.h"
 #include "umm_malloc.h"
 #include "xalloc.h"
 #include "array.h"
@@ -390,25 +390,25 @@ color_thresholds_list_lnk_data_t;
     int __rb_pixel = (__pixel >> 3) & 0x1F; \
     (__rb_pixel * 0x0801) + ((__pixel << 3) & 0x7E0); \
 })
-
-#define COLOR_RGB888_TO_U(r8, g8, b8) ((((r8) * -21) - ((g8) * 43) + ((b8) * 64)) >> 7) // -0.168736R - 0.331264G + 0.5B
+#define COLOR_RGB888_TO_U_(r8, g8, b8) ((((r8) * -21) - ((g8) * 43) + ((b8) * 64)) >> 7) // -0.168736R - 0.331264G + 0.5B
+#define COLOR_RGB888_TO_U(rgb888) COLOR_RGB888_TO_U_(COLOR_RGB888_TO_R8(rgb888), COLOR_RGB888_TO_G8(rgb888), COLOR_RGB888_TO_B8(rgb888)) // -0.168736R - 0.331264G + 0.5B
 #define COLOR_RGB565_TO_U(rgb565) \
 ({ \
     __typeof__ (rgb565) __rgb565 = (rgb565); \
     int r = COLOR_RGB565_TO_R8(__rgb565); \
     int g = COLOR_RGB565_TO_G8(__rgb565); \
     int b = COLOR_RGB565_TO_B8(__rgb565); \
-    COLOR_RGB888_TO_U(r, g, b); \
+    COLOR_RGB888_TO_U_(r, g, b); \
 })
-
-#define COLOR_RGB888_TO_V(r8, g8, b8) ((((r8) * 64) - ((g8) * 54) - ((b8) * 10)) >> 7) // 0.5R - 0.418688G - 0.081312B
+#define COLOR_RGB888_TO_V_(r8, g8, b8) ((((r8) * 64) - ((g8) * 54) - ((b8) * 10)) >> 7) // 0.5R - 0.418688G - 0.081312B
+#define COLOR_RGB888_TO_V(rgb888) COLOR_RGB888_TO_V_(COLOR_RGB888_TO_R8(rgb888), COLOR_RGB888_TO_G8(rgb888), COLOR_RGB888_TO_B8(rgb888)) // 0.5R - 0.418688G - 0.081312B
 #define COLOR_RGB565_TO_V(rgb565) \
 ({ \
     __typeof__ (rgb565) __rgb565 = (rgb565); \
     int r = COLOR_RGB565_TO_R8(__rgb565); \
     int g = COLOR_RGB565_TO_G8(__rgb565); \
     int b = COLOR_RGB565_TO_B8(__rgb565); \
-    COLOR_RGB888_TO_V(r, g, b); \
+    COLOR_RGB888_TO_V_(r, g, b); \
 })
 
 extern const int8_t lab_table[196608/2];

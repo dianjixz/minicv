@@ -408,7 +408,7 @@ array_t *orb_find_keypoints(image_t *img, bool normalized, int threshold,
             break;
         }
 
-        img_scaled.pixels = malloc(img_scaled.w * img_scaled.h);
+        img_scaled.pixels = xalloc(img_scaled.w * img_scaled.h);
         // Down scale image
         image_scale(img, &img_scaled);
 
@@ -488,7 +488,7 @@ array_t *orb_find_keypoints(image_t *img, bool normalized, int threshold,
         }
 
         // Free current scale
-        free(img_scaled.pixels);
+        xfree(img_scaled.pixels);
 
         if (normalized) {
             break;
@@ -629,7 +629,7 @@ int orb_filter_keypoints(array_t *kpts, rectangle_t *r, point_t *c)
     r->w = r->h = 0;
     r->x = r->y = 20000;
 
-    float *kpts_dist = malloc(kpts_size * sizeof(float));
+    float *kpts_dist = xalloc(kpts_size * sizeof(float));
 
     // Find centroid 
     for (int i=0; i<kpts_size; i++) {
@@ -700,7 +700,7 @@ int orb_filter_keypoints(array_t *kpts, rectangle_t *r, point_t *c)
     r->h = r->h - r->y;
 
     // Free distance array
-    free(kpts_dist);
+    xfree(kpts_dist);
     return matches;
 }
 

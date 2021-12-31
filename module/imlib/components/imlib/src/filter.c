@@ -17,7 +17,7 @@ void imlib_histeq(image_t *img, image_t *mask)
         case PIXFORMAT_BINARY: {
             int a = img->w * img->h;
             float s = (COLOR_BINARY_MAX - COLOR_BINARY_MIN) / ((float) a);
-            uint32_t *hist = malloc((COLOR_BINARY_MAX - COLOR_BINARY_MIN + 1) * sizeof(uint32_t));
+            uint32_t *hist = xalloc((COLOR_BINARY_MAX - COLOR_BINARY_MIN + 1) * sizeof(uint32_t));
 
             for (int y = 0, yy = img->h; y < yy; y++) {
                 uint32_t *row_ptr = IMAGE_COMPUTE_BINARY_PIXEL_ROW_PTR(img, y);
@@ -41,13 +41,13 @@ void imlib_histeq(image_t *img, image_t *mask)
                 }
             }
 
-            free(hist);
+            xfree(hist);
             break;
         }
         case PIXFORMAT_GRAYSCALE: {
             int a = img->w * img->h;
             float s = (COLOR_GRAYSCALE_MAX - COLOR_GRAYSCALE_MIN) / ((float) a);
-            uint32_t *hist = malloc((COLOR_GRAYSCALE_MAX - COLOR_GRAYSCALE_MIN + 1) * sizeof(uint32_t));
+            uint32_t *hist = xalloc((COLOR_GRAYSCALE_MAX - COLOR_GRAYSCALE_MIN + 1) * sizeof(uint32_t));
 
             for (int y = 0, yy = img->h; y < yy; y++) {
                 uint8_t *row_ptr = IMAGE_COMPUTE_GRAYSCALE_PIXEL_ROW_PTR(img, y);
@@ -71,13 +71,13 @@ void imlib_histeq(image_t *img, image_t *mask)
                 }
             }
 
-            free(hist);
+            xfree(hist);
             break;
         }
         case PIXFORMAT_RGB565: {
             int a = img->w * img->h;
             float s = (COLOR_Y_MAX - COLOR_Y_MIN) / ((float) a);
-            uint32_t *hist = malloc((COLOR_Y_MAX - COLOR_Y_MIN + 1) * sizeof(uint32_t));
+            uint32_t *hist = xalloc((COLOR_Y_MAX - COLOR_Y_MIN + 1) * sizeof(uint32_t));
 
             for (int y = 0, yy = img->h; y < yy; y++) {
                 uint16_t *row_ptr = IMAGE_COMPUTE_RGB565_PIXEL_ROW_PTR(img, y);
@@ -107,13 +107,13 @@ void imlib_histeq(image_t *img, image_t *mask)
                 }
             }
 
-            free(hist);
+            xfree(hist);
             break;
         }
         case PIXFORMAT_RGB888: {
             int a = img->w * img->h;
             float s = (COLOR_Y_MAX - COLOR_Y_MIN) / ((float) a);
-            uint32_t *hist = malloc((COLOR_Y_MAX - COLOR_Y_MIN + 1) * sizeof(uint32_t));
+            uint32_t *hist = xalloc((COLOR_Y_MAX - COLOR_Y_MIN + 1) * sizeof(uint32_t));
 
             for (int y = 0, yy = img->h; y < yy; y++) {
                 pixel24_t *row_ptr = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(img, y);
@@ -143,7 +143,7 @@ void imlib_histeq(image_t *img, image_t *mask)
                 }
             }
 
-            free(hist);
+            xfree(hist);
             break;
         }
         default: {
@@ -179,7 +179,7 @@ void imlib_mean_filter(image_t *img, const int ksize, bool threshold, int offset
 
     switch (img->pixfmt) {
         case PIXFORMAT_BINARY: {
-            buf.data = malloc(IMAGE_BINARY_LINE_LEN_BYTES(img) * brows);
+            buf.data = xalloc(IMAGE_BINARY_LINE_LEN_BYTES(img) * brows);
 
             for (int y = 0, yy = img->h; y < yy; y++) {
                 int pixel, acc = 0;
@@ -239,11 +239,11 @@ void imlib_mean_filter(image_t *img, const int ksize, bool threshold, int offset
                        IMAGE_BINARY_LINE_LEN_BYTES(img));
             }
 
-            free(buf.data);
+            xfree(buf.data);
             break;
         }
         case PIXFORMAT_GRAYSCALE: {
-            buf.data = malloc(IMAGE_GRAYSCALE_LINE_LEN_BYTES(img) * brows);
+            buf.data = xalloc(IMAGE_GRAYSCALE_LINE_LEN_BYTES(img) * brows);
 
             for (int y = 0, yy = img->h; y < yy; y++) {
                 int pixel, acc = 0;
@@ -301,12 +301,12 @@ void imlib_mean_filter(image_t *img, const int ksize, bool threshold, int offset
                        IMAGE_GRAYSCALE_LINE_LEN_BYTES(img));
             }
 
-            free(buf.data);
+            xfree(buf.data);
             break;
         }
         case PIXFORMAT_RGB565: {
             int pixel, r, g, b, r_acc, g_acc, b_acc;
-            buf.data = malloc(IMAGE_RGB565_LINE_LEN_BYTES(img) * brows);
+            buf.data = xalloc(IMAGE_RGB565_LINE_LEN_BYTES(img) * brows);
 
             for (int y = 0, yy = img->h; y < yy; y++) {
                 uint16_t *row_ptr = IMAGE_COMPUTE_RGB565_PIXEL_ROW_PTR(img, y);
@@ -378,12 +378,12 @@ void imlib_mean_filter(image_t *img, const int ksize, bool threshold, int offset
                        IMAGE_RGB565_LINE_LEN_BYTES(img));
             }
 
-            free(buf.data);
+            xfree(buf.data);
             break;
         }
         case PIXFORMAT_RGB888: {
             int pixel, r, g, b, r_acc, g_acc, b_acc;
-            buf.data = malloc(IMAGE_RGB888_LINE_LEN_BYTES(img) * brows);
+            buf.data = xalloc(IMAGE_RGB888_LINE_LEN_BYTES(img) * brows);
 
             for (int y = 0, yy = img->h; y < yy; y++) {
                 pixel24_t *row_ptr = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(img, y);
@@ -455,7 +455,7 @@ void imlib_mean_filter(image_t *img, const int ksize, bool threshold, int offset
                        IMAGE_RGB888_LINE_LEN_BYTES(img));
             }
 
-            free(buf.data);
+            xfree(buf.data);
             break;
         }
         default: {
@@ -503,7 +503,7 @@ void imlib_median_filter(image_t *img, const int ksize, float percentile, bool t
 
     switch (img->pixfmt) {
         case PIXFORMAT_BINARY: {
-            buf.data = malloc(IMAGE_BINARY_LINE_LEN_BYTES(img) * brows);
+            buf.data = xalloc(IMAGE_BINARY_LINE_LEN_BYTES(img) * brows);
             int sum = 0;
 
             for (int y = 0, yy = img->h; y < yy; y++) {
@@ -560,12 +560,12 @@ void imlib_median_filter(image_t *img, const int ksize, float percentile, bool t
                        IMAGE_BINARY_LINE_LEN_BYTES(img));
             }
 
-            free(buf.data);
+            xfree(buf.data);
             break;
         }
         case PIXFORMAT_GRAYSCALE: {
-            buf.data = malloc(IMAGE_GRAYSCALE_LINE_LEN_BYTES(img) * brows);
-            uint8_t *data = malloc(64);
+            buf.data = xalloc(IMAGE_GRAYSCALE_LINE_LEN_BYTES(img) * brows);
+            uint8_t *data = xalloc(64);
             uint8_t pixel;
             for (int y = 0, yy = img->h; y < yy; y++) {
                 uint8_t *row_ptr = IMAGE_COMPUTE_GRAYSCALE_PIXEL_ROW_PTR(img, y);
@@ -627,15 +627,15 @@ void imlib_median_filter(image_t *img, const int ksize, float percentile, bool t
                        IMAGE_GRAYSCALE_LINE_LEN_BYTES(img));
             }
 
-            free(data);
-            free(buf.data);
+            xfree(data);
+            xfree(buf.data);
             break;
         }
         case PIXFORMAT_RGB565: {
-            buf.data = malloc(IMAGE_RGB565_LINE_LEN_BYTES(img) * brows);
-            uint8_t *r_data = malloc(32);
-            uint8_t *g_data = malloc(64);
-            uint8_t *b_data = malloc(32);
+            buf.data = xalloc(IMAGE_RGB565_LINE_LEN_BYTES(img) * brows);
+            uint8_t *r_data = xalloc(32);
+            uint8_t *g_data = xalloc(64);
+            uint8_t *b_data = xalloc(32);
             uint8_t r, g, b;
             for (int y = 0, yy = img->h; y < yy; y++) {
                 uint16_t *row_ptr = IMAGE_COMPUTE_RGB565_PIXEL_ROW_PTR(img, y);
@@ -707,17 +707,17 @@ void imlib_median_filter(image_t *img, const int ksize, float percentile, bool t
                        IMAGE_RGB565_LINE_LEN_BYTES(img));
             }
 
-            free(buf.data);
-            free(b_data);
-            free(g_data);
-            free(r_data);
+            xfree(buf.data);
+            xfree(b_data);
+            xfree(g_data);
+            xfree(r_data);
             break;
         }
         case PIXFORMAT_RGB888: {
-            buf.data = malloc(IMAGE_RGB888_LINE_LEN_BYTES(img) * brows);
-            uint8_t *r_data = malloc(256);
-            uint8_t *g_data = malloc(256);
-            uint8_t *b_data = malloc(256);
+            buf.data = xalloc(IMAGE_RGB888_LINE_LEN_BYTES(img) * brows);
+            uint8_t *r_data = xalloc(256);
+            uint8_t *g_data = xalloc(256);
+            uint8_t *b_data = xalloc(256);
             uint8_t r, g, b;
             for (int y = 0, yy = img->h; y < yy; y++) {
                 pixel24_t *row_ptr = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(img, y);
@@ -789,10 +789,10 @@ void imlib_median_filter(image_t *img, const int ksize, float percentile, bool t
                        IMAGE_RGB888_LINE_LEN_BYTES(img));
             }
 
-            free(buf.data);
-            free(b_data);
-            free(g_data);
-            free(r_data);
+            xfree(buf.data);
+            xfree(b_data);
+            xfree(g_data);
+            xfree(r_data);
             break;
         }
         default: {
@@ -830,7 +830,7 @@ void imlib_mode_filter(image_t *img, const int ksize, bool threshold, int offset
     const uint8_t n2 = (((ksize*2)+1)*((ksize*2)+1))/2;
     switch (img->pixfmt) {
         case PIXFORMAT_BINARY: {
-            buf.data = malloc(IMAGE_BINARY_LINE_LEN_BYTES(img) * brows);
+            buf.data = xalloc(IMAGE_BINARY_LINE_LEN_BYTES(img) * brows);
             int bins = 0;
 
             for (int y = 0, yy = img->h; y < yy; y++) {
@@ -888,12 +888,12 @@ void imlib_mode_filter(image_t *img, const int ksize, bool threshold, int offset
             }
 
             // fb_free();           //没有见到有申请的过程。
-            free(buf.data);
+            xfree(buf.data);
             break;
         }
         case PIXFORMAT_GRAYSCALE: {
-            buf.data =      malloc(IMAGE_GRAYSCALE_LINE_LEN_BYTES(img) * brows);
-            uint8_t *bins = malloc((COLOR_GRAYSCALE_MAX-COLOR_GRAYSCALE_MIN+1));
+            buf.data =      xalloc(IMAGE_GRAYSCALE_LINE_LEN_BYTES(img) * brows);
+            uint8_t *bins = xalloc((COLOR_GRAYSCALE_MAX-COLOR_GRAYSCALE_MIN+1));
 
             for (int y = 0, yy = img->h; y < yy; y++) {
                 uint8_t *row_ptr = IMAGE_COMPUTE_GRAYSCALE_PIXEL_ROW_PTR(img, y);
@@ -973,15 +973,15 @@ void imlib_mode_filter(image_t *img, const int ksize, bool threshold, int offset
                        IMAGE_GRAYSCALE_LINE_LEN_BYTES(img));
             }
 
-            free(bins);
-            free(buf.data);
+            xfree(bins);
+            xfree(buf.data);
             break;
         }
         case PIXFORMAT_RGB565: {
-            buf.data = malloc(IMAGE_RGB565_LINE_LEN_BYTES(img) * brows);
-            uint8_t *r_bins = malloc((COLOR_R5_MAX-COLOR_R5_MIN+1));
-            uint8_t *g_bins = malloc((COLOR_G6_MAX-COLOR_G6_MIN+1));
-            uint8_t *b_bins = malloc((COLOR_B5_MAX-COLOR_B5_MIN+1));
+            buf.data = xalloc(IMAGE_RGB565_LINE_LEN_BYTES(img) * brows);
+            uint8_t *r_bins = xalloc((COLOR_R5_MAX-COLOR_R5_MIN+1));
+            uint8_t *g_bins = xalloc((COLOR_G6_MAX-COLOR_G6_MIN+1));
+            uint8_t *b_bins = xalloc((COLOR_B5_MAX-COLOR_B5_MIN+1));
             int r_pixel, g_pixel, b_pixel;
 
             for (int y = 0, yy = img->h; y < yy; y++) {
@@ -1113,17 +1113,17 @@ void imlib_mode_filter(image_t *img, const int ksize, bool threshold, int offset
                        IMAGE_RGB565_LINE_LEN_BYTES(img));
             }
 
-            free(b_bins);
-            free(g_bins);
-            free(r_bins);
-            free(buf.data);
+            xfree(b_bins);
+            xfree(g_bins);
+            xfree(r_bins);
+            xfree(buf.data);
             break;
         }
         case PIXFORMAT_RGB888: {
-            buf.data = malloc(IMAGE_RGB888_LINE_LEN_BYTES(img) * brows);
-            uint8_t *r_bins = malloc((COLOR_R8_MAX-COLOR_R8_MIN+1));
-            uint8_t *g_bins = malloc((COLOR_G8_MAX-COLOR_G8_MIN+1));
-            uint8_t *b_bins = malloc((COLOR_B8_MAX-COLOR_B8_MIN+1));
+            buf.data = xalloc(IMAGE_RGB888_LINE_LEN_BYTES(img) * brows);
+            uint8_t *r_bins = xalloc((COLOR_R8_MAX-COLOR_R8_MIN+1));
+            uint8_t *g_bins = xalloc((COLOR_G8_MAX-COLOR_G8_MIN+1));
+            uint8_t *b_bins = xalloc((COLOR_B8_MAX-COLOR_B8_MIN+1));
             int r_pixel, g_pixel, b_pixel;
 
             for (int y = 0, yy = img->h; y < yy; y++) {
@@ -1237,7 +1237,7 @@ void imlib_mode_filter(image_t *img, const int ksize, bool threshold, int offset
                         } // for k
                     } // for j
                     } // slow/fast way
-                    pixel = COLOR_R5_G6_B5_TO_RGB888(r_mode, g_mode, b_mode);
+                    pixel = COLOR_R8_G8_B8_TO_RGB888(r_mode, g_mode, b_mode);
                     IMAGE_PUT_RGB888_PIXEL_FAST(buf_row_ptr, x, pixel);
                 }
 
@@ -1255,10 +1255,10 @@ void imlib_mode_filter(image_t *img, const int ksize, bool threshold, int offset
                        IMAGE_RGB888_LINE_LEN_BYTES(img));
             }
 
-            free(b_bins);
-            free(g_bins);
-            free(r_bins);
-            free(buf.data);
+            xfree(b_bins);
+            xfree(g_bins);
+            xfree(r_bins);
+            xfree(buf.data);
             break;
         }
         default: {
@@ -1279,14 +1279,14 @@ void imlib_midpoint_filter(image_t *img, const int ksize, float bias, bool thres
     uint8_t *u8BiasTable;
     float max_bias = bias, min_bias = 1.0f - bias;
 
-    u8BiasTable = malloc(256);
+    u8BiasTable = xalloc(256);
     for (int i=0; i<256; i++) {
         u8BiasTable[i] = (uint8_t)fast_floorf((float)i * bias);
     }
 
     switch (img->pixfmt) {
         case PIXFORMAT_BINARY: {
-            buf.data = malloc(IMAGE_BINARY_LINE_LEN_BYTES(img) * brows);
+            buf.data = xalloc(IMAGE_BINARY_LINE_LEN_BYTES(img) * brows);
 
             for (int y = 0, yy = img->h; y < yy; y++) {
                 uint32_t *row_ptr = IMAGE_COMPUTE_BINARY_PIXEL_ROW_PTR(img, y);
@@ -1340,7 +1340,7 @@ void imlib_midpoint_filter(image_t *img, const int ksize, float bias, bool thres
                     memcpy(IMAGE_COMPUTE_BINARY_PIXEL_ROW_PTR(img, (y - ksize)),
                            IMAGE_COMPUTE_BINARY_PIXEL_ROW_PTR(&buf, ((y - ksize) % brows)),
                            IMAGE_BINARY_LINE_LEN_BYTES(img));
-                }buf.data
+                }
             }
 
             // Copy any remaining lines from the buffer image...
@@ -1350,11 +1350,11 @@ void imlib_midpoint_filter(image_t *img, const int ksize, float bias, bool thres
                        IMAGE_BINARY_LINE_LEN_BYTES(img));
             }
 
-            free(buf.data);
+            xfree(buf.data);
             break;
         }
         case PIXFORMAT_GRAYSCALE: {
-            buf.data = malloc(IMAGE_GRAYSCALE_LINE_LEN_BYTES(img) * brows);
+            buf.data = xalloc(IMAGE_GRAYSCALE_LINE_LEN_BYTES(img) * brows);
 
             for (int y = 0, yy = img->h; y < yy; y++) {
                 uint8_t *row_ptr = IMAGE_COMPUTE_GRAYSCALE_PIXEL_ROW_PTR(img, y);
@@ -1417,11 +1417,11 @@ void imlib_midpoint_filter(image_t *img, const int ksize, float bias, bool thres
                        IMAGE_GRAYSCALE_LINE_LEN_BYTES(img));
             }
 
-            free(buf.data);
+            xfree(buf.data);
             break;
         }
         case PIXFORMAT_RGB565: {
-            buf.data = malloc(IMAGE_RGB565_LINE_LEN_BYTES(img) * brows);
+            buf.data = xalloc(IMAGE_RGB565_LINE_LEN_BYTES(img) * brows);
 
             for (int y = 0, yy = img->h; y < yy; y++) {
                 uint16_t *row_ptr = IMAGE_COMPUTE_RGB565_PIXEL_ROW_PTR(img, y);
@@ -1503,11 +1503,11 @@ void imlib_midpoint_filter(image_t *img, const int ksize, float bias, bool thres
                        IMAGE_RGB565_LINE_LEN_BYTES(img));
             }
 
-            free(buf.data);
+            xfree(buf.data);
             break;
         }
         case PIXFORMAT_RGB888: {
-            buf.data = malloc(IMAGE_RGB888_LINE_LEN_BYTES(img) * brows);
+            buf.data = xalloc(IMAGE_RGB888_LINE_LEN_BYTES(img) * brows);
 
             for (int y = 0, yy = img->h; y < yy; y++) {
                 pixel24_t *row_ptr = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(img, y);
@@ -1589,14 +1589,14 @@ void imlib_midpoint_filter(image_t *img, const int ksize, float bias, bool thres
                        IMAGE_RGB888_LINE_LEN_BYTES(img));
             }
 
-            free(buf.data);
+            xfree(buf.data);
             break;
         }
         default: {
             break;
         }
     }
-    free(u8BiasTable);
+    xfree(u8BiasTable);
 }
 #endif // IMLIB_ENABLE_MIDPOINT
 
@@ -1613,7 +1613,7 @@ void imlib_morph(image_t *img, const int ksize, const int *krn, const float m, c
 
     switch (img->pixfmt) {
         case PIXFORMAT_BINARY: {
-            buf.data = malloc(IMAGE_BINARY_LINE_LEN_BYTES(img) * brows);
+            buf.data = xalloc(IMAGE_BINARY_LINE_LEN_BYTES(img) * brows);
 
             for (int y = 0, yy = img->h; y < yy; y++) {
                 uint32_t *row_ptr = IMAGE_COMPUTE_BINARY_PIXEL_ROW_PTR(img, y);
@@ -1675,11 +1675,11 @@ void imlib_morph(image_t *img, const int ksize, const int *krn, const float m, c
                        IMAGE_BINARY_LINE_LEN_BYTES(img));
             }
 
-            free(buf.data);
+            xfree(buf.data);
             break;
         }
         case PIXFORMAT_GRAYSCALE: {
-            buf.data = alloc(IMAGE_GRAYSCALE_LINE_LEN_BYTES(img) * brows);
+            buf.data = xalloc(IMAGE_GRAYSCALE_LINE_LEN_BYTES(img) * brows);
 
             for (int y = 0, yy = img->h; y < yy; y++) {
                 uint8_t *row_ptr = IMAGE_COMPUTE_GRAYSCALE_PIXEL_ROW_PTR(img, y);
@@ -1741,11 +1741,11 @@ void imlib_morph(image_t *img, const int ksize, const int *krn, const float m, c
                        IMAGE_GRAYSCALE_LINE_LEN_BYTES(img));
             }
 
-            free(buf.data);
+            xfree(buf.data);
             break;
         }
         case PIXFORMAT_RGB565: {
-            buf.data = malloc(IMAGE_RGB565_LINE_LEN_BYTES(img) * brows);
+            buf.data = xalloc(IMAGE_RGB565_LINE_LEN_BYTES(img) * brows);
 
             for (int y = 0, yy = img->h; y < yy; y++) {
                 uint16_t *row_ptr = IMAGE_COMPUTE_RGB565_PIXEL_ROW_PTR(img, y);
@@ -1822,11 +1822,11 @@ void imlib_morph(image_t *img, const int ksize, const int *krn, const float m, c
                        IMAGE_RGB565_LINE_LEN_BYTES(img));
             }
 
-            free(buf.data);
+            xfree(buf.data);
             break;
         }
         case PIXFORMAT_RGB888: {
-            buf.data = malloc(IMAGE_RGB888_LINE_LEN_BYTES(img) * brows);
+            buf.data = xalloc(IMAGE_RGB888_LINE_LEN_BYTES(img) * brows);
 
             for (int y = 0, yy = img->h; y < yy; y++) {
                 pixel24_t *row_ptr = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(img, y);
@@ -1903,7 +1903,7 @@ void imlib_morph(image_t *img, const int ksize, const int *krn, const float m, c
                        IMAGE_RGB888_LINE_LEN_BYTES(img));
             }
 
-            free(buf.data);
+            xfree(buf.data);
             break;
         }
         default: {
@@ -1933,8 +1933,8 @@ void imlib_bilateral_filter(image_t *img, const int ksize, float color_sigma, fl
 
     switch (img->pixfmt) {
         case PIXFORMAT_BINARY: {
-            buf.data = malloc(IMAGE_BINARY_LINE_LEN_BYTES(img) * brows);
-            float *gi_lut_ptr = malloc((COLOR_BINARY_MAX - COLOR_BINARY_MIN + 1) * sizeof(float) *2);
+            buf.data = xalloc(IMAGE_BINARY_LINE_LEN_BYTES(img) * brows);
+            float *gi_lut_ptr = xalloc((COLOR_BINARY_MAX - COLOR_BINARY_MIN + 1) * sizeof(float) *2);
             float *gi_lut = &gi_lut_ptr[1];
             float max_color = IM_DIV(1.0f, COLOR_BINARY_MAX - COLOR_BINARY_MIN);
             for (int i = COLOR_BINARY_MIN; i <= COLOR_BINARY_MAX; i++) {
@@ -1942,7 +1942,7 @@ void imlib_bilateral_filter(image_t *img, const int ksize, float color_sigma, fl
             }
 
             int n = (ksize * 2) + 1;
-            float *gs_lut = malloc(n * n * sizeof(float));
+            float *gs_lut = xalloc(n * n * sizeof(float));
 
             float max_space = IM_DIV(1.0f, distance(ksize, ksize));
             for (int y = -ksize; y <= ksize; y++) {
@@ -2004,14 +2004,14 @@ void imlib_bilateral_filter(image_t *img, const int ksize, float color_sigma, fl
                        IMAGE_BINARY_LINE_LEN_BYTES(img));
             }
 
-            free(gs_lut);
-            free(gi_lut_ptr);
-            free(buf.data);
+            xfree(gs_lut);
+            xfree(gi_lut_ptr);
+            xfree(buf.data);
             break;
         }
         case PIXFORMAT_GRAYSCALE: {
-            buf.data = malloc(IMAGE_GRAYSCALE_LINE_LEN_BYTES(img) * brows);
-            float *gi_lut_ptr = malloc((COLOR_GRAYSCALE_MAX - COLOR_GRAYSCALE_MIN + 1) * sizeof(float) * 2);
+            buf.data = xalloc(IMAGE_GRAYSCALE_LINE_LEN_BYTES(img) * brows);
+            float *gi_lut_ptr = xalloc((COLOR_GRAYSCALE_MAX - COLOR_GRAYSCALE_MIN + 1) * sizeof(float) * 2);
             float *gi_lut = &gi_lut_ptr[256]; // point to the middle
             float max_color = IM_DIV(1.0f, COLOR_GRAYSCALE_MAX - COLOR_GRAYSCALE_MIN);
             for (int i = COLOR_GRAYSCALE_MIN; i <= COLOR_GRAYSCALE_MAX; i++) {
@@ -2019,7 +2019,7 @@ void imlib_bilateral_filter(image_t *img, const int ksize, float color_sigma, fl
             }
 
             int n = (ksize * 2) + 1;
-            float *gs_lut = malloc(n * n * sizeof(float));
+            float *gs_lut = xalloc(n * n * sizeof(float));
 
             float max_space = IM_DIV(1.0f, distance(ksize, ksize));
             for (int y = -ksize; y <= ksize; y++) {
@@ -2093,15 +2093,15 @@ void imlib_bilateral_filter(image_t *img, const int ksize, float color_sigma, fl
                        IMAGE_GRAYSCALE_LINE_LEN_BYTES(img));
             }
 
-            free(gs_lut);
-            free(gi_lut_ptr);
-            free(buf.data);
+            xfree(gs_lut);
+            xfree(gi_lut_ptr);
+            xfree(buf.data);
             break;
         }
         case PIXFORMAT_RGB565: {
-            buf.data = malloc(IMAGE_RGB565_LINE_LEN_BYTES(img) * brows);
-            float *rb_gi_ptr = malloc((COLOR_R5_MAX - COLOR_R5_MIN + 1) * sizeof(float) *2);
-            float *g_gi_ptr = malloc((COLOR_G6_MAX - COLOR_G6_MIN + 1) * sizeof(float) *2);
+            buf.data = xalloc(IMAGE_RGB565_LINE_LEN_BYTES(img) * brows);
+            float *rb_gi_ptr = xalloc((COLOR_R5_MAX - COLOR_R5_MIN + 1) * sizeof(float) *2);
+            float *g_gi_ptr = xalloc((COLOR_G6_MAX - COLOR_G6_MIN + 1) * sizeof(float) *2);
             float *rb_gi_lut = &rb_gi_ptr[32]; // center
             float *g_gi_lut = &g_gi_ptr[64];
 
@@ -2116,7 +2116,7 @@ void imlib_bilateral_filter(image_t *img, const int ksize, float color_sigma, fl
             }
 
             int n = (ksize * 2) + 1;
-            float *gs_lut = malloc(n * n * sizeof(float));
+            float *gs_lut = xalloc(n * n * sizeof(float));
 
             float max_space = IM_DIV(1.0f, distance(ksize, ksize));
             for (int y = -ksize; y <= ksize; y++) {
@@ -2216,17 +2216,17 @@ void imlib_bilateral_filter(image_t *img, const int ksize, float color_sigma, fl
                        IMAGE_COMPUTE_RGB565_PIXEL_ROW_PTR(&buf, (y % brows)),
                        IMAGE_RGB565_LINE_LEN_BYTES(img));
             }
-            free(gs_lut);
-            free(g_gi_ptr);
-            free(rb_gi_ptr);
-            free(buf.data);
+            xfree(gs_lut);
+            xfree(g_gi_ptr);
+            xfree(rb_gi_ptr);
+            xfree(buf.data);
             break;
         }
         case PIXFORMAT_RGB888: {
-            buf.data = malloc(IMAGE_RGB888_LINE_LEN_BYTES(img) * brows);
-            float *rb_gi_ptr = malloc((COLOR_R8_MAX - COLOR_R8_MIN + 1) * sizeof(float) *3);
-            float *g_gi_ptr = malloc((COLOR_G8_MAX - COLOR_G8_MIN + 1) * sizeof(float) *3);
-            float *b_gi_ptr = malloc((COLOR_B8_MAX - COLOR_B8_MIN + 1) * sizeof(float) *3);
+            buf.data = xalloc(IMAGE_RGB888_LINE_LEN_BYTES(img) * brows);
+            float *rb_gi_ptr = xalloc((COLOR_R8_MAX - COLOR_R8_MIN + 1) * sizeof(float) *3);
+            float *g_gi_ptr = xalloc((COLOR_G8_MAX - COLOR_G8_MIN + 1) * sizeof(float) *3);
+            float *b_gi_ptr = xalloc((COLOR_B8_MAX - COLOR_B8_MIN + 1) * sizeof(float) *3);
             float *rb_gi_lut = &rb_gi_ptr[256]; // center
             float *g_gi_lut = &g_gi_ptr[256];
             float *b_gi_lut = &b_gi_ptr[256]; // center
@@ -2242,7 +2242,7 @@ void imlib_bilateral_filter(image_t *img, const int ksize, float color_sigma, fl
             }
 
             int n = (ksize * 2) + 1;
-            float *gs_lut = malloc(n * n * sizeof(float));
+            float *gs_lut = xalloc(n * n * sizeof(float));
 
             float max_space = IM_DIV(1.0f, distance(ksize, ksize));
             for (int y = -ksize; y <= ksize; y++) {
@@ -2342,11 +2342,11 @@ void imlib_bilateral_filter(image_t *img, const int ksize, float color_sigma, fl
                        IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(&buf, (y % brows)),
                        IMAGE_RGB888_LINE_LEN_BYTES(img));
             }
-            free(b_gi_ptr);
-            free(gs_lut);
-            free(gs_lut);
-            free(gi_lut_ptr);
-            free(buf.data);
+            xfree(b_gi_ptr);
+            xfree(gs_lut);
+            xfree(gs_lut);
+            xfree(gi_lut_ptr);
+            xfree(buf.data);
             break;
         }
         default: {
@@ -2460,12 +2460,12 @@ void imlib_cartoon_filter(image_t *img, float seed_threshold, float floating_thr
     mean_image.w = img->w;
     mean_image.h = img->h;
     mean_image.pixfmt = PIXFORMAT_BINARY;
-    mean_image.pixels = malloc(image_size(&mean_image));
+    mean_image.pixels = xalloc(image_size(&mean_image));
 
     fill_image.w = img->w;
     fill_image.h = img->h;
     fill_image.pixfmt = PIXFORMAT_BINARY;
-    fill_image.pixels = malloc(image_size(&fill_image));
+    fill_image.pixels = xalloc(image_size(&fill_image));
 
     if (mask) {
         for (int y = 0, yy = fill_image.h; y < yy; y++) {
@@ -2558,7 +2558,7 @@ void imlib_cartoon_filter(image_t *img, float seed_threshold, float floating_thr
         }
     }
 
-    free(fill_image.pixels);
-    free(mean_image.pixels);
+    xfree(fill_image.pixels);
+    xfree(mean_image.pixels);
 }
 #endif // IMLIB_ENABLE_CARTOON

@@ -13,7 +13,7 @@
 
 point_t *point_alloc(int16_t x, int16_t y)
 {
-    point_t *p = malloc(sizeof(point_t));
+    point_t *p = xalloc(sizeof(point_t));
     p->x = x;
     p->y = y;
     return p;

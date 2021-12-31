@@ -14,7 +14,7 @@
 #include <string.h>
 #include "imlib.h"
 // #include "fb_alloc.h"
-// #include "xalloc.h"
+#include "xalloc.h"
 
 #ifdef IMLIB_ENABLE_HOG
 #define N_BINS      (9)
@@ -46,7 +46,7 @@ void imlib_find_hog(image_t *src, rectangle_t *roi, int cell_size)
     int y_cells = (roi->h/cell_size);
 
     // TODO: Assert row->w/h >= cell_size *2;
-    float *hog = malloc(x_cells * y_cells * N_BINS * sizeof*hog);
+    float *hog = xalloc(x_cells * y_cells * N_BINS * sizeof*hog);
 
     //2. Finding Image Gradients
     for (int y=roi->y, hog_index=0; y<h; y+=block_size) {
@@ -130,7 +130,7 @@ void imlib_find_hog(image_t *src, rectangle_t *roi, int cell_size)
         }
     }
 
-    free(gds);
-    free(hog);
+    xfree(gds);
+    xfree(hog);
 }
 #endif // IMLIB_ENABLE_HOG

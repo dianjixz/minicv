@@ -67,23 +67,23 @@ void imlib_integral_mw_alloc(mw_image_t *sum, int w, int h)
     sum->y_offs = 0;
     sum->x_ratio = (1<<16)+1;
     sum->y_ratio = (1<<16)+1;
-    sum->data = malloc(h * sizeof(*sum->data));
+    sum->data = xalloc(h * sizeof(*sum->data));
     // swap is used when shifting the image pointers
     // to avoid overwriting the image rows in sum->data
-    sum->swap = malloc(h * sizeof(*sum->data));
+    sum->swap = xalloc(h * sizeof(*sum->data));
 
     for (int i=0; i<h; i++) {
-        sum->data[i] = malloc(w * sizeof(**sum->data));
+        sum->data[i] = xalloc(w * sizeof(**sum->data));
     }
 }
 
 void imlib_integral_mw_free(mw_image_t *sum)
 {
     for (int i=0; i<sum->h; i++) {
-        free(sum->data[i]);  // Free h lines
+        xfree(sum->data[i]);  // Free h lines
     }
-    free(sum->data);  // Free data
-    free(sum->swap);  // Free swap
+    xfree(sum->data);  // Free data
+    xfree(sum->swap);  // Free swap
 }
 
 void imlib_integral_mw_scale(rectangle_t *roi, mw_image_t *sum, int w, int h)

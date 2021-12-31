@@ -8,7 +8,7 @@
  */
 #include "imlib_config.h"
 
-
+// #define IMLIB_ENABLE_IMAGE_FILE_IO
 
 #if defined(IMLIB_ENABLE_IMAGE_FILE_IO)
 
@@ -22,73 +22,75 @@
 #include "ff_wrapper.h"
 #define FF_MIN(x,y) (((x)<(y))?(x):(y))
 
-NORETURN static void ff_fail(FIL *fp, FRESULT res)
+static void ff_fail(FIL *fp, uint32_t res)
 {
-    if (fp) f_close(fp);
-    mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT(ffs_strerror(res)));
+    if (fp) fclose(fp);
+    // mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT(ffs_strerror(res)));
 }
 
-NORETURN static void ff_read_fail(FIL *fp)
+static void ff_read_fail(FIL *fp)
 {
-    if (fp) f_close(fp);
-    mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT("Failed to read requested bytes!"));
+    if (fp) fclose(fp);
+    // mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT("Failed to read requested bytes!"));
 }
 
-NORETURN static void ff_write_fail(FIL *fp)
+static void ff_write_fail(FIL *fp)
 {
-    if (fp) f_close(fp);
-    mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT("Failed to write requested bytes!"));
+    if (fp) fclose(fp);
+    // mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT("Failed to write requested bytes!"));
 }
 
-NORETURN static void ff_expect_fail(FIL *fp)
+ static void ff_expect_fail(FIL *fp)
 {
-    if (fp) f_close(fp);
-    mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT("Unexpected value read!"));
+    if (fp) fclose(fp);
+    // mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT("Unexpected value read!"));
 }
 
-NORETURN void ff_unsupported_format(FIL *fp)
+ void ff_unsupported_format(FIL *fp)
 {
-    if (fp) f_close(fp);
-    mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT("Unsupported format!"));
+    if (fp) fclose(fp);
+    // mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT("Unsupported format!"));
 }
 
-NORETURN void ff_file_corrupted(FIL *fp)
+ void ff_file_corrupted(FIL *fp)
 {
-    if (fp) f_close(fp);
-    mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT("File corrupted!"));
+    if (fp) fclose(fp);
+    // mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT("File corrupted!"));
 }
 
-NORETURN void ff_not_equal(FIL *fp)
+ void ff_not_equal(FIL *fp)
 {
-    if (fp) f_close(fp);
-    mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT("Images not equal!"));
+    if (fp) fclose(fp);
+    // mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT("Images not equal!"));
 }
 
-NORETURN void ff_no_intersection(FIL *fp)
+ void ff_no_intersection(FIL *fp)
 {
-    if (fp) f_close(fp);
-    mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT("No intersection!"));
+    if (fp) fclose(fp);
+    // mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT("No intersection!"));
 }
 
 void file_read_open(FIL *fp, const char *path)
 {
-    *fp = fopen(path, "rb");
+    fp = fopen(path, "rb");
+    if(NULL == fp) ff_fail(fp, 0);
     // FRESULT res = f_open_helper(fp, path, FA_READ|FA_OPEN_EXISTING);
     // if (res != FR_OK) ff_fail(fp, res);
 }
 
 void file_write_open(FIL *fp, const char *path)
 {
-    *fp = fopen(path, "wb");
+    fp = fopen(path, "wb");
+    if(NULL == fp) ff_fail(fp, 0);
     // FRESULT res = f_open_helper(fp, path, FA_WRITE|FA_CREATE_ALWAYS);
     // if (res != FR_OK) ff_fail(fp, res);
 }
 
 void file_close(FIL *fp)
 {
-    if(NULL != *fp)
+    if(NULL != fp)
     {
-        fclose(*fp);
+        fclose(fp);
     }
     // FRESULT res = f_close(fp);
     // if (res != FR_OK) ff_fail(fp, res);
@@ -96,7 +98,7 @@ void file_close(FIL *fp)
 
 void file_seek(FIL *fp, size_t offset)
 {
-    fseek(*fp, offset, SEEK_SET);
+    fseek(fp, offset, SEEK_SET);
     // FRESULT res = f_lseek(fp, offset);
     // if (res != FR_OK) ff_fail(fp, res);
 }

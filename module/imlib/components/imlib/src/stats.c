@@ -139,11 +139,11 @@ void imlib_get_similarity(image_t *img, const char *path, image_t *other, int sc
 
     int int_h_blocks = h_blocks * sizeof(int);
     imlib_similatiry_line_op_state_t state;
-    state.sumBucketsOfX =  malloc(int_h_blocks );
-    state.sumBucketsOfY =  malloc(int_h_blocks );
-    state.sum2BucketsOfX = malloc(int_h_blocks);
-    state.sum2BucketsOfY = malloc(int_h_blocks);
-    state.sum2Buckets =    malloc(int_h_blocks   );
+    state.sumBucketsOfX =  xalloc(int_h_blocks );
+    state.sumBucketsOfY =  xalloc(int_h_blocks );
+    state.sum2BucketsOfX = xalloc(int_h_blocks);
+    state.sum2BucketsOfY = xalloc(int_h_blocks);
+    state.sum2Buckets =    xalloc(int_h_blocks   );
     state.similarity_sum = 0.0f;
     state.similarity_sum_2 = 0.0f;
     state.similarity_min = FLT_MAX;
@@ -156,11 +156,11 @@ void imlib_get_similarity(image_t *img, const char *path, image_t *other, int sc
     *min = state.similarity_min;
     *max = state.similarity_max;
 
-    free(state.sum2Buckets);
-    free(state.sum2BucketsOfY);
-    free(state.sum2BucketsOfX );
-    free(state.sumBucketsOfY);
-    free(state.sumBucketsOfX);
+    xfree(state.sum2Buckets);
+    xfree(state.sum2BucketsOfY);
+    xfree(state.sum2BucketsOfX );
+    xfree(state.sumBucketsOfY);
+    xfree(state.sumBucketsOfX);
 }
 #endif //IMLIB_ENABLE_GET_SIMILARITY
 
@@ -1332,13 +1332,13 @@ bool imlib_get_regression(find_lines_list_lnk_data_t *out, image_t *ptr, rectang
     }
     else
     {                                                                         // Theil-Sen Estimator
-        int *x_histogram =             malloc(ptr->w * sizeof(int)            ); // Not roi so we don't have to adjust, we can burn the RAM.
-        int *y_histogram =             malloc(ptr->h * sizeof(int)            ); // Not roi so we don't have to adjust, we can burn the RAM.
-        long long *x_delta_histogram = malloc((2 * ptr->w) * sizeof(long long)); // Not roi so we don't have to adjust, we can burn the RAM.
-        long long *y_delta_histogram = malloc((2 * ptr->h) * sizeof(long long)); // Not roi so we don't have to adjust, we can burn the RAM.
+        int *x_histogram =             xalloc(ptr->w * sizeof(int)            ); // Not roi so we don't have to adjust, we can burn the RAM.
+        int *y_histogram =             xalloc(ptr->h * sizeof(int)            ); // Not roi so we don't have to adjust, we can burn the RAM.
+        long long *x_delta_histogram = xalloc((2 * ptr->w) * sizeof(long long)); // Not roi so we don't have to adjust, we can burn the RAM.
+        long long *y_delta_histogram = xalloc((2 * ptr->h) * sizeof(long long)); // Not roi so we don't have to adjust, we can burn the RAM.
 
         uint32_t size;
-        point_t *points = (point_t *)fb_alloc_all(&size, FB_ALLOC_NO_HINT);
+        point_t *points = (point_t *)xalloc_all(&size);
         size_t points_max = size / sizeof(point_t);
         size_t points_count = 0;
 
@@ -1543,11 +1543,11 @@ bool imlib_get_regression(find_lines_list_lnk_data_t *out, image_t *ptr, rectang
             }
         }
 
-        free(points); // points
-        free(y_delta_histogram); // y_delta_histogram
-        free(x_delta_histogram); // x_delta_histogram
-        free(y_histogram); // y_histogram
-        free(x_histogram); // x_histogram
+        xfree(points); // points
+        xfree(y_delta_histogram); // y_delta_histogram
+        xfree(x_delta_histogram); // x_delta_histogram
+        xfree(y_histogram); // y_histogram
+        xfree(x_histogram); // x_histogram
     }
 
     return result;

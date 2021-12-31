@@ -12,7 +12,7 @@
 // #include <ff.h>
 #include <stdio.h>
 
-typedef FILE* FIL;
+typedef FILE FIL;
 // extern const char *ffs_strerror(FRESULT res);
 
 //OOFATFS wrappers

@@ -341,7 +341,7 @@ int ini_parse_stream(ini_reader reader, void* stream, ini_handler handler,
     int error = 0;
 
 #if !INI_USE_STACK
-    line = (char*)malloc(INI_INITIAL_ALLOC);
+    line = (char*)xalloc(INI_INITIAL_ALLOC);
     if (!line) {
         return -2;
     }
@@ -361,9 +361,9 @@ int ini_parse_stream(ini_reader reader, void* stream, ini_handler handler,
             max_line *= 2;
             if (max_line > INI_MAX_LINE)
                 max_line = INI_MAX_LINE;
-            new_line = realloc(line, max_line);
+            new_line = xrealloc(line, max_line);
             if (!new_line) {
-                free(line);
+                xfree(line);
                 return -2;
             }
             line = new_line;
@@ -445,7 +445,7 @@ int ini_parse_stream(ini_reader reader, void* stream, ini_handler handler,
     }
 
 #if !INI_USE_STACK
-    free(line);
+    xfree(line);
 #endif
 
     return error;

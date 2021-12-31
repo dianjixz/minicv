@@ -15,7 +15,7 @@
 #include <stdint.h>
 #include "imlib.h"
 #include "xalloc.h"
-#include "fb_alloc.h"
+// #include "fb_alloc.h"
 // #include "gc.h"
 
 #define MAX_ROW         (480)
@@ -86,7 +86,7 @@ void agast_detect(image_t *image, array_t *keypoints, int threshold, rectangle_t
     }
 
     // Free corners;
-    fb_free();
+    xfree(corners);
 }
 
 static void nonmax_suppression(corner_t *corners, int num_corners, array_t *keypoints)
@@ -210,8 +210,9 @@ static corner_t *agast58_detect(image_t *img, int b, int* num_corners, rectangle
 	width=s_width;
 
     // Try to alloc MAX_CORNERS or the actual max corners we can alloc.
-    int max_corners = IM_MIN(MAX_CORNERS, (fb_avail() / sizeof(corner_t)));
-    corner_t *corners = (corner_t*) fb_alloc(max_corners * sizeof(corner_t), FB_ALLOC_NO_HINT);
+    // int max_corners = IM_MIN(MAX_CORNERS, (fb_avail() / sizeof(corner_t)));
+	int max_corners = MAX_CORNERS;
+    corner_t *corners = (corner_t*) xalloc(max_corners * sizeof(corner_t));
 
 	for(y=roi->y+1; y < ysizeB; y++)
 	{										

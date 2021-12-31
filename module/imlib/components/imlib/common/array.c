@@ -11,11 +11,7 @@
 #include <string.h>
 // #include "py/runtime.h"
 // #include "py/stackctrl.h"
-// #include "xalloc.h"
-
-#define xalloc malloc
-#define xfree free
-
+#include "xalloc.h"
 #include "array.h"
 #define ARRAY_INIT_SIZE (4) // Size of one GC block.
 
@@ -46,7 +42,7 @@ void array_clear(array_t *array)
             array->dtor(array->data[i]);
         }
     }
-    free(array->data);
+    xfree(array->data);
     array->index = 0;
     array->length = 0;
     array->data = NULL;
@@ -57,7 +53,7 @@ void array_clear(array_t *array)
 void array_free(array_t *array)
 {
     array_clear(array);
-    free(array);
+    xfree(array);
 }
 
 int array_length(array_t *array)

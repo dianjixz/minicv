@@ -928,12 +928,12 @@ void imlib_lens_corr(image_t *img, float strength, float zoom, float x_corr, flo
 
     // Create a tmp copy of the image to pull pixels from.
     size_t size = image_size(img);
-    void *data = malloc(size);
+    void *data = xalloc(size);
     memcpy(data, img->data, size);
     memset(img->data, 0, size);
 
     int maximum_radius = fast_ceilf(maximum_diameter / 2) + 1; // +1 inclusive of final value
-    float *precalculated_table = malloc(maximum_radius * sizeof(float));
+    float *precalculated_table = xalloc(maximum_radius * sizeof(float));
 
     for(int i=0; i < maximum_radius; i++) {
         float r = lens_corr_diameter * i;
@@ -1154,8 +1154,8 @@ void imlib_lens_corr(image_t *img, float strength, float zoom, float x_corr, flo
             break;
         }
     }
-    free(precalculated_table); // precalculated_table
-    free(data); // data
+    xfree(precalculated_table); // precalculated_table
+    xfree(data); // data
 }
 #endif //IMLIB_ENABLE_LENS_CORR
 
@@ -1248,7 +1248,7 @@ void imlib_sepconv3(image_t *img, const int8_t *krn, const float m, const int b)
 {
     int ksize = 3;
     // TODO: Support RGB
-    int *buffer = (int*)malloc(img->w * sizeof(*buffer) * 2);
+    int *buffer = (int*)xalloc(img->w * sizeof(*buffer) * 2);
 
     // NOTE: This doesn't deal with borders right now. Adding if
     // statements in the inner loop will slow it down significantly.
@@ -1274,5 +1274,5 @@ void imlib_sepconv3(image_t *img, const int8_t *krn, const float m, const int b)
             }
         }
     }
-    free(buffer);
+    xfree(buffer);
 }

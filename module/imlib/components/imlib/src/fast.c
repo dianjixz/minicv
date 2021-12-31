@@ -32,7 +32,7 @@
 #include <stdio.h>
 #include "imlib.h"
 #include "xalloc.h"
-#include "fb_alloc.h"
+// #include "fb_alloc.h"
 // #include "gc.h"
 
 #ifdef IMLIB_ENABLE_FAST
@@ -97,7 +97,7 @@ void fast_detect(image_t *image, array_t *keypoints, int threshold, rectangle_t 
     }
 
     // Free corners;
-    fb_free();
+    xfree(corners);
 }
 
 static void nonmax_suppression(corner_t *corners, int num_corners, array_t *keypoints)
@@ -181,17 +181,17 @@ static void nonmax_suppression(corner_t *corners, int num_corners, array_t *keyp
             }
         }
 
-        gc_info(&info);
+        // gc_info(&info);
         #define MIN_MEM (10*1024)
         // Allocate keypoints until we're almost out of memory
-        if (info.free < MIN_MEM) {
+        // if (info.free < MIN_MEM) {
             // Try collecting memory
-            gc_collect();
+            // gc_collect();
             // If it didn't work break
-            gc_info(&info);
-            if (info.free < MIN_MEM) {
-                break;
-            }
+            // gc_info(&info);
+            // if (info.free < MIN_MEM) {
+                // break;
+            // }
         }
 
         #undef MIN_MEM
@@ -3144,8 +3144,8 @@ static corner_t *fast9_detect(image_t *image, rectangle_t *roi, int *n_corners, 
 {
     int num_corners = 0;
     // Try to alloc MAX_CORNERS or the actual max corners we can alloc.
-    int max_corners = IM_MIN(MAX_CORNERS, (fb_avail() / sizeof(corner_t)));
-    corner_t *corners = (corner_t*) fb_alloc(max_corners * sizeof(corner_t), FB_ALLOC_NO_HINT);
+    // int max_corners = IM_MIN(MAX_CORNERS, (fb_avail() / sizeof(corner_t)));
+    corner_t *corners = (corner_t*) xalloc(max_corners * sizeof(corner_t));
 
     for(int y=roi->y+3; y<roi->y+roi->h-3; y++) {
         for(int x=roi->x+3; x<roi->x+roi->w-3; x++) {

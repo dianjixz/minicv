@@ -173,7 +173,7 @@ static void segment_graph(universe *u, int num_vertices, int num_edges, edge *ed
 {
     qsort (edges, num_edges, sizeof(edge), comp);
 
-    float *threshold = malloc(num_vertices * sizeof(float));
+    float *threshold = xalloc(num_vertices * sizeof(float));
     for (int i=0; i<num_vertices; i++) {
         threshold[i] = THRESHOLD(1, c);
     }
@@ -192,7 +192,7 @@ static void segment_graph(universe *u, int num_vertices, int num_edges, edge *ed
     }
 
     // Free thresholds.
-    free(threshold);
+    xfree(threshold);
 }
 
 static void image_scale(image_t *src, image_t *dst)

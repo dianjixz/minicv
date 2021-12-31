@@ -102,7 +102,7 @@ int CLAHE (kz_pixel_t* pImage, unsigned int uiXRes, unsigned int uiYRes,
     if (fCliplimit == 1.0) return 0;      /* is OK, immediately returns original image. */
     if (uiNrBins == 0) uiNrBins = 128;    /* default value when not specified */
 
-    pulMapArray=(unsigned long *)fb_alloc(sizeof(unsigned long)*uiNrX*uiNrY*uiNrBins, FB_ALLOC_NO_HINT);
+    pulMapArray=(unsigned long *)xalloc(sizeof(unsigned long)*uiNrX*uiNrY*uiNrBins);
     if (pulMapArray == 0) return -8;      /* Not enough memory! (try reducing uiNrBins) */
 
     uiXSize = uiXRes/uiNrX; uiYSize = uiYRes/uiNrY;  /* Actual size of contextual regions */
@@ -160,7 +160,7 @@ int CLAHE (kz_pixel_t* pImage, unsigned int uiXRes, unsigned int uiYRes,
         }
         pImPointer += (uiSubY - 1) * uiXRes;
     }
-    fb_free();                                            /* free space for histograms */
+    xfree(pulMapArray);                                            /* free space for histograms */
     return 0;                                             /* return status OK */
 }
 
@@ -327,7 +327,7 @@ void imlib_clahe_histeq(image_t *img, float clip_limit, image_t *mask)
     temp.w = img->w;
     temp.h = img->h;
     temp.pixfmt = img->pixfmt;
-    temp.data = fb_alloc0(pImageW * pImageH * sizeof(kz_pixel_t), FB_ALLOC_NO_HINT);
+    temp.data = xalloc0(pImageW * pImageH * sizeof(kz_pixel_t));
 
     switch (img->pixfmt) {
         case PIXFORMAT_BINARY: {
@@ -359,6 +359,17 @@ void imlib_clahe_histeq(image_t *img, float clip_limit, image_t *mask)
                 for (int x = 0, xx = img->w; x < xx; x++) {
                     IMAGE_PUT_GRAYSCALE_PIXEL_FAST(clahe_row_ptr, x + xOffset,
                         COLOR_RGB565_TO_GRAYSCALE(IMAGE_GET_RGB565_PIXEL_FAST(row_ptr, x)));
+                }
+            }
+            break;
+        }
+        case PIXFORMAT_RGB888: {
+            for (int y = 0, yy = img->h; y < yy; y++) {
+                uint8_t *clahe_row_ptr = IMAGE_COMPUTE_GRAYSCALE_PIXEL_ROW_PTR(&temp, y + yOffset);
+                pixel24_t *row_ptr = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(img, y);
+                for (int x = 0, xx = img->w; x < xx; x++) {
+                    IMAGE_PUT_GRAYSCALE_PIXEL_FAST(clahe_row_ptr, x + xOffset,
+                        COLOR_RGB888_TO_GRAYSCALE(IMAGE_GET_RGB888_PIXEL_FAST(row_ptr, x)));
                 }
             }
             break;
@@ -415,10 +426,25 @@ void imlib_clahe_histeq(image_t *img, float clip_limit, image_t *mask)
             }
             break;
         }
+        case PIXFORMAT_RGB888: {
+            for (int y = 0, yy = img->h; y < yy; y++) {
+                uint8_t *clahe_row_ptr = IMAGE_COMPUTE_GRAYSCALE_PIXEL_ROW_PTR(&temp, y + yOffset);
+                pixel24_t *row_ptr = IMAGE_COMPUTE_RGB88_PIXEL_ROW_PTR(img, y);
+                for (int x = 0, xx = img->w; x < xx; x++) {
+                    if (mask && (!image_get_mask_pixel(mask, x, y))) continue;
+                    int pixel = IMAGE_GET_RGB888_PIXEL_FAST(row_ptr, x);
+                    IMAGE_PUT_RGB888_PIXEL_FAST(row_ptr, x,
+                        imlib_yuv_to_rgb(IMAGE_GET_GRAYSCALE_PIXEL_FAST(clahe_row_ptr, x + xOffset),
+                                         COLOR_RGB888_TO_U(pixel),
+                                         COLOR_RGB888_TO_V(pixel)));
+                }
+            }
+            break;
+        }
         default: {
             break;
         }
     }
 
-    fb_free();
+    xfree(temp.data);
 }

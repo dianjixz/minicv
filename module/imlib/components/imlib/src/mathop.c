@@ -18,7 +18,7 @@ void imlib_gamma_corr(image_t *img, float gamma, float contrast, float brightnes
         case PIXFORMAT_BINARY: {
             float pScale = COLOR_BINARY_MAX - COLOR_BINARY_MIN;
             float pDiv = 1 / pScale;
-            int *p_lut = malloc((COLOR_BINARY_MAX - COLOR_BINARY_MIN + 1) * sizeof(int));
+            int *p_lut = xalloc((COLOR_BINARY_MAX - COLOR_BINARY_MIN + 1) * sizeof(int));
 
             for (int i = COLOR_BINARY_MIN; i <= COLOR_BINARY_MAX; i++) {
                 int p = ((fast_powf(i * pDiv, gamma) * contrast) + brightness) * pScale;
@@ -34,13 +34,13 @@ void imlib_gamma_corr(image_t *img, float gamma, float contrast, float brightnes
                 }
             }
 
-            free(p_lut);
+            xfree(p_lut);
             break;
         }
         case PIXFORMAT_GRAYSCALE: {
             float pScale = COLOR_GRAYSCALE_MAX - COLOR_GRAYSCALE_MIN;
             float pDiv = 1 / pScale;
-            int *p_lut = malloc((COLOR_GRAYSCALE_MAX - COLOR_GRAYSCALE_MIN + 1) * sizeof(int));
+            int *p_lut = xalloc((COLOR_GRAYSCALE_MAX - COLOR_GRAYSCALE_MIN + 1) * sizeof(int));
 
             for (int i = COLOR_GRAYSCALE_MIN; i <= COLOR_GRAYSCALE_MAX; i++) {
                 int p = ((fast_powf(i * pDiv, gamma) * contrast) + brightness) * pScale;
@@ -56,7 +56,7 @@ void imlib_gamma_corr(image_t *img, float gamma, float contrast, float brightnes
                 }
             }
 
-            free(p_lut);
+            xfree(p_lut);
             break;
         }
         case PIXFORMAT_RGB565: {
@@ -66,9 +66,9 @@ void imlib_gamma_corr(image_t *img, float gamma, float contrast, float brightnes
             float rDiv = 1 / rScale;
             float gDiv = 1 / gScale;
             float bDiv = 1 / bScale;
-            int *r_lut = malloc((COLOR_R5_MAX - COLOR_R5_MIN + 1) * sizeof(int));
-            int *g_lut = malloc((COLOR_G6_MAX - COLOR_G6_MIN + 1) * sizeof(int));
-            int *b_lut = malloc((COLOR_B5_MAX - COLOR_B5_MIN + 1) * sizeof(int));
+            int *r_lut = xalloc((COLOR_R5_MAX - COLOR_R5_MIN + 1) * sizeof(int));
+            int *g_lut = xalloc((COLOR_G6_MAX - COLOR_G6_MIN + 1) * sizeof(int));
+            int *b_lut = xalloc((COLOR_B5_MAX - COLOR_B5_MIN + 1) * sizeof(int));
 
             for (int i = COLOR_R5_MIN; i <= COLOR_R5_MAX; i++) {
                 int r = ((fast_powf(i * rDiv, gamma) * contrast) + brightness) * rScale;
@@ -96,9 +96,9 @@ void imlib_gamma_corr(image_t *img, float gamma, float contrast, float brightnes
                 }
             }
 
-            free(b_lut);
-            free(g_lut);
-            free(r_lut);
+            xfree(b_lut);
+            xfree(g_lut);
+            xfree(r_lut);
             break;
         }
         case PIXFORMAT_RGB888: {
@@ -108,9 +108,9 @@ void imlib_gamma_corr(image_t *img, float gamma, float contrast, float brightnes
             float rDiv = 1 / rScale;
             float gDiv = 1 / gScale;
             float bDiv = 1 / bScale;
-            int *r_lut = malloc((COLOR_R8_MAX - COLOR_R8_MIN + 1) * sizeof(int));
-            int *g_lut = malloc((COLOR_G8_MAX - COLOR_G8_MIN + 1) * sizeof(int));
-            int *b_lut = malloc((COLOR_B8_MAX - COLOR_B8_MIN + 1) * sizeof(int));
+            int *r_lut = xalloc((COLOR_R8_MAX - COLOR_R8_MIN + 1) * sizeof(int));
+            int *g_lut = xalloc((COLOR_G8_MAX - COLOR_G8_MIN + 1) * sizeof(int));
+            int *b_lut = xalloc((COLOR_B8_MAX - COLOR_B8_MIN + 1) * sizeof(int));
 
             for (int i = COLOR_R8_MIN; i <= COLOR_R8_MAX; i++) {
                 int r = ((fast_powf(i * rDiv, gamma) * contrast) + brightness) * rScale;
@@ -138,9 +138,9 @@ void imlib_gamma_corr(image_t *img, float gamma, float contrast, float brightnes
                 }
             }
 
-            free(b_lut);
-            free(g_lut);
-            free(r_lut);
+            xfree(b_lut);
+            xfree(g_lut);
+            xfree(r_lut);
             break;
         }
         default: {
@@ -297,7 +297,7 @@ void imlib_replace(image_t *img, const char *path, image_t *other, int scalar, b
 
     if (in_place) {
         memcpy(&temp, other, sizeof(image_t));
-        temp.data = malloc(image_size(&temp));
+        temp.data = xalloc(image_size(&temp));
         memcpy(temp.data, other->data, image_size(&temp));
         other = &temp;
     }
@@ -310,7 +310,7 @@ void imlib_replace(image_t *img, const char *path, image_t *other, int scalar, b
     imlib_image_operation(img, path, other, scalar, imlib_replace_line_op, &state);
 
     if (in_place) {
-        free(temp.data);
+        xfree(temp.data);
     }
 
     if (transpose) {
@@ -918,7 +918,7 @@ static void imlib_difference_line_op(image_t *img, int line, void *other, void *
                     int r = abs(COLOR_RGB888_TO_R8(dataPixel) - COLOR_RGB888_TO_R8(otherPixel));
                     int g = abs(COLOR_RGB888_TO_G8(dataPixel) - COLOR_RGB888_TO_G8(otherPixel));
                     int b = abs(COLOR_RGB888_TO_B8(dataPixel) - COLOR_RGB888_TO_B8(otherPixel));
-                    IMAGE_PUT_RGB888_PIXEL_FAST(data, i, COLOR_R5_G6_B5_TO_RGB888(r, g, b));
+                    IMAGE_PUT_RGB888_PIXEL_FAST(data, i, COLOR_R8_G8_B8_TO_RGB888(r, g, b));
                 }
             }
             break;

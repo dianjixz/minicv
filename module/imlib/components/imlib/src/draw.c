@@ -460,7 +460,7 @@ void imlib_draw_row_setup(imlib_draw_row_data_t *data)
 
     data->toggle = 0;
     // data->row_buffer[0] = fb_alloc(image_row_size, FB_ALLOC_NO_HINT);
-    data->row_buffer[0] = malloc(image_row_size);
+    data->row_buffer[0] = xalloc(image_row_size);
 
 #ifdef IMLIB_ENABLE_DMA2D
     data->dma2d_enabled = false;
@@ -587,7 +587,7 @@ void imlib_draw_row_setup(imlib_draw_row_data_t *data)
 
     if (data->alpha_palette) {
         // data->smuad_alpha_palette = fb_alloc(256 * sizeof(uint32_t), FB_ALLOC_NO_HINT);
-        data->smuad_alpha_palette = malloc(256 * sizeof(uint32_t));
+        data->smuad_alpha_palette = xalloc(256 * sizeof(uint32_t));
 
         for (int i = 0, a = alpha; i < 256; i++) {
             int new_alpha = fast_roundf((a * data->alpha_palette[i]) / 255.f);
@@ -601,7 +601,7 @@ void imlib_draw_row_setup(imlib_draw_row_data_t *data)
 void imlib_draw_row_teardown(imlib_draw_row_data_t *data)
 {
     // if (data->smuad_alpha_palette) fb_free();
-    if (data->smuad_alpha_palette) free(data->smuad_alpha_palette);
+    if (data->smuad_alpha_palette) xfree(data->smuad_alpha_palette);
 #ifdef IMLIB_ENABLE_DMA2D
     if (data->dma2d_initialized) {
         if (!data->callback) HAL_DMA2D_PollForTransfer(&data->dma2d, 1000);
@@ -611,7 +611,7 @@ void imlib_draw_row_teardown(imlib_draw_row_data_t *data)
     }
 #endif
     // fb_free(); // data->row_buffer[0]
-    free(data->row_buffer[0]);
+    xfree(data->row_buffer[0]);
 }
 
 #ifdef IMLIB_ENABLE_DMA2D
@@ -1342,7 +1342,7 @@ void imlib_draw_row(int x_start, int x_end, int y_row, imlib_draw_row_data_t *da
                                 if (!data->black_background) {
                                     for (int x = x_start; x < x_end; x++) {
                                         int pixel = pixel24232(*src24++);
-                                        pixel = COLOR_RGB888_TO_Y_(pixel);
+                                        pixel = COLOR_RGB888_TO_Y(pixel);
                                         long smuad_alpha = smuad_alpha_palette[pixel];
                                         long smuad_pixel = (pixel << 16) | (IMAGE_GET_BINARY_PIXEL_FAST(dst32, x) ? COLOR_GRAYSCALE_BINARY_MAX : COLOR_GRAYSCALE_BINARY_MIN);
                                         pixel = (__SMUAD(smuad_alpha, smuad_pixel) >> 8) > 127;
@@ -1351,31 +1351,31 @@ void imlib_draw_row(int x_start, int x_end, int y_row, imlib_draw_row_data_t *da
                                 } else {
                                     for (int x = x_start; x < x_end; x++) {
                                         int pixel = pixel24232(*src24++);
-                                        pixel = COLOR_RGB888_TO_Y_(pixel);
+                                        pixel = COLOR_RGB888_TO_Y(pixel);
                                         long smuad_alpha = smuad_alpha_palette[pixel];
                                         pixel = ((smuad_alpha * pixel) >> 8) > 127;
                                         IMAGE_PUT_BINARY_PIXEL_FAST(dst32, x, pixel);
                                     }
                                 }
                             } else {
-                                const pixel24_t *color_palette = data->color_palette;
+                                const pixel24_t *color_palette = (pixel24_t*)data->color_palette;
                                 if (!data->black_background) {
                                     for (int x = x_start; x < x_end; x++) {
                                         int pixel = pixel24232(*src24++);
-                                        int pixel_y = COLOR_RGB888_TO_Y_(pixel);
+                                        int pixel_y = COLOR_RGB888_TO_Y(pixel);
                                         long smuad_alpha = smuad_alpha_palette[pixel_y];
                                         pixel = pixel24232(color_palette[pixel_y]);
-                                        long smuad_pixel = (COLOR_RGB888_TO_Y_(pixel) << 16) | (IMAGE_GET_BINARY_PIXEL_FAST(dst32, x) ? COLOR_GRAYSCALE_BINARY_MAX : COLOR_GRAYSCALE_BINARY_MIN);
+                                        long smuad_pixel = (COLOR_RGB888_TO_Y(pixel) << 16) | (IMAGE_GET_BINARY_PIXEL_FAST(dst32, x) ? COLOR_GRAYSCALE_BINARY_MAX : COLOR_GRAYSCALE_BINARY_MIN);
                                         pixel = (__SMUAD(smuad_alpha, smuad_pixel) >> 8) > 127;
                                         IMAGE_PUT_BINARY_PIXEL_FAST(dst32, x, pixel);
                                     }
                                 } else {
                                     for (int x = x_start; x < x_end; x++) {
                                         int pixel = pixel24232(*src24++);
-                                        int pixel_y = COLOR_RGB888_TO_Y_(pixel);
+                                        int pixel_y = COLOR_RGB888_TO_Y(pixel);
                                         long smuad_alpha = smuad_alpha_palette[pixel_y];
                                         pixel = pixel24232(color_palette[pixel_y]);
-                                        pixel = ((smuad_alpha * COLOR_RGB888_TO_Y_(pixel)) >> 8) > 127;
+                                        pixel = ((smuad_alpha * COLOR_RGB888_TO_Y(pixel)) >> 8) > 127;
                                         IMAGE_PUT_BINARY_PIXEL_FAST(dst32, x, pixel);
                                     }
                                 }
@@ -1384,15 +1384,15 @@ void imlib_draw_row(int x_start, int x_end, int y_row, imlib_draw_row_data_t *da
                             if (!data->color_palette) {
                                 for (int x = x_start; x < x_end; x++) {
                                     int pixel = pixel24232(*src24++);
-                                    pixel = COLOR_RGB888_TO_Y_(pixel) > 127;
+                                    pixel = COLOR_RGB888_TO_Y(pixel) > 127;
                                     IMAGE_PUT_BINARY_PIXEL_FAST(dst32, x, pixel);
                                 }
                             } else {
                                 const pixel24_t *color_palette = data->color_palette;
                                 for (int x = x_start; x < x_end; x++) {
                                     int pixel = pixel24232(*src24++);
-                                    pixel = pixel24232(color_palette[COLOR_RGB888_TO_Y_(pixel)]);
-                                    pixel = COLOR_RGB888_TO_Y_(pixel) > 127;
+                                    pixel = pixel24232(color_palette[COLOR_RGB888_TO_Y(pixel)]);
+                                    pixel = COLOR_RGB888_TO_Y(pixel) > 127;
                                     IMAGE_PUT_BINARY_PIXEL_FAST(dst32, x, pixel);
                                 }
                             }
@@ -1402,14 +1402,14 @@ void imlib_draw_row(int x_start, int x_end, int y_row, imlib_draw_row_data_t *da
                                 if (!data->black_background) {
                                     for (int x = x_start; x < x_end; x++) {
                                         int pixel = pixel24232(*src24++);
-                                        long smuad_pixel = (COLOR_RGB888_TO_Y_(pixel) << 16) | (IMAGE_GET_BINARY_PIXEL_FAST(dst32, x) ? COLOR_GRAYSCALE_BINARY_MAX : COLOR_GRAYSCALE_BINARY_MIN);
+                                        long smuad_pixel = (COLOR_RGB888_TO_Y(pixel) << 16) | (IMAGE_GET_BINARY_PIXEL_FAST(dst32, x) ? COLOR_GRAYSCALE_BINARY_MAX : COLOR_GRAYSCALE_BINARY_MIN);
                                         pixel = (__SMUAD(smuad_alpha, smuad_pixel) >> 8) > 127;
                                         IMAGE_PUT_BINARY_PIXEL_FAST(dst32, x, pixel);
                                     }
                                 } else {
                                     for (int x = x_start; x < x_end; x++) {
                                         int pixel = pixel24232(*src24++);
-                                        pixel = ((smuad_alpha * COLOR_RGB888_TO_Y_(pixel)) >> 8) > 127;
+                                        pixel = ((smuad_alpha * COLOR_RGB888_TO_Y(pixel)) >> 8) > 127;
                                         IMAGE_PUT_BINARY_PIXEL_FAST(dst32, x, pixel);
                                     }
                                 }
@@ -1418,16 +1418,16 @@ void imlib_draw_row(int x_start, int x_end, int y_row, imlib_draw_row_data_t *da
                                 if (!data->black_background) {
                                     for (int x = x_start; x < x_end; x++) {
                                         int pixel = pixel24232(*src24++);
-                                        pixel = pixel24232(color_palette[COLOR_RGB888_TO_Y_(pixel)]);
-                                        long smuad_pixel = (COLOR_RGB888_TO_Y_(pixel) << 16) | (IMAGE_GET_BINARY_PIXEL_FAST(dst32, x) ? COLOR_GRAYSCALE_BINARY_MAX : COLOR_GRAYSCALE_BINARY_MIN);
+                                        pixel = pixel24232(color_palette[COLOR_RGB888_TO_Y(pixel)]);
+                                        long smuad_pixel = (COLOR_RGB888_TO_Y(pixel) << 16) | (IMAGE_GET_BINARY_PIXEL_FAST(dst32, x) ? COLOR_GRAYSCALE_BINARY_MAX : COLOR_GRAYSCALE_BINARY_MIN);
                                         pixel = (__SMUAD(smuad_alpha, smuad_pixel) >> 8) > 127;
                                         IMAGE_PUT_BINARY_PIXEL_FAST(dst32, x, pixel);
                                     }
                                 } else {
                                     for (int x = x_start; x < x_end; x++) {
                                         int pixel = pixel24232(*src24++);
-                                        pixel = pixel24232(color_palette[COLOR_RGB888_TO_Y_(pixel)]);
-                                        pixel = ((smuad_alpha * COLOR_RGB888_TO_Y_(pixel)) >> 8) > 127;
+                                        pixel = pixel24232(color_palette[COLOR_RGB888_TO_Y(pixel)]);
+                                        pixel = ((smuad_alpha * COLOR_RGB888_TO_Y(pixel)) >> 8) > 127;
                                         IMAGE_PUT_BINARY_PIXEL_FAST(dst32, x, pixel);
                                     }
                                 }
@@ -1463,7 +1463,7 @@ void imlib_draw_row(int x_start, int x_end, int y_row, imlib_draw_row_data_t *da
                                         int pixel_y = COLOR_RGB888_TO_R8(pixel);
                                         long smuad_alpha = smuad_alpha_palette[pixel_y];
                                         pixel = pixel24232(color_palette[pixel_y]);
-                                        long smuad_pixel = (COLOR_RGB888_TO_Y_(pixel) << 16) | (IMAGE_GET_BINARY_PIXEL_FAST(dst32, x) ? COLOR_GRAYSCALE_BINARY_MAX : COLOR_GRAYSCALE_BINARY_MIN);
+                                        long smuad_pixel = (COLOR_RGB888_TO_Y(pixel) << 16) | (IMAGE_GET_BINARY_PIXEL_FAST(dst32, x) ? COLOR_GRAYSCALE_BINARY_MAX : COLOR_GRAYSCALE_BINARY_MIN);
                                         pixel = (__SMUAD(smuad_alpha, smuad_pixel) >> 8) > 127;
                                         IMAGE_PUT_BINARY_PIXEL_FAST(dst32, x, pixel);
                                     }
@@ -1473,7 +1473,7 @@ void imlib_draw_row(int x_start, int x_end, int y_row, imlib_draw_row_data_t *da
                                         int pixel_y = COLOR_RGB888_TO_R8(pixel);
                                         long smuad_alpha = smuad_alpha_palette[pixel_y];
                                         pixel = pixel24232(color_palette[pixel_y]);
-                                        pixel = ((smuad_alpha * COLOR_RGB888_TO_Y_(pixel)) >> 8) > 127;
+                                        pixel = ((smuad_alpha * COLOR_RGB888_TO_Y(pixel)) >> 8) > 127;
                                         IMAGE_PUT_BINARY_PIXEL_FAST(dst32, x, pixel);
                                     }
                                 }
@@ -1490,7 +1490,7 @@ void imlib_draw_row(int x_start, int x_end, int y_row, imlib_draw_row_data_t *da
                                 for (int x = x_start; x < x_end; x++) {
                                     int pixel = pixel24232(*src24++);
                                     pixel = pixel24232(color_palette[COLOR_RGB888_TO_R8(pixel)]);
-                                    pixel = COLOR_RGB888_TO_Y_(pixel) > 127;
+                                    pixel = COLOR_RGB888_TO_Y(pixel) > 127;
                                     IMAGE_PUT_BINARY_PIXEL_FAST(dst32, x, pixel);
                                 }
                             }
@@ -1517,7 +1517,7 @@ void imlib_draw_row(int x_start, int x_end, int y_row, imlib_draw_row_data_t *da
                                     for (int x = x_start; x < x_end; x++) {
                                         int pixel = pixel24232(*src24++);
                                         pixel = pixel24232(color_palette[COLOR_RGB888_TO_R8(pixel)]);
-                                        long smuad_pixel = (COLOR_RGB888_TO_Y_(pixel) << 16) | (IMAGE_GET_BINARY_PIXEL_FAST(dst32, x) ? COLOR_GRAYSCALE_BINARY_MAX : COLOR_GRAYSCALE_BINARY_MIN);
+                                        long smuad_pixel = (COLOR_RGB888_TO_Y(pixel) << 16) | (IMAGE_GET_BINARY_PIXEL_FAST(dst32, x) ? COLOR_GRAYSCALE_BINARY_MAX : COLOR_GRAYSCALE_BINARY_MIN);
                                         pixel = (__SMUAD(smuad_alpha, smuad_pixel) >> 8) > 127;
                                         IMAGE_PUT_BINARY_PIXEL_FAST(dst32, x, pixel);
                                     }
@@ -1525,7 +1525,7 @@ void imlib_draw_row(int x_start, int x_end, int y_row, imlib_draw_row_data_t *da
                                     for (int x = x_start; x < x_end; x++) {
                                         int pixel = pixel24232(*src24++);
                                         pixel = pixel24232(color_palette[COLOR_RGB888_TO_R8(pixel)]);
-                                        pixel = ((smuad_alpha * COLOR_RGB888_TO_Y_(pixel)) >> 8) > 127;
+                                        pixel = ((smuad_alpha * COLOR_RGB888_TO_Y(pixel)) >> 8) > 127;
                                         IMAGE_PUT_BINARY_PIXEL_FAST(dst32, x, pixel);
                                     }
                                 }
@@ -1561,7 +1561,7 @@ void imlib_draw_row(int x_start, int x_end, int y_row, imlib_draw_row_data_t *da
                                         int pixel_y = COLOR_RGB888_TO_G8(pixel);
                                         long smuad_alpha = smuad_alpha_palette[pixel_y];
                                         pixel = pixel24232(color_palette[pixel_y]);
-                                        long smuad_pixel = (COLOR_RGB888_TO_Y_(pixel) << 16) | (IMAGE_GET_BINARY_PIXEL_FAST(dst32, x) ? COLOR_GRAYSCALE_BINARY_MAX : COLOR_GRAYSCALE_BINARY_MIN);
+                                        long smuad_pixel = (COLOR_RGB888_TO_Y(pixel) << 16) | (IMAGE_GET_BINARY_PIXEL_FAST(dst32, x) ? COLOR_GRAYSCALE_BINARY_MAX : COLOR_GRAYSCALE_BINARY_MIN);
                                         pixel = (__SMUAD(smuad_alpha, smuad_pixel) >> 8) > 127;
                                         IMAGE_PUT_BINARY_PIXEL_FAST(dst32, x, pixel);
                                     }
@@ -1571,7 +1571,7 @@ void imlib_draw_row(int x_start, int x_end, int y_row, imlib_draw_row_data_t *da
                                         int pixel_y = COLOR_RGB888_TO_G8(pixel);
                                         long smuad_alpha = smuad_alpha_palette[pixel_y];
                                         pixel = pixel24232(color_palette[pixel_y]);
-                                        pixel = ((smuad_alpha * COLOR_RGB888_TO_Y_(pixel)) >> 8) > 127;
+                                        pixel = ((smuad_alpha * COLOR_RGB888_TO_Y(pixel)) >> 8) > 127;
                                         IMAGE_PUT_BINARY_PIXEL_FAST(dst32, x, pixel);
                                     }
                                 }
@@ -1588,7 +1588,7 @@ void imlib_draw_row(int x_start, int x_end, int y_row, imlib_draw_row_data_t *da
                                 for (int x = x_start; x < x_end; x++) {
                                     int pixel = pixel24232(*src24++);
                                     pixel = pixel24232(color_palette[COLOR_RGB888_TO_G8(pixel)]);
-                                    pixel = COLOR_RGB888_TO_Y_(pixel) > 127;
+                                    pixel = COLOR_RGB888_TO_Y(pixel) > 127;
                                     IMAGE_PUT_BINARY_PIXEL_FAST(dst32, x, pixel);
                                 }
                             }
@@ -1615,7 +1615,7 @@ void imlib_draw_row(int x_start, int x_end, int y_row, imlib_draw_row_data_t *da
                                     for (int x = x_start; x < x_end; x++) {
                                         int pixel = pixel24232(*src24++);
                                         pixel = pixel24232(color_palette[COLOR_RGB888_TO_G8(pixel)]);
-                                        long smuad_pixel = (COLOR_RGB888_TO_Y_(pixel) << 16) | (IMAGE_GET_BINARY_PIXEL_FAST(dst32, x) ? COLOR_GRAYSCALE_BINARY_MAX : COLOR_GRAYSCALE_BINARY_MIN);
+                                        long smuad_pixel = (COLOR_RGB888_TO_Y(pixel) << 16) | (IMAGE_GET_BINARY_PIXEL_FAST(dst32, x) ? COLOR_GRAYSCALE_BINARY_MAX : COLOR_GRAYSCALE_BINARY_MIN);
                                         pixel = (__SMUAD(smuad_alpha, smuad_pixel) >> 8) > 127;
                                         IMAGE_PUT_BINARY_PIXEL_FAST(dst32, x, pixel);
                                     }
@@ -1623,7 +1623,7 @@ void imlib_draw_row(int x_start, int x_end, int y_row, imlib_draw_row_data_t *da
                                     for (int x = x_start; x < x_end; x++) {
                                         int pixel = pixel24232(*src24++);
                                         pixel = pixel24232(color_palette[COLOR_RGB888_TO_G8(pixel)]);
-                                        pixel = ((smuad_alpha * COLOR_RGB888_TO_Y_(pixel)) >> 8) > 127;
+                                        pixel = ((smuad_alpha * COLOR_RGB888_TO_Y(pixel)) >> 8) > 127;
                                         IMAGE_PUT_BINARY_PIXEL_FAST(dst32, x, pixel);
                                     }
                                 }
@@ -1659,7 +1659,7 @@ void imlib_draw_row(int x_start, int x_end, int y_row, imlib_draw_row_data_t *da
                                         int pixel_y = COLOR_RGB888_TO_B8(pixel);
                                         long smuad_alpha = smuad_alpha_palette[pixel_y];
                                         pixel = pixel24232(color_palette[pixel_y]);
-                                        long smuad_pixel = (COLOR_RGB888_TO_Y_(pixel) << 16) | (IMAGE_GET_BINARY_PIXEL_FAST(dst32, x) ? COLOR_GRAYSCALE_BINARY_MAX : COLOR_GRAYSCALE_BINARY_MIN);
+                                        long smuad_pixel = (COLOR_RGB888_TO_Y(pixel) << 16) | (IMAGE_GET_BINARY_PIXEL_FAST(dst32, x) ? COLOR_GRAYSCALE_BINARY_MAX : COLOR_GRAYSCALE_BINARY_MIN);
                                         pixel = (__SMUAD(smuad_alpha, smuad_pixel) >> 8) > 127;
                                         IMAGE_PUT_BINARY_PIXEL_FAST(dst32, x, pixel);
                                     }
@@ -1669,7 +1669,7 @@ void imlib_draw_row(int x_start, int x_end, int y_row, imlib_draw_row_data_t *da
                                         int pixel_y = COLOR_RGB888_TO_B8(pixel);
                                         long smuad_alpha = smuad_alpha_palette[pixel_y];
                                         pixel = pixel24232(color_palette[pixel_y]);
-                                        pixel = ((smuad_alpha * COLOR_RGB888_TO_Y_(pixel)) >> 8) > 127;
+                                        pixel = ((smuad_alpha * COLOR_RGB888_TO_Y(pixel)) >> 8) > 127;
                                         IMAGE_PUT_BINARY_PIXEL_FAST(dst32, x, pixel);
                                     }
                                 }
@@ -1686,7 +1686,7 @@ void imlib_draw_row(int x_start, int x_end, int y_row, imlib_draw_row_data_t *da
                                 for (int x = x_start; x < x_end; x++) {
                                     int pixel = pixel24232(*src24++);
                                     pixel = pixel24232(color_palette[COLOR_RGB888_TO_B8(pixel)]);
-                                    pixel = COLOR_RGB888_TO_Y_(pixel) > 127;
+                                    pixel = COLOR_RGB888_TO_Y(pixel) > 127;
                                     IMAGE_PUT_BINARY_PIXEL_FAST(dst32, x, pixel);
                                 }
                             }
@@ -1713,7 +1713,7 @@ void imlib_draw_row(int x_start, int x_end, int y_row, imlib_draw_row_data_t *da
                                     for (int x = x_start; x < x_end; x++) {
                                         int pixel = pixel24232(*src24++);
                                         pixel = pixel24232(color_palette[COLOR_RGB888_TO_B8(pixel)]);
-                                        long smuad_pixel = (COLOR_RGB888_TO_Y_(pixel) << 16) | (IMAGE_GET_BINARY_PIXEL_FAST(dst32, x) ? COLOR_GRAYSCALE_BINARY_MAX : COLOR_GRAYSCALE_BINARY_MIN);
+                                        long smuad_pixel = (COLOR_RGB888_TO_Y(pixel) << 16) | (IMAGE_GET_BINARY_PIXEL_FAST(dst32, x) ? COLOR_GRAYSCALE_BINARY_MAX : COLOR_GRAYSCALE_BINARY_MIN);
                                         pixel = (__SMUAD(smuad_alpha, smuad_pixel) >> 8) > 127;
                                         IMAGE_PUT_BINARY_PIXEL_FAST(dst32, x, pixel);
                                     }
@@ -1721,7 +1721,7 @@ void imlib_draw_row(int x_start, int x_end, int y_row, imlib_draw_row_data_t *da
                                     for (int x = x_start; x < x_end; x++) {
                                         int pixel = pixel24232(*src24++);
                                         pixel = pixel24232(color_palette[COLOR_RGB888_TO_B8(pixel)]);
-                                        pixel = ((smuad_alpha * COLOR_RGB888_TO_Y_(pixel)) >> 8) > 127;
+                                        pixel = ((smuad_alpha * COLOR_RGB888_TO_Y(pixel)) >> 8) > 127;
                                         IMAGE_PUT_BINARY_PIXEL_FAST(dst32, x, pixel);
                                     }
                                 }
@@ -3099,7 +3099,7 @@ void imlib_draw_image(image_t *dst_img, image_t *src_img, int dst_x_start, int d
         new_src_img.h = src_img_h; // same height as source image
         new_src_img.pixfmt = color_palette ? PIXFORMAT_RGB565 : PIXFORMAT_GRAYSCALE;
         // new_src_img.data = fb_alloc(image_size(&new_src_img), FB_ALLOC_NO_HINT);
-        new_src_img.data = malloc(image_size(&new_src_img));
+        new_src_img.data = xalloc(image_size(&new_src_img));
         imlib_draw_image(&new_src_img, src_img, 0, 0, 1.f, 1.f, NULL, rgb_channel, 256, color_palette, NULL, 0, NULL, NULL);
         src_img = &new_src_img;
         rgb_channel = -1;
@@ -3146,7 +3146,7 @@ void imlib_draw_image(image_t *dst_img, image_t *src_img, int dst_x_start, int d
             new_src_img.pixfmt = new_not_mutable_pixfmt;
             size_t size = image_size(&new_src_img);
             // new_src_img.data = fb_alloc(size, FB_ALLOC_NO_HINT);
-            new_src_img.data = malloc(size);
+            new_src_img.data = xalloc(size);
 
             switch (new_src_img.pixfmt) {
                 case PIXFORMAT_BINARY: {
@@ -3192,7 +3192,7 @@ void imlib_draw_image(image_t *dst_img, image_t *src_img, int dst_x_start, int d
             new_src_img.pixfmt = src_img->pixfmt;
             size_t size = image_size(&new_src_img);
             // new_src_img.data = fb_alloc(size, FB_ALLOC_NO_HINT);
-            new_src_img.data = malloc(size);
+            new_src_img.data = xalloc(size);
             memcpy(new_src_img.data, src_img->data, size);
         }
 
@@ -5442,7 +5442,7 @@ void imlib_draw_image(image_t *dst_img, image_t *src_img, int dst_x_start, int d
 
     imlib_draw_row_teardown(&imlib_draw_row_data);
     // if (&new_src_img == src_img) fb_free();
-    if (&new_src_img == src_img) free(new_src_img.data);
+    if (&new_src_img == src_img) xfree(new_src_img.data);
     
 }
 
@@ -5457,7 +5457,7 @@ void imlib_flood_fill(image_t *img, int x, int y,
         out.h = img->h;
         out.pixfmt = PIXFORMAT_BINARY;
         // out.data = fb_alloc0(image_size(&out), FB_ALLOC_NO_HINT);
-        out.data = malloc(image_size(&out));
+        out.data = xalloc(image_size(&out));
 
         if (mask) {
             for (int y = 0, yy = out.h; y < yy; y++) {
@@ -5568,7 +5568,7 @@ void imlib_flood_fill(image_t *img, int x, int y,
                 break;
             }
         }
-        free(out.data);
+        xfree(out.data);
         // fb_free();
     }
 }

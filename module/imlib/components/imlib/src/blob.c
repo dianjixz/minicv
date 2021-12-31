@@ -141,13 +141,13 @@ void imlib_find_blobs(list_t *out, image_t *ptr, rectangle_t *roi, unsigned int 
     bmp.w = ptr->w;
     bmp.h = ptr->h;
     bmp.pixfmt = PIXFORMAT_BINARY;
-    bmp.data = fb_alloc0(image_size(&bmp), FB_ALLOC_NO_HINT);
+    bmp.data = xalloc(image_size(&bmp));
 
     uint16_t *x_hist_bins = NULL;
-    if (x_hist_bins_max) x_hist_bins = fb_alloc(ptr->w * sizeof(uint16_t), FB_ALLOC_NO_HINT);
+    if (x_hist_bins_max) x_hist_bins = xalloc(ptr->w * sizeof(uint16_t));
 
     uint16_t *y_hist_bins = NULL;
-    if (y_hist_bins_max) y_hist_bins = fb_alloc(ptr->h * sizeof(uint16_t), FB_ALLOC_NO_HINT);
+    if (y_hist_bins_max) y_hist_bins = xalloc(ptr->h * sizeof(uint16_t));
 
     lifo_t lifo;
     size_t lifo_len;
@@ -980,9 +980,9 @@ void imlib_find_blobs(list_t *out, image_t *ptr, rectangle_t *roi, unsigned int 
     }
 
     lifo_free(&lifo);
-    if (y_hist_bins) fb_free();
-    if (x_hist_bins) fb_free();
-    fb_free(); // bitmap
+    if (y_hist_bins) xfree(y_hist_bins);
+    if (x_hist_bins) xfree(x_hist_bins);
+    xfree(bmp.data); // bitmap
 
     if (merge) {
         for(;;) {

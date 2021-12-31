@@ -288,13 +288,13 @@ void imlib_logpolar(image_t *img, bool linear, bool reverse)
     rect.h = img->h;
 
     size_t size = image_size(img);
-    img_2.data = fb_alloc(size, FB_ALLOC_NO_HINT);
+    img_2.data = xalloc(size);
     memcpy(img_2.data, img->data, size);
     memset(img->data, 0, size);
 
     imlib_logpolar_int(img, &img_2, &rect, linear, reverse);
 
-    fb_free();
+    xfree(img_2.data);
 }
 #endif //defined(IMLIB_ENABLE_LOGPOLAR) || defined(IMLIB_ENABLE_LINPOLAR)
 
@@ -445,7 +445,7 @@ void imlib_phasecorrelate(image_t *img0, image_t *img1, rectangle_t *roi0, recta
         img0_fixed.w = roi0->w;
         img0_fixed.h = roi0->h;
         img0_fixed.pixfmt = img0->pixfmt;
-        img0_fixed.pixels = fb_alloc(image_size(&img0_fixed), FB_ALLOC_NO_HINT);
+        img0_fixed.pixels = xalloc(image_size(&img0_fixed));
 
         roi0_fixed.x = 0;
         roi0_fixed.y = 0;
@@ -510,7 +510,7 @@ void imlib_phasecorrelate(image_t *img0, image_t *img1, rectangle_t *roi0, recta
             img0alt.w = roi0_fixed.w;
             img0alt.h = roi0_fixed.h;
             img0alt.pixfmt = img0_fixed.pixfmt;
-            img0alt.data = malloc(image_size(&img0alt));
+            img0alt.data = xalloc(image_size(&img0alt));
             imlib_logpolar_int(&img0alt, &img0_fixed, &roi0_fixed, false, false);
             roi0alt.x = 0;
             roi0alt.y = 0;
@@ -520,7 +520,7 @@ void imlib_phasecorrelate(image_t *img0, image_t *img1, rectangle_t *roi0, recta
             img1alt.w = roi1->w;
             img1alt.h = roi1->h;
             img1alt.pixfmt = img1->pixfmt;
-            img1alt.data = malloc(image_size(&img1alt));
+            img1alt.data = xalloc(image_size(&img1alt));
             imlib_logpolar_int(&img1alt, img1, roi1, false, false);
             roi1alt.x = 0;
             roi1alt.y = 0;
@@ -635,8 +635,8 @@ void imlib_phasecorrelate(image_t *img0, image_t *img1, rectangle_t *roi0, recta
         fft2d_dealloc(); // fft0
 
         if (logpolar) {
-            free(img1alt.data); // img1alt
-            free(img0alt.data); // img0alt
+            xfree(img1alt.data); // img1alt
+            xfree(img0alt.data); // img0alt
 
             float w_2 = roi0->w / 2.0f;
             float h_2 = roi0->h / 2.0f;
@@ -650,6 +650,6 @@ void imlib_phasecorrelate(image_t *img0, image_t *img1, rectangle_t *roi0, recta
         }
     }
 
-    if ((!logpolar) && fix_rotation_scale) fb_free();
+    if ((!logpolar) && fix_rotation_scale) xfree(img0_fixed.pixels);
 }
 #endif //IMLIB_ENABLE_FIND_DISPLACEMENT

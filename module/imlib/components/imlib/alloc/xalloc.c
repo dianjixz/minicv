@@ -13,6 +13,7 @@
 // #include "py/gc.h"
 // #include "py/mphal.h"
 #include "xalloc.h"
+#include <stdio.h>
 
 static void xalloc_fail(uint32_t size)
 {
@@ -65,3 +66,12 @@ void *xrealloc(void *mem, uint32_t size)
     }
     return mem;
 }
+void *xcalloc(uint32_t nitems, uint32_t size)
+{
+    void *mem = xcalloc(nitems, size);
+    if (size && (mem == NULL)) {
+        xalloc_fail(size);
+    }
+    return mem;
+}
+
