@@ -6,3 +6,4 @@ imlib.c
 blob.c
 stats.c
 zbar.c
+line.c
