@@ -4892,6 +4892,102 @@ void imlib_draw_image(image_t *dst_img, image_t *src_img, int dst_x_start, int d
                 } // while y
                 break;
             }
+            case PIXFORMAT_RGB888: {
+                while (y_not_done) {
+                    int src_y_index = next_src_y_index;
+                    pixel24_t *src_row_ptr_0, *src_row_ptr_1;
+
+                    // keep row pointers in bounds
+                    if (src_y_index < 0) {
+                        src_row_ptr_0 = src_row_ptr_1 = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(src_img, 0);
+                    } else if (src_y_index >= h_limit) {
+                        src_row_ptr_0 = src_row_ptr_1 = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(src_img, h_limit);
+                    } else { // get 2 neighboring rows
+                        int src_y_index_p_1 = src_y_index + 1;
+                        src_row_ptr_0 = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(src_img, src_y_index);
+                        src_row_ptr_1 = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(src_img, src_y_index_p_1);
+                    }
+
+                    do { // Cache the results of getting the source rows
+                        // used to mix pixels vertically
+                        long smuad_y = (src_y_accum >> 11) & 0x1f;
+                        smuad_y |= (32 - smuad_y) << 16;
+
+                        // Must be called per loop to get the address of the temp buffer to blend with
+                        pixel24_t *dst_row_ptr = (pixel24_t *) imlib_draw_row_get_row_buffer(&imlib_draw_row_data);
+
+                        // X loop iteration variables
+                        int dst_x = dst_x_reset;
+                        long src_x_accum = src_x_accum_reset;
+                        int next_src_x_index = src_x_accum >> 16;
+                        int x = dst_x_start;
+                        bool x_not_done = x < dst_x_end;
+
+                        while (x_not_done) {
+                            int src_x_index = next_src_x_index;
+                            int pixel_00, pixel_10, pixel_01, pixel_11;
+
+                            // keep pixels in bounds
+                            if (src_x_index < 0) {
+                                pixel_00 = pixel_10 = pixel24232(src_row_ptr_0[0]);
+                                pixel_01 = pixel_11 = pixel24232(src_row_ptr_1[0]);
+                            } else if (src_x_index >= w_limit) {
+                                pixel_00 = pixel_10 = pixel24232(src_row_ptr_0[w_limit]);
+                                pixel_01 = pixel_11 = pixel24232(src_row_ptr_1[w_limit]);
+                            } else { // get 4 neighboring pixels
+                                int src_x_index_p_1 = src_x_index + 1;
+                                pixel_00 = pixel24232(src_row_ptr_0[src_x_index]); pixel_10 = pixel24232(src_row_ptr_0[src_x_index_p_1]);
+                                pixel_01 = pixel24232(src_row_ptr_1[src_x_index]); pixel_11 = pixel24232(src_row_ptr_1[src_x_index_p_1]);
+                            }
+
+                            const long mask_r = 0x0000ff00, mask_g = 0x00ff0000, mask_b = 0xff000000;
+                            const long avg_rb = 0x4010, avg_g = 0x200;
+
+                            uint32_t rgb_l = (pixel_00 << 16) | pixel_01;
+                            long rb_l = ((rgb_l >> 1) & mask_r) | (rgb_l & mask_b);
+                            long g_l = rgb_l & mask_g;
+                            int rb_out_l = (__SMLAD(smuad_y, rb_l, avg_rb) >> 5) & 0x7c1f;
+                            int g_out_l = (__SMLAD(smuad_y, g_l, avg_g) >> 5) & 0x07e0;
+
+                            uint32_t rgb_r = (pixel_10 << 16) | pixel_11;
+                            long rb_r = ((rgb_r >> 1) & mask_r) | (rgb_r & mask_b);
+                            long g_r = rgb_r & mask_g;
+                            int rb_out_r = (__SMLAD(smuad_y, rb_r, avg_rb) >> 5) & 0x7c1f;
+                            int g_out_r = (__SMLAD(smuad_y, g_r, avg_g) >> 5) & 0x07e0;
+
+                            long rb = (rb_out_l << 16) | rb_out_r;
+                            long g = (g_out_l << 16) | g_out_r;
+
+                            do { // Cache the results of getting the source pixels
+                                // used to mix pixels horizontally
+                                long smuad_x = (src_x_accum >> 11) & 0x1f;
+                                smuad_x |= (32 - smuad_x) << 16;
+
+                                int rb_out = __SMLAD(smuad_x, rb, avg_rb) >> 5;
+                                int g_out = __SMLAD(smuad_x, g, avg_g) >> 5;
+                                int pixel = ((rb_out << 1) & 0xf800) | (g_out & 0x07e0) | (rb_out & 0x001f);
+
+                                IMAGE_PUT_RGB888_PIXEL_FAST(dst_row_ptr, dst_x, pixel);
+
+                                // Increment offsets
+                                dst_x += dst_delta_x;
+                                src_x_accum += src_x_frac;
+                                next_src_x_index = src_x_accum >> 16;
+                                x_not_done = ++x < dst_x_end;
+                            } while (x_not_done && (src_x_index == next_src_x_index));
+                        } // while x
+
+                        imlib_draw_row(dst_x_start, dst_x_end, dst_y, &imlib_draw_row_data);
+
+                        // Increment offsets
+                        dst_y += dst_delta_y;
+                        src_y_accum += src_y_frac;
+                        next_src_y_index = src_y_accum >> 16;
+                        y_not_done = ++y < dst_y_end;
+                    } while (y_not_done && (src_y_index == next_src_y_index));
+                } // while y
+                break;
+            }
             default: {
                 break;
             }
@@ -5005,6 +5101,40 @@ void imlib_draw_image(image_t *dst_img, image_t *src_img, int dst_x_start, int d
                     } // while y
                     break;
                 }
+                case PIXFORMAT_RGB888: {
+                    while (y_not_done) {
+                        pixel24_t *src_row_ptr = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(src_img, next_src_y_index);
+                        // Must be called per loop to get the address of the temp buffer to blend with
+                        pixel24_t *dst_row_ptr = (pixel24_t *) imlib_draw_row_get_row_buffer(&imlib_draw_row_data);
+
+                        // X loop iteration variables
+                        int dst_x = dst_x_reset;
+                        long src_x_accum = src_x_accum_reset;
+                        int next_src_x_index = src_x_accum >> 16;
+                        int x = dst_x_start;
+                        bool x_not_done = x < dst_x_end;
+
+                        while (x_not_done) {
+                            int pixel = IMAGE_GET_RGB888_PIXEL_FAST(src_row_ptr, next_src_x_index);
+                            IMAGE_PUT_RGB888_PIXEL_FAST(dst_row_ptr, dst_x, pixel);
+
+                            // Increment offsets
+                            dst_x += dst_delta_x;
+                            src_x_accum += src_x_frac;
+                            next_src_x_index = src_x_accum >> 16;
+                            x_not_done = ++x < dst_x_end;
+                        } // while x
+
+                        imlib_draw_row(dst_x_start, dst_x_end, dst_y, &imlib_draw_row_data);
+
+                        // Increment offsets
+                        dst_y += dst_delta_y;
+                        src_y_accum += src_y_frac;
+                        next_src_y_index = src_y_accum >> 16;
+                        y_not_done = ++y < dst_y_end;
+                    } // while y
+                    break;
+                }
                 default: {
                     break;
                 }
@@ -5042,6 +5172,20 @@ void imlib_draw_image(image_t *dst_img, image_t *src_img, int dst_x_start, int d
                 case PIXFORMAT_RGB565: {
                     while (y_not_done) {
                         uint16_t *src_row_ptr = IMAGE_COMPUTE_RGB565_PIXEL_ROW_PTR(src_img, next_src_y_index);
+                        imlib_draw_row_put_row_buffer(&imlib_draw_row_data, src_row_ptr);
+                        imlib_draw_row(dst_x_start, dst_x_end, dst_y, &imlib_draw_row_data);
+
+                        // Increment offsets
+                        dst_y += dst_delta_y;
+                        src_y_accum += src_y_frac;
+                        next_src_y_index = src_y_accum >> 16;
+                        y_not_done = ++y < dst_y_end;
+                    } // while y
+                    break;
+                }
+                case PIXFORMAT_RGB888: {
+                    while (y_not_done) {
+                        pixel24_t *src_row_ptr = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(src_img, next_src_y_index);
                         imlib_draw_row_put_row_buffer(&imlib_draw_row_data, src_row_ptr);
                         imlib_draw_row(dst_x_start, dst_x_end, dst_y, &imlib_draw_row_data);
 
@@ -5248,6 +5392,48 @@ void imlib_draw_image(image_t *dst_img, image_t *src_img, int dst_x_start, int d
                 } // while y
                 break;
             }
+            case PIXFORMAT_RGB888: {
+                while (y_not_done) {
+                    int src_y_index = next_src_y_index;
+                    pixel24_t *src_row_ptr = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(src_img, src_y_index);
+
+                    do { // Cache the results of getting the source row
+                        // Must be called per loop to get the address of the temp buffer to blend with
+                        pixel24_t *dst_row_ptr = (pixel24_t *) imlib_draw_row_get_row_buffer(&imlib_draw_row_data);
+
+                        // X loop iteration variables
+                        int dst_x = dst_x_reset;
+                        long src_x_accum = src_x_accum_reset;
+                        int next_src_x_index = src_x_accum >> 16;
+                        int x = dst_x_start;
+                        bool x_not_done = x < dst_x_end;
+
+                        while (x_not_done) {
+                            int src_x_index = next_src_x_index;
+                            int pixel = IMAGE_GET_RGB888_PIXEL_FAST(src_row_ptr, src_x_index);
+
+                            do { // Cache the results of getting the source pixel
+                                IMAGE_PUT_RGB888_PIXEL_FAST(dst_row_ptr, dst_x, pixel);
+
+                                // Increment offsets
+                                dst_x += dst_delta_x;
+                                src_x_accum += src_x_frac;
+                                next_src_x_index = src_x_accum >> 16;
+                                x_not_done = ++x < dst_x_end;
+                            } while (x_not_done && (src_x_index == next_src_x_index));
+                        } // while x
+
+                        imlib_draw_row(dst_x_start, dst_x_end, dst_y, &imlib_draw_row_data);
+
+                        // Increment offsets
+                        dst_y += dst_delta_y;
+                        src_y_accum += src_y_frac;
+                        next_src_y_index = src_y_accum >> 16;
+                        y_not_done = ++y < dst_y_end;
+                    } while (y_not_done && (src_y_index == next_src_y_index));
+                } // while y
+                break;
+            }
             default: {
                 break;
             }
@@ -5305,6 +5491,15 @@ void imlib_flood_fill(image_t *img, int x, int y,
                                                                     (int)fast_roundf(floating_threshold * COLOR_B5_MAX));
                 break;
             }
+            case PIXFORMAT_RGB888: {
+                color_seed_threshold = COLOR_R8_G8_B8_TO_RGB888((int)fast_roundf(seed_threshold * COLOR_R8_MAX),
+                                                                (int)fast_roundf(seed_threshold * COLOR_G8_MAX),
+                                                                (int)fast_roundf(seed_threshold * COLOR_B8_MAX));
+                color_floating_threshold = COLOR_R8_G8_B8_TO_RGB888((int)fast_roundf(floating_threshold * COLOR_R8_MAX),
+                                                                    (int)fast_roundf(floating_threshold * COLOR_G8_MAX),
+                                                                    (int)fast_roundf(floating_threshold * COLOR_B8_MAX));
+                break;
+            }
             default: {
                 break;
             }
@@ -5350,6 +5545,20 @@ void imlib_flood_fill(image_t *img, int x, int y,
                             IMAGE_PUT_RGB565_PIXEL_FAST(row_ptr, x, c);
                         } else if (clear_background) {
                             IMAGE_PUT_RGB565_PIXEL_FAST(row_ptr, x, 0);
+                        }
+                    }
+                }
+                break;
+            }
+            case PIXFORMAT_RGB888: {
+                for (int y = 0, yy = out.h; y < yy; y++) {
+                    pixel24_t *row_ptr = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(img, y);
+                    uint32_t *out_row_ptr = IMAGE_COMPUTE_BINARY_PIXEL_ROW_PTR(&out, y);
+                    for (int x = 0, xx = out.w; x < xx; x++) {
+                        if (IMAGE_GET_BINARY_PIXEL_FAST(out_row_ptr, x) ^ invert) {
+                            IMAGE_PUT_RGB888_PIXEL_FAST(row_ptr, x, c);
+                        } else if (clear_background) {
+                            IMAGE_PUT_RGB888_PIXEL_FAST(row_ptr, x, 0);
                         }
                     }
                 }

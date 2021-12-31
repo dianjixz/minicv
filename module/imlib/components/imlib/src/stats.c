@@ -438,7 +438,7 @@ void imlib_get_histogram(histogram_t *out, image_t *ptr, rectangle_t *roi, list_
                             int r = abs(COLOR_RGB888_TO_R8(pixel) - COLOR_RGB888_TO_R8(other_pixel));
                             int g = abs(COLOR_RGB888_TO_G8(pixel) - COLOR_RGB888_TO_G8(other_pixel));
                             int b = abs(COLOR_RGB888_TO_B8(pixel) - COLOR_RGB888_TO_B8(other_pixel));
-                            pixel = COLOR_R8_G8_B8_TO_RGB8888(r, g, b);
+                            pixel = COLOR_R8_G8_B8_TO_RGB888(r, g, b);
                             ((uint32_t *) out->LBins)[(int)fast_roundf((COLOR_RGB888_TO_L(pixel) - COLOR_L_MIN) * l_mult)]++; // needs to be roundf
                             ((uint32_t *) out->ABins)[(int)fast_roundf((COLOR_RGB888_TO_A(pixel) - COLOR_A_MIN) * a_mult)]++; // needs to be roundf
                             ((uint32_t *) out->BBins)[(int)fast_roundf((COLOR_RGB888_TO_B(pixel) - COLOR_B_MIN) * b_mult)]++; // needs to be roundf

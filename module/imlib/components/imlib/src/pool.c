@@ -174,7 +174,7 @@ void imlib_mean_pool(image_t *img_i, image_t *img_o, int x_div, int y_div)
         }
         case PIXFORMAT_RGB888: {
             for (int y = 0, yy = img_i->h / y_div, yyy = (img_i->h % y_div) / 2; y < yy; y++) {
-                uint16_t *row_ptr = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(img_o, y);
+                pixel24_t *row_ptr = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(img_o, y);
                 for (int x = 0, xx = img_i->w / x_div, xxx = (img_i->w % x_div) / 2; x < xx; x++) {
                     int r_acc = 0;
                     int g_acc = 0;
