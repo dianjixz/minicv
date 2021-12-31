@@ -193,7 +193,7 @@ static void jpeg_get_mcu(image_t *src, int x_offset, int y_offset, int dx, int d
                     int g = COLOR_RGB565_TO_G8(pixel);
                     int b = COLOR_RGB565_TO_B8(pixel);
 
-                    int y0 = COLOR_RGB888_TO_Y(r, g, b);
+                    int y0 = COLOR_RGB888_TO_Y_(r, g, b);
 
                     #if (OMV_HARDWARE_JPEG == 0)
                     y0 ^= 0x80;
@@ -201,7 +201,7 @@ static void jpeg_get_mcu(image_t *src, int x_offset, int y_offset, int dx, int d
 
                     Y0[index] = y0;
 
-                    int cb = COLOR_RGB888_TO_U(r, g, b);
+                    int cb = COLOR_RGB888_TO_U_(r, g, b);
 
                     #if (OMV_HARDWARE_JPEG == 1)
                     cb ^= 0x80;
@@ -209,7 +209,7 @@ static void jpeg_get_mcu(image_t *src, int x_offset, int y_offset, int dx, int d
 
                     CB[index] = cb;
 
-                    int cr = COLOR_RGB888_TO_V(r, g, b);
+                    int cr = COLOR_RGB888_TO_V_(r, g, b);
 
                     #if (OMV_HARDWARE_JPEG == 1)
                     cr ^= 0x80;
@@ -269,7 +269,7 @@ static void jpeg_get_mcu(image_t *src, int x_offset, int y_offset, int dx, int d
                     int g = COLOR_RGB888_TO_G8(pixel);
                     int b = COLOR_RGB888_TO_B8(pixel);
 
-                    int y0 = COLOR_RGB888_TO_Y(r, g, b);
+                    int y0 = COLOR_RGB888_TO_Y_(r, g, b);
 
                     #if (OMV_HARDWARE_JPEG == 0)
                     y0 ^= 0x80;
@@ -277,7 +277,7 @@ static void jpeg_get_mcu(image_t *src, int x_offset, int y_offset, int dx, int d
 
                     Y0[index] = y0;
 
-                    int cb = COLOR_RGB888_TO_U(r, g, b);
+                    int cb = COLOR_RGB888_TO_U_(r, g, b);
 
                     #if (OMV_HARDWARE_JPEG == 1)
                     cb ^= 0x80;
@@ -285,7 +285,7 @@ static void jpeg_get_mcu(image_t *src, int x_offset, int y_offset, int dx, int d
 
                     CB[index] = cb;
 
-                    int cr = COLOR_RGB888_TO_V(r, g, b);
+                    int cr = COLOR_RGB888_TO_V_(r, g, b);
 
                     #if (OMV_HARDWARE_JPEG == 1)
                     cr ^= 0x80;
@@ -2176,13 +2176,13 @@ void jpeg_read_geometry(FIL *fp, image_t *img, const char *path, jpg_read_settin
              || ((0xFFCD <= header) && (header <= 0xFFCF)))
             {
                 read_byte_ignore(fp);
-                uint16_t height;
-                read_word(fp, &height);
-                height = __REV16(height);
-
                 uint16_t width;
                 read_word(fp, &width);
                 width = __REV16(width);
+
+                uint16_t height;
+                read_word(fp, &height);
+                height = __REV16(height);
 
                 rs->jpg_w   = width;
                 rs->jpg_h   = height;
