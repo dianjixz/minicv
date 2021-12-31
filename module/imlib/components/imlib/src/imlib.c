@@ -641,10 +641,14 @@ bool imlib_read_geometry(FIL *fp, image_t *img, const char *path, img_read_setti
         file_read_open(fp, path);
         file_buffer_on(fp); // REMEMBER TO TURN THIS OFF LATER!
         vflipped = bmp_read_geometry(fp, img, path, &rs->bmp_rs);
-    } else {
+    } else if ((magic[0]==0xFF) && (magic[1]==0xD8)) { // JPG
         rs->format = FORMAT_JPG;
         file_read_open(fp, path);
+        // Do not use file_buffer_on() here.
         jpeg_read_geometry(fp, img, path, &rs->jpg_rs);
+        file_buffer_on(fp); // REMEMBER TO TURN THIS OFF LATER!
+    } else {
+        ff_unsupported_format(NULL);
     }
     imblib_parse_extension(img, path); // Enforce extension!
     return vflipped;
@@ -928,12 +932,12 @@ void imlib_lens_corr(image_t *img, float strength, float zoom, float x_corr, flo
 
     // Create a tmp copy of the image to pull pixels from.
     size_t size = image_size(img);
-    void *data = xalloc(size);
+    void *data = fb_alloc(size, FB_ALLOC_NO_HINT);
     memcpy(data, img->data, size);
     memset(img->data, 0, size);
 
     int maximum_radius = fast_ceilf(maximum_diameter / 2) + 1; // +1 inclusive of final value
-    float *precalculated_table = xalloc(maximum_radius * sizeof(float));
+    float *precalculated_table = fb_alloc(maximum_radius * sizeof(float), FB_ALLOC_NO_HINT);
 
     for(int i=0; i < maximum_radius; i++) {
         float r = lens_corr_diameter * i;
@@ -1154,8 +1158,8 @@ void imlib_lens_corr(image_t *img, float strength, float zoom, float x_corr, flo
             break;
         }
     }
-    xfree(precalculated_table); // precalculated_table
-    xfree(data); // data
+    fb_free(precalculated_table); // precalculated_table
+    fb_free(data); // data
 }
 #endif //IMLIB_ENABLE_LENS_CORR
 
@@ -1248,7 +1252,7 @@ void imlib_sepconv3(image_t *img, const int8_t *krn, const float m, const int b)
 {
     int ksize = 3;
     // TODO: Support RGB
-    int *buffer = (int*)xalloc(img->w * sizeof(*buffer) * 2);
+    int *buffer = fb_alloc(img->w * sizeof(*buffer) * 2, FB_ALLOC_NO_HINT);
 
     // NOTE: This doesn't deal with borders right now. Adding if
     // statements in the inner loop will slow it down significantly.
@@ -1274,5 +1278,5 @@ void imlib_sepconv3(image_t *img, const int8_t *krn, const float m, const int b)
             }
         }
     }
-    xfree(buffer);
+    fb_free(buffer);
 }

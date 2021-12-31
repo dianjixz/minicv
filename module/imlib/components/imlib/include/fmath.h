@@ -22,9 +22,9 @@ extern "C"
 #include <math.h>
 
 #define fast_sqrtf sqrtf
-#define fast_floorf floorf
+#define fast_floorf(_x) (int)floorf(_x)
 #define fast_ceilf ceilf
-#define fast_roundf roundf
+#define fast_roundf(_x) (int)roundf(_x)
 #define fast_fabsf fabsf
 
 #else

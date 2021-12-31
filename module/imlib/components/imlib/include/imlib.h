@@ -20,7 +20,7 @@
 #include <math.h>
 // #include <arm_math.h>
 // #include <ff.h>
-// #include "fb_alloc.h"
+#include "fb_alloc.h"
 #include "umm_malloc.h"
 #include "xalloc.h"
 #include "array.h"

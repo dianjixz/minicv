@@ -62,7 +62,7 @@ static void bin_up(uint16_t *hist, uint16_t size, unsigned int max_size, uint16_
         float div_value = (*new_size) / ((float) bin_count); // Reversed so we can multiply below.
 
         for (int i = 0; i < bin_count; i++) {
-            (*new_hist)[(int)fast_floorf(i*div_value)] += hist[start+i];
+            (*new_hist)[fast_floorf(i*div_value)] += hist[start+i];
         }
     }
 }
@@ -90,12 +90,12 @@ static void merge_bins(int b_dst_start, int b_dst_end, uint16_t **b_dst_hist, ui
     for(int i = 0; i < bin_count; i++) {
         if ((b_dst_start <= (i + start)) && ((i + start) <= b_dst_end)) {
             int index = fast_floorf((i + start - b_dst_start) * b_dst_div_value);
-            new_hist[(int)fast_floorf(i*div_value)] += (*b_dst_hist)[index];
+            new_hist[fast_floorf(i*div_value)] += (*b_dst_hist)[index];
             (*b_dst_hist)[index] = 0; // prevent from adding again...
         }
         if ((b_src_start <= (i + start)) && ((i + start) <= b_src_end)) {
             int index = fast_floorf((i + start - b_src_start) * b_src_div_value);
-            new_hist[(int)fast_floorf(i*div_value)] += (*b_src_hist)[index];
+            new_hist[fast_floorf(i*div_value)] += (*b_src_hist)[index];
             (*b_src_hist)[index] = 0; // prevent from adding again...
         }
     }
@@ -141,13 +141,13 @@ void imlib_find_blobs(list_t *out, image_t *ptr, rectangle_t *roi, unsigned int 
     bmp.w = ptr->w;
     bmp.h = ptr->h;
     bmp.pixfmt = PIXFORMAT_BINARY;
-    bmp.data = xalloc(image_size(&bmp));
+    bmp.data = fb_alloc0(image_size(&bmp), FB_ALLOC_NO_HINT);
 
     uint16_t *x_hist_bins = NULL;
-    if (x_hist_bins_max) x_hist_bins = xalloc(ptr->w * sizeof(uint16_t));
+    if (x_hist_bins_max) x_hist_bins = fb_alloc(ptr->w * sizeof(uint16_t), FB_ALLOC_NO_HINT);
 
     uint16_t *y_hist_bins = NULL;
-    if (y_hist_bins_max) y_hist_bins = xalloc(ptr->h * sizeof(uint16_t));
+    if (y_hist_bins_max) y_hist_bins = fb_alloc(ptr->h * sizeof(uint16_t), FB_ALLOC_NO_HINT);
 
     lifo_t lifo;
     size_t lifo_len;
@@ -980,9 +980,9 @@ void imlib_find_blobs(list_t *out, image_t *ptr, rectangle_t *roi, unsigned int 
     }
 
     lifo_free(&lifo);
-    if (y_hist_bins) xfree(y_hist_bins);
-    if (x_hist_bins) xfree(x_hist_bins);
-    xfree(bmp.data); // bitmap
+    if (y_hist_bins) fb_free(y_hist_bins);
+    if (x_hist_bins) fb_free(x_hist_bins);
+    fb_free(bmp.data); // bitmap
 
     if (merge) {
         for(;;) {

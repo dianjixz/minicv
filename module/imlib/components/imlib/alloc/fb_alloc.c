@@ -266,7 +266,7 @@ void *fb_alloc0_all(uint32_t *size, int hints)
     return mem;
 }
 
-void fb_free()
+void fb_free(void *msm)
 {
     if (pointer < _fballoc) {
         uint32_t size = *((uint32_t *) pointer);

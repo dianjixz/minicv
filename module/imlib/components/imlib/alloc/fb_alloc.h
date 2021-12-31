@@ -73,7 +73,7 @@ void *fb_alloc(uint32_t size, int hints);
 void *fb_alloc0(uint32_t size, int hints);
 void *fb_alloc_all(uint32_t *size, int hints); // returns pointer and sets size
 void *fb_alloc0_all(uint32_t *size, int hints); // returns pointer and sets size
-void fb_free();
+void fb_free(void *msm);
 void fb_free_all();
 #ifdef __cplusplus
 }
