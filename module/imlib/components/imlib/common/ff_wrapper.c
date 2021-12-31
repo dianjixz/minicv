@@ -510,7 +510,7 @@ void ff_file_corrupted(FIL *fp)
 }
 void ff_not_equal(FIL *fp)
 {
-
+    if (*fp) fclose(*fp);
 }
 
 void ff_no_intersection(FIL *fp)

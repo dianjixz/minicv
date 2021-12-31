@@ -8,3 +8,5 @@ stats.c
 zbar.c
 line.c
 apriltag.c
+phasecorrelation.c
+fft.c

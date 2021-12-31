@@ -9,8 +9,8 @@
 // #include "py/runtime.h"
 // #include "py/obj.h"
 // #include <arm_math.h>
-// #include "fb_alloc.h"
-// #include "ff_wrapper.h"
+#include "fb_alloc.h"
+#include "ff_wrapper.h"
 #include "common.h"
 #include "fft.h"
 // http://processors.wiki.ti.com/index.php/Efficient_FFT_Computation_of_Real_Input
@@ -438,19 +438,18 @@ static void do_ifft(float *inout, int N_pow2, int stride)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-static void *fft1d_alloc_tmp_p = NULL;
+
 void fft1d_alloc(fft1d_controller_t *controller, uint8_t *buf, int len)
 {
     controller->d_pointer = buf;
     controller->d_len = len;
     controller->pow2 = int_clog2(len);
-    fft1d_alloc_tmp_p = xalloc((2 << controller->pow2) * sizeof(float));
-    controller->data = fft1d_alloc_tmp_p;
+    controller->data = fb_alloc((2 << controller->pow2) * sizeof(float), FB_ALLOC_NO_HINT);
 }
 
-void fft1d_dealloc()
+void fft1d_dealloc(void *msm)
 {
-    xfree(fft1d_alloc_tmp_p);
+    fb_free(msm);
 }
 
 void fft1d_run(fft1d_controller_t *controller)
@@ -458,12 +457,12 @@ void fft1d_run(fft1d_controller_t *controller)
     // We can speed up the FFT by packing data into both the real and imaginary
     // values. This results in having to do an FFT of half the size normally.
 
-    float *h_buffer = xalloc((1 << controller->pow2) * sizeof(float));
+    float *h_buffer = fb_alloc((1 << controller->pow2) * sizeof(float), FB_ALLOC_NO_HINT);
     prepare_real_input(controller->d_pointer, controller->d_len,
                        h_buffer, controller->pow2 - 1);
     do_fft(h_buffer, controller->pow2 - 1, 1);
     unpack_fft(h_buffer, controller->data, controller->pow2 - 1);
-    xfree(h_buffer);
+    fb_free(h_buffer);
 }
 
 void ifft1d_run(fft1d_controller_t *controller)
@@ -471,14 +470,14 @@ void ifft1d_run(fft1d_controller_t *controller)
     // We can speed up the FFT by packing data into both the real and imaginary
     // values. This results in having to do an FFT of half the size normally.
 
-    float *h_buffer = xalloc((1 << controller->pow2) * sizeof(float));
+    float *h_buffer = fb_alloc((1 << controller->pow2) * sizeof(float), FB_ALLOC_NO_HINT);
     pack_fft(controller->data, h_buffer, controller->pow2 - 1);
     prepare_complex_input(h_buffer, h_buffer,
                           controller->pow2 - 1, 1);
     do_ifft(h_buffer, controller->pow2 - 1, 1);
     memset(controller->data, 0, (2 << controller->pow2) * sizeof(float));
     memcpy(controller->data, h_buffer, (1 << controller->pow2) * sizeof(float));
-    xfree(h_buffer);
+    fb_free(h_buffer);
 }
 
 void fft1d_mag(fft1d_controller_t *controller)
@@ -538,34 +537,33 @@ void fft1d_run_again(fft1d_controller_t *controller)
     // We can speed up the FFT by packing data into both the real and imaginary
     // values. This results in having to do an FFT of half the size normally.
 
-    float *h_buffer = xalloc((1 << controller->pow2) * sizeof(float));
+    float *h_buffer = fb_alloc((1 << controller->pow2) * sizeof(float), FB_ALLOC_NO_HINT);
     prepare_real_input_again(controller->data, 1 << controller->pow2,
                              h_buffer, controller->pow2 - 1);
     do_fft(h_buffer, controller->pow2 - 1, 1);
     unpack_fft(h_buffer, controller->data, controller->pow2 - 1);
-    xfree(h_buffer);
+    fb_free(h_buffer);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-static void *fft2d_alloc_tmp_p = NULL;
+
 void fft2d_alloc(fft2d_controller_t *controller, image_t *img, rectangle_t *r)
 {
     controller->img = img;
     if (!rectangle_subimg(controller->img, r, &controller->r)) {
-        // mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT("No intersection!"));
+        mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT("No intersection!"));
     }
 
     controller->w_pow2 = int_clog2(controller->r.w);
     controller->h_pow2 = int_clog2(controller->r.h);
 
-    fft2d_alloc_tmp_p = xalloc(2 * (1 << controller->w_pow2) * (1 << controller->h_pow2) * sizeof(float));
-    controller->data = fft2d_alloc_tmp_p;
-    
+    controller->data =
+    fb_alloc0(2 * (1 << controller->w_pow2) * (1 << controller->h_pow2) * sizeof(float), FB_ALLOC_NO_HINT);
 }
 
-void fft2d_dealloc()
+void fft2d_dealloc(void *msm)
 {
-    xfree(fft2d_alloc_tmp_p);
+    fb_free(msm);
 }
 
 void fft2d_run(fft2d_controller_t *controller)
@@ -575,7 +573,7 @@ void fft2d_run(fft2d_controller_t *controller)
     // also handles dealing with a rect less than the image size.
     for (int i = 0; i < controller->r.h; i++) {
         // Get image data into buffer.
-        uint8_t *tmp = xalloc(controller->r.w * sizeof(uint8_t));
+        uint8_t *tmp = fb_alloc(controller->r.w * sizeof(uint8_t), FB_ALLOC_NO_HINT);
         for (int j = 0; j < controller->r.w; j++) {
             if (IM_IS_GS(controller->img)) {
                 tmp[j] = IM_GET_GS_PIXEL(controller->img,
@@ -591,9 +589,9 @@ void fft2d_run(fft2d_controller_t *controller)
         fft1d_run(&fft1d_controller_i);
         memcpy(controller->data + (i * (2 << controller->w_pow2)),
                fft1d_controller_i.data, (2 << fft1d_controller_i.pow2) * sizeof(float));
-        fft1d_dealloc();
+        fft1d_dealloc(fft1d_controller_i.data);
         // Free image data buffer.
-        xfree(tmp);
+        fb_free(tmp);
     }
 
     // The above operates on the rows and this fft operates on the columns. To
@@ -694,7 +692,7 @@ void fft2d_linpolar(fft2d_controller_t *controller)
     int w = 1 << controller->w_pow2;
     int h = 1 << controller->h_pow2;
     int s = h * w * 2 * sizeof(float);
-    float *tmp = xalloc(s);
+    float *tmp = fb_alloc(s, FB_ALLOC_NO_HINT);
     memcpy(tmp, controller->data, s);
     memset(controller->data, 0, s);
 
@@ -720,7 +718,7 @@ void fft2d_linpolar(fft2d_controller_t *controller)
         }
     }
 
-    xfree(tmp);
+    fb_free(tmp);
 }
 
 void fft2d_logpolar(fft2d_controller_t *controller)
@@ -728,7 +726,7 @@ void fft2d_logpolar(fft2d_controller_t *controller)
     int w = 1 << controller->w_pow2;
     int h = 1 << controller->h_pow2;
     int s = h * w * 2 * sizeof(float);
-    float *tmp = xalloc(s);
+    float *tmp = fb_alloc(s, FB_ALLOC_NO_HINT);
     memcpy(tmp, controller->data, s);
     memset(controller->data, 0, s);
 
@@ -754,7 +752,7 @@ void fft2d_logpolar(fft2d_controller_t *controller)
         }
     }
 
-    xfree(tmp);
+    fb_free(tmp);
 }
 
 void fft2d_run_again(fft2d_controller_t *controller)
