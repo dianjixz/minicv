@@ -3,3 +3,4 @@
 #更新的文件
 draw.c
 imlib.c
+blob.c
