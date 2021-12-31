@@ -121,6 +121,41 @@ typedef struct pixel_s {
     (*((pixel24_t*)((void*)&__u32_t)));\
 })
 
+
+
+#define __SMLAD(x, y, sum) \
+({\
+    __typeof__ (x) __x = x;\
+    __typeof__ (y) __y = y;\
+    __typeof__ (sum) __sum = sum;\
+    ((uint32_t)(((((int32_t)__x << 16) >> 16) * (((int32_t)__y << 16) >> 16)) + ((((int32_t)__x) >> 16) * (((int32_t)__y) >> 16)) + ( ((int32_t)__sum))));\
+})
+
+#define __SMUAD(val1, val2) \
+({\
+    __typeof__ (val1) _val1 = val1;\
+    __typeof__ (val2) _val2 = val2;\
+    ((uint32_t)(((((int32_t)_val1 << 16) >> 16) * (((int32_t)_val2 << 16) >> 16)) + ((((int32_t)_val1) >> 16) * (((int32_t)_val2) >> 16))));\
+})
+
+
+#define __QADD16(val1, val2) \
+({\
+    __typeof__ (val1) _val1 = val1;\
+    __typeof__ (val2) _val2 = val2;\
+    ((uint32_t)((((((int32_t)_val1 << 16) >> 16) + (((int32_t)_val2 << 16) >> 16))) | (((((int32_t)_val1) >> 16) + (((int32_t)_val2) >> 16)) << 16)));\
+})
+
+#define __USAT(val1, val2) \
+({\
+    __typeof__ (val1) _val1 = val1;\
+    __typeof__ (val2) _val2 = val2;\
+    ((uint32_t)((0xffffffff >> (32 - _val2)) & _val1));\
+})
+
+
+
+
 #endif //__BYTE_ORDER__
 
 
@@ -337,7 +372,7 @@ color_thresholds_list_lnk_data_t;
 
 #define COLOR_RGB888_TO_Y(r8, g8, b8) ((((r8) * 38) + ((g8) * 75) + ((b8) * 15)) >> 7) // 0.299R + 0.587G + 0.114B
 
-#define COLOR_RGB888_TO_Y_(rgb888) COLOR_RGB888_TO_Y_O(COLOR_RGB888_TO_R8(rgb888), COLOR_RGB888_TO_G8(rgb888), COLOR_RGB888_TO_B8(rgb888)) // 0.299R + 0.587G + 0.114B
+#define COLOR_RGB888_TO_Y_(rgb888) COLOR_RGB888_TO_Y(COLOR_RGB888_TO_R8(rgb888), COLOR_RGB888_TO_G8(rgb888), COLOR_RGB888_TO_B8(rgb888)) // 0.299R + 0.587G + 0.114B
 
 #define COLOR_RGB565_TO_Y(rgb565) \
 ({ \

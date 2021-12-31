@@ -17,6 +17,7 @@
 		"xalloc.h": "c",
 		"array": "c",
 		"initializer_list": "c",
-		"utility": "c"
+		"utility": "c",
+		"ratio": "cpp"
 	}
 }
