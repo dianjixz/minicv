@@ -18,7 +18,7 @@
 
 #define TIME_JPEG   (0)
 #if (TIME_JPEG == 1)
-#include "py/mphal.h"
+// #include "py/mphal.h"
 #endif
 
 #define MCU_W                       (8)
@@ -192,6 +192,82 @@ static void jpeg_get_mcu(image_t *src, int x_offset, int y_offset, int dx, int d
                     int r = COLOR_RGB565_TO_R8(pixel);
                     int g = COLOR_RGB565_TO_G8(pixel);
                     int b = COLOR_RGB565_TO_B8(pixel);
+
+                    int y0 = COLOR_RGB888_TO_Y(r, g, b);
+
+                    #if (OMV_HARDWARE_JPEG == 0)
+                    y0 ^= 0x80;
+                    #endif
+
+                    Y0[index] = y0;
+
+                    int cb = COLOR_RGB888_TO_U(r, g, b);
+
+                    #if (OMV_HARDWARE_JPEG == 1)
+                    cb ^= 0x80;
+                    #endif
+
+                    CB[index] = cb;
+
+                    int cr = COLOR_RGB888_TO_V(r, g, b);
+
+                    #if (OMV_HARDWARE_JPEG == 1)
+                    cr ^= 0x80;
+                    #endif
+
+                    CR[index++] = cr;
+                }
+
+                index += MCU_W - dx;
+            }
+            break;
+        }
+        case PIXFORMAT_RGB888: {
+            if ((dx != MCU_W) || (dy != MCU_H)) { // partial MCU, fill with 0's to start
+                memset(Y0, 0, JPEG_444_GS_MCU_SIZE);
+                memset(CB, 0, JPEG_444_GS_MCU_SIZE);
+                memset(CR, 0, JPEG_444_GS_MCU_SIZE);
+            }
+
+            for (int y = y_offset, yy = y + dy, index = 0; y < yy; y++) {
+                uint32_t *rp = (uint32_t *) (IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(src, y) + x_offset);
+
+                for (int x = 0, xx = dx - 1; x < xx; x += 2, index += 2) {
+                    int pixels = *rp++;
+                    int r_pixels = ((pixels >> 8) & 0xf800f8) | ((pixels >> 13) & 0x70007);
+                    int g_pixels = ((pixels >> 3) & 0xfc00fc) | ((pixels >> 9) & 0x30003);
+                    int b_pixels = ((pixels << 3) & 0xf800f8) | ((pixels >> 2) & 0x70007);
+
+                    int y = ((r_pixels * 38) + (g_pixels * 75) + (b_pixels * 15)) >> 7;
+
+                    #if (OMV_HARDWARE_JPEG == 0)
+                    y ^= 0x800080;
+                    #endif
+
+                    Y0[index] = y, Y0[index + 1] = y >> 16;
+
+                    int u = __SSUB16(b_pixels * 64, (r_pixels * 21) + (g_pixels * 43)) >> 7;
+
+                    #if (OMV_HARDWARE_JPEG == 1)
+                    u ^= 0x800080;
+                    #endif
+
+                    CB[index] = u, CB[index + 1] = u >> 16;
+
+                    int v = __SSUB16(r_pixels * 64, (g_pixels * 54) + (b_pixels * 10)) >> 7;
+
+                    #if (OMV_HARDWARE_JPEG == 1)
+                    v ^= 0x800080;
+                    #endif
+
+                    CR[index] = v, CR[index + 1] = v >> 16;
+                }
+
+                if (dx & 1) {
+                    int pixel = pixel24232(*((pixel24_t *) rp));
+                    int r = COLOR_RGB888_TO_R8(pixel);
+                    int g = COLOR_RGB888_TO_G8(pixel);
+                    int b = COLOR_RGB888_TO_B8(pixel);
 
                     int y0 = COLOR_RGB888_TO_Y(r, g, b);
 
@@ -2164,7 +2240,7 @@ void jpeg_write(image_t *img, const char *path, int quality)
         // the heap and return NULL which will cause an out of memory error.
         jpeg_compress(img, &out, quality, false);
         write_data(&fp, out.pixels, out.size);
-        fb_free(); // frees alloc in jpeg_compress()
+        fb_free(NULL); // frees alloc in jpeg_compress()
     }
     file_close(&fp);
 }

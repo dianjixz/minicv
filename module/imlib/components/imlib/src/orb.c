@@ -44,8 +44,9 @@
 // #include "arm_math.h"
 // #include "ff.h"
 #include "imlib.h"
-// #include "xalloc.h"
-// #include "fb_alloc.h"
+#include "xalloc.h"
+#include "fb_alloc.h"
+#include "ff_wrapper.h"
 #ifdef IMLIB_ENABLE_FIND_KEYPOINTS
 
 #define PATCH_SIZE  (31) // 31x31 pixels
@@ -408,7 +409,7 @@ array_t *orb_find_keypoints(image_t *img, bool normalized, int threshold,
             break;
         }
 
-        img_scaled.pixels = xalloc(img_scaled.w * img_scaled.h);
+        img_scaled.pixels = fb_alloc(img_scaled.w * img_scaled.h, FB_ALLOC_NO_HINT);
         // Down scale image
         image_scale(img, &img_scaled);
 
@@ -488,7 +489,7 @@ array_t *orb_find_keypoints(image_t *img, bool normalized, int threshold,
         }
 
         // Free current scale
-        xfree(img_scaled.pixels);
+        fb_free(img_scaled.pixels);
 
         if (normalized) {
             break;
@@ -629,7 +630,7 @@ int orb_filter_keypoints(array_t *kpts, rectangle_t *r, point_t *c)
     r->w = r->h = 0;
     r->x = r->y = 20000;
 
-    float *kpts_dist = xalloc(kpts_size * sizeof(float));
+    float *kpts_dist = fb_alloc(kpts_size * sizeof(float), FB_ALLOC_NO_HINT);
 
     // Find centroid 
     for (int i=0; i<kpts_size; i++) {
@@ -700,21 +701,21 @@ int orb_filter_keypoints(array_t *kpts, rectangle_t *r, point_t *c)
     r->h = r->h - r->y;
 
     // Free distance array
-    xfree(kpts_dist);
+    fb_free(kpts_dist);
     return matches;
 }
 
 #if defined(IMLIB_ENABLE_IMAGE_FILE_IO)
 int orb_save_descriptor(FIL *fp, array_t *kpts)
 {
-    UINT bytes;
-    FRESULT res;
+    uint8_t bytes;
+    uint32_t res;
 
     int kpts_size = array_length(kpts);
 
     // Write the number of keypoints
-    res = f_write(fp, &kpts_size, sizeof(kpts_size), &bytes);
-    if (res != FR_OK || bytes != sizeof(kpts_size)) {
+    res = fwrite(&kpts_size, sizeof(kpts_size), 1, *fp);
+    if (res != 1) {
         goto error;
     }
 
@@ -723,8 +724,8 @@ int orb_save_descriptor(FIL *fp, array_t *kpts)
         kp_t *kp = array_at(kpts, i);
 
         // Write X
-        res = f_write(fp, &kp->x, sizeof(kp->x), &bytes);
-        if (res != FR_OK || bytes != sizeof(kp->x)) {
+        res = fwrite(&kp->x, sizeof(kp->x), 1, *fp);
+        if (res != 1) {
             goto error;
         }
 

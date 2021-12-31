@@ -18,7 +18,7 @@
 #include <limits.h>
 
 #include "imlib.h"
-// #include "xalloc.h"
+#include "xalloc.h"
 
 static void set_dsp(int cx, int cy, point_t *pts, bool sdsp, int step)
 {

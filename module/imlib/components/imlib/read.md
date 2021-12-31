@@ -10,3 +10,8 @@ line.c
 apriltag.c
 phasecorrelation.c
 fft.c
+yuv.c
+xyz_tab.c
+template.c
+sincos_tab.c
+selective_search.c

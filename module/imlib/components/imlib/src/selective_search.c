@@ -13,8 +13,8 @@
 #include <string.h>
 #include <stdint.h>
 #include "imlib.h"
-// #include "fb_alloc.h"
-// #include "xalloc.h"
+#include "fb_alloc.h"
+#include "xalloc.h"
 #ifdef IMLIB_ENABLE_SELECTIVE_SEARCH
 
 #define THRESHOLD(size, c) (c/size)
@@ -50,7 +50,7 @@ extern uint32_t rng_randint(uint32_t min, uint32_t max);
 
 static universe *universe_create(int elements)
 {
-    universe * uni = (universe*) fb_alloc(sizeof(universe),   FB_ALLOC_NO_HINT);
+    universe * uni = (universe*) fb_alloc(sizeof(universe), FB_ALLOC_NO_HINT);
     uni->elts = (uni_elt*) fb_alloc(sizeof(uni_elt)*elements, FB_ALLOC_NO_HINT);
     uni->num = elements;
     for (int i=0; i<elements; ++i) {
@@ -173,7 +173,7 @@ static void segment_graph(universe *u, int num_vertices, int num_edges, edge *ed
 {
     qsort (edges, num_edges, sizeof(edge), comp);
 
-    float *threshold = xalloc(num_vertices * sizeof(float));
+    float *threshold = fb_alloc(num_vertices * sizeof(float), FB_ALLOC_NO_HINT);
     for (int i=0; i<num_vertices; i++) {
         threshold[i] = THRESHOLD(1, c);
     }
@@ -192,7 +192,7 @@ static void segment_graph(universe *u, int num_vertices, int num_edges, edge *ed
     }
 
     // Free thresholds.
-    xfree(threshold);
+    fb_free(threshold);
 }
 
 static void image_scale(image_t *src, image_t *dst)
@@ -216,7 +216,7 @@ array_t *imlib_selective_search(image_t *src, float t, int min_size, float a1, f
     int width=0, height=0;
     image_t *img = NULL;
 
-    // fb_alloc_mark();
+    fb_alloc_mark();
 
     if ((src->w * src->h) <= (80 * 60)) {
         img    = src;
@@ -282,7 +282,7 @@ array_t *imlib_selective_search(image_t *src, float t, int min_size, float a1, f
     }
 
     // Free graph edges
-    fb_free();
+    fb_free(edges);
 
     int num_ccs = universe_num_sets(u);
     region * regions = (region*) fb_alloc(num_ccs * sizeof(region), FB_ALLOC_NO_HINT);
