@@ -8,12 +8,13 @@
  *
  * BMP reader/writer.
  */
+#define IMLIB_ENABLE_IMAGE_FILE_IO
 #include "imlib.h"
 #if defined(IMLIB_ENABLE_IMAGE_FILE_IO)
 
 #include <stdlib.h>
-#include "py/obj.h"
-#include "py/runtime.h"
+// #include "py/obj.h"
+// #include "py/runtime.h"
 
 #include "xalloc.h"
 #include "ff_wrapper.h"
@@ -222,7 +223,7 @@ void bmp_write_subimg(image_t *img, const char *path, rectangle_t *r)
 {
     rectangle_t rect;
     if (!rectangle_subimg(img, r, &rect)) {
-        mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT("No intersection!"));
+        // mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT("No intersection!"));
     }
 
     FIL fp;

@@ -17,6 +17,7 @@
 #include "imlib.h"
 #include "xalloc.h"
 // #include "ff.h"
+#define IMLIB_ENABLE_FIND_LBP
 #ifdef IMLIB_ENABLE_FIND_LBP
 
 #define LBP_HIST_SIZE   (59)    //58 uniform hist + 1
@@ -94,22 +95,22 @@ int imlib_lbp_desc_distance(uint8_t *d0, uint8_t *d1)
 
 int imlib_lbp_desc_save(FIL *fp, uint8_t *desc)
 {
-    UINT bytes;
+    uint8_t bytes;
     // Write descriptor
-    return f_write(fp, desc, LBP_DESC_SIZE, &bytes);
+    return fwrite(*fp, desc, LBP_DESC_SIZE, &bytes);
 }
 
 int imlib_lbp_desc_load(FIL *fp, uint8_t **desc)
 {
-    UINT bytes;
-    FRESULT res=FR_OK;
+    uint8_t bytes;
+    uint32_t res=0;
 
     *desc = NULL;
     uint8_t *hist = xalloc(LBP_DESC_SIZE);
 
     // Read descriptor
-    res = f_read(fp, hist, LBP_DESC_SIZE, &bytes);
-    if (res != FR_OK || bytes != LBP_DESC_SIZE) {
+    res = fread(*fp, hist, LBP_DESC_SIZE, &bytes);
+    if (res != 0 || bytes != LBP_DESC_SIZE) {
         *desc = NULL;
         xfree(hist);
     } else {

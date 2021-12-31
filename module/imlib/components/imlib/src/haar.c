@@ -15,7 +15,7 @@
 
 // #include "ff.h"
 #include "ff_wrapper.h"
-// #include "xalloc.h"
+#include "xalloc.h"
 #include "imlib.h"
 // built-in cascades
 #include "cascade.h"

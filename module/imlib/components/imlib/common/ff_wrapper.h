@@ -12,7 +12,7 @@
 // #include <ff.h>
 #include <stdio.h>
 
-typedef FILE FIL;
+typedef FILE* FIL;
 // extern const char *ffs_strerror(FRESULT res);
 
 //OOFATFS wrappers
@@ -55,3 +55,32 @@ void write_word(FIL *fp, uint16_t value);
 void write_long(FIL *fp, uint32_t value);
 void write_data(FIL *fp, const void *data, size_t size);
 #endif /* __FF_WRAPPER_H__ */
+
+// file_read_open
+// file_write_open
+// file_close
+// file_buffer_on
+
+// read_byte_expect
+// read_long_expect
+// read_long
+// read_word_ignore
+// read_long_ignore
+// read_byte_ignore
+// ff_file_corrupted
+// ff_unsupported_format
+// read_word_expect
+// read_word
+// read_data
+// read_byte
+
+// bmp_read_geometry
+// bmp_read_pixels
+// file_buffer_off
+
+// rectangle_subimg
+
+// write_byte
+// write_long
+// write_word
+// write_data

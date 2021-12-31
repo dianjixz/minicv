@@ -8,8 +8,8 @@
  */
 #include "imlib_config.h"
 
-// #define IMLIB_ENABLE_IMAGE_FILE_IO
 
+#define IMLIB_ENABLE_IMAGE_FILE_IO
 #if defined(IMLIB_ENABLE_IMAGE_FILE_IO)
 
 #include <string.h>
@@ -21,6 +21,8 @@
 #include "fb_alloc.h"
 #include "ff_wrapper.h"
 #define FF_MIN(x,y) (((x)<(y))?(x):(y))
+
+#if 0
 
 static void ff_fail(FIL *fp, uint32_t res)
 {
@@ -72,25 +74,25 @@ static void ff_write_fail(FIL *fp)
 
 void file_read_open(FIL *fp, const char *path)
 {
-    fp = fopen(path, "rb");
-    if(NULL == fp) ff_fail(fp, 0);
+    *fp = fopen(path, "rb");
+    if(NULL == *fp) ff_fail(fp, 0);
     // FRESULT res = f_open_helper(fp, path, FA_READ|FA_OPEN_EXISTING);
     // if (res != FR_OK) ff_fail(fp, res);
 }
 
 void file_write_open(FIL *fp, const char *path)
 {
-    fp = fopen(path, "wb");
-    if(NULL == fp) ff_fail(fp, 0);
+    *fp = fopen(path, "wb");
+    if(NULL == *fp) ff_fail(fp, 0);
     // FRESULT res = f_open_helper(fp, path, FA_WRITE|FA_CREATE_ALWAYS);
     // if (res != FR_OK) ff_fail(fp, res);
 }
 
 void file_close(FIL *fp)
 {
-    if(NULL != fp)
+    if(NULL != *fp)
     {
-        fclose(fp);
+        fclose(*fp);
     }
     // FRESULT res = f_close(fp);
     // if (res != FR_OK) ff_fail(fp, res);
@@ -98,7 +100,7 @@ void file_close(FIL *fp)
 
 void file_seek(FIL *fp, size_t offset)
 {
-    fseek(fp, offset, SEEK_SET);
+    fseek(*fp, offset, SEEK_SET);
     // FRESULT res = f_lseek(fp, offset);
     // if (res != FR_OK) ff_fail(fp, res);
 }
@@ -111,7 +113,7 @@ void file_truncate(FIL *fp)
 
 void file_sync(FIL *fp)
 {
-    int fd = fileno(fp); 
+    int fd = fileno(*fp); 
     fsync(fd);
     // FRESULT res = f_sync(fp);
     // if (res != FR_OK) ff_fail(fp, res);
@@ -214,22 +216,23 @@ OMV_ATTR_ALWAYS_INLINE static void file_fill(FIL *fp)
         file_buffer_size += file_buffer_offset;
         file_buffer_offset = 0;
         file_buffer_index = 0;
-        uint32_t file_remaining = fsize(fp) - ftell(fp);
+        uint32_t file_remaining = fsize(*fp) - ftell(*fp);
         uint32_t can_do = FF_MIN(file_buffer_size, file_remaining);
-        UINT bytes;
-        FRESULT res = fread(fp, file_buffer_pointer, can_do, &bytes);
-        if (res != FR_OK) ff_fail(fp, res);
-        if (bytes != can_do) ff_read_fail(fp);
+        uint8_t bytes;
+        uint32_t res = fread(*fp, file_buffer_pointer, can_do, &bytes);
+        // FRESULT res = fread(*fp, file_buffer_pointer, can_do, &bytes);
+        // if (res != FR_OK) ff_fail(fp, res);
+        // if (bytes != can_do) ff_read_fail(fp);
     }
 }
 
 OMV_ATTR_ALWAYS_INLINE static void file_flush(FIL *fp)
 {
     if (file_buffer_index == file_buffer_size) {
-        UINT bytes;
-        FRESULT res = f_write(fp, file_buffer_pointer, file_buffer_index, &bytes);
-        if (res != FR_OK) ff_fail(fp, res);
-        if (bytes != file_buffer_index) ff_write_fail(fp);
+        uint8_t bytes;
+        uint32_t res = fwrite(*fp, file_buffer_pointer, file_buffer_index, &bytes);
+        // if (res != FR_OK) ff_fail(fp, res);
+        if (bytes != file_buffer_index) ff_write_fail(*fp);
         file_buffer_pointer -= file_buffer_offset;
         file_buffer_size += file_buffer_offset;
         file_buffer_offset = 0;
@@ -240,50 +243,50 @@ OMV_ATTR_ALWAYS_INLINE static void file_flush(FIL *fp)
 uint32_t file_tell_w_buf(FIL *fp)
 {
     if (fp->flag & FA_READ) {
-        return f_tell(fp) - file_buffer_size + file_buffer_index;
+        return ftell(*fp) - file_buffer_size + file_buffer_index;
     } else {
-        return f_tell(fp) + file_buffer_index;
+        return ftell(*fp) + file_buffer_index;
     }
 }
 
 uint32_t file_size_w_buf(FIL *fp)
 {
     if (fp->flag & FA_READ) {
-        return f_size(fp);
+        return fsize(*fp);
     } else {
-        return f_size(fp) + file_buffer_index;
+        return fsize(*fp) + file_buffer_index;
     }
 }
 
 void file_buffer_on(FIL *fp)
 {
-    file_buffer_offset = f_tell(fp) % 4;
+    file_buffer_offset = ftell(*fp) % 4;
     file_buffer_pointer = fb_alloc_all(&file_buffer_size, FB_ALLOC_PREFER_SIZE) + file_buffer_offset;
     if (!file_buffer_size) {
-        mp_raise_msg(&mp_type_MemoryError, MP_ERROR_TEXT("No memory!"));
+        // mp_raise_msg(&mp_type_MemoryError, MP_ERROR_TEXT("No memory!"));
     }
     file_buffer_size -= file_buffer_offset;
     file_buffer_index = 0;
     if (fp->flag & FA_READ) {
-        uint32_t file_remaining = f_size(fp) - f_tell(fp);
+        uint32_t file_remaining = fsize(*fp) - ftell(*fp);
         uint32_t can_do = FF_MIN(file_buffer_size, file_remaining);
-        UINT bytes;
-        FRESULT res = f_read(fp, file_buffer_pointer, can_do, &bytes);
-        if (res != FR_OK) ff_fail(fp, res);
-        if (bytes != can_do) ff_read_fail(fp);
+        uint8_t bytes;
+        uint32_t res = fread(*fp, file_buffer_pointer, can_do, &bytes);
+        // if (res != FR_OK) ff_fail(fp, res);
+        // if (bytes != can_do) ff_read_fail(fp);
     }
 }
 
 void file_buffer_off(FIL *fp)
 {
     if ((fp->flag & FA_WRITE) && file_buffer_index) {
-        UINT bytes;
-        FRESULT res = f_write(fp, file_buffer_pointer, file_buffer_index, &bytes);
-        if (res != FR_OK) ff_fail(fp, res);
-        if (bytes != file_buffer_index) ff_write_fail(fp);
+        uint8_t bytes;
+        uint32_t res = fwrite(*fp, file_buffer_pointer, file_buffer_index, &bytes);
+        // if (res != FR_OK) ff_fail(fp, res);
+        // if (bytes != file_buffer_index) ff_write_fail(fp);
     }
     file_buffer_pointer = 0;
-    fb_free();
+    fb_free(NULL);
 }
 
 void read_byte(FIL *fp, uint8_t *value)
@@ -297,10 +300,10 @@ void read_byte(FIL *fp, uint8_t *value)
             ((uint8_t *) value)[i] = file_buffer_pointer[file_buffer_index++];
         }
     } else {
-        UINT bytes;
-        FRESULT res = f_read(fp, value, sizeof(*value), &bytes);
-        if (res != FR_OK) ff_fail(fp, res);
-        if (bytes != sizeof(*value)) ff_read_fail(fp);
+        uint8_t bytes;
+        uint32_t res = fread(*fp, value, sizeof(*value), &bytes);
+        // if (res != FR_OK) ff_fail(fp, res);
+        // if (bytes != sizeof(*value)) ff_read_fail(fp);
     }
 }
 
@@ -328,10 +331,10 @@ void read_word(FIL *fp, uint16_t *value)
             ((uint8_t *) value)[i] = file_buffer_pointer[file_buffer_index++];
         }
     } else {
-        UINT bytes;
-        FRESULT res = f_read(fp, value, sizeof(*value), &bytes);
-        if (res != FR_OK) ff_fail(fp, res);
-        if (bytes != sizeof(*value)) ff_read_fail(fp);
+        uint8_t bytes;
+        uint32_t res = fread(*fp, value, sizeof(*value), &bytes);
+        // if (res != FR_OK) ff_fail(fp, res);
+        // if (bytes != sizeof(*value)) ff_read_fail(fp);
     }
 }
 
@@ -359,10 +362,10 @@ void read_long(FIL *fp, uint32_t *value)
             ((uint8_t *) value)[i] = file_buffer_pointer[file_buffer_index++];
         }
     } else {
-        UINT bytes;
-        FRESULT res = f_read(fp, value, sizeof(*value), &bytes);
-        if (res != FR_OK) ff_fail(fp, res);
-        if (bytes != sizeof(*value)) ff_read_fail(fp);
+        uint8_t bytes;
+        uint32_t res = fread(*fp, value, sizeof(*value), &bytes);
+        // if (res != FR_OK) ff_fail(fp, res);
+        // if (bytes != sizeof(*value)) ff_read_fail(fp);
     }
 }
 
@@ -395,9 +398,9 @@ void read_data(FIL *fp, void *data, size_t size)
             size -= can_do;
         }
     } else {
-        UINT bytes;
-        FRESULT res = f_read(fp, data, size, &bytes);
-        if (res != FR_OK) ff_fail(fp, res);
+        uint8_t bytes;
+        uint32_t res = fread(*fp, data, size, &bytes);
+        // if (res != FR_OK) ff_fail(fp, res);
         if (bytes != size) ff_read_fail(fp);
     }
 }
@@ -413,9 +416,9 @@ void write_byte(FIL *fp, uint8_t value)
             file_flush(fp);
         }
     } else {
-        UINT bytes;
-        FRESULT res = f_write(fp, &value, sizeof(value), &bytes);
-        if (res != FR_OK) ff_fail(fp, res);
+        uint8_t bytes;
+        uint32_t res = fwrite(*fp, &value, sizeof(value), &bytes);
+        // if (res != FR_OK) ff_fail(fp, res);
         if (bytes != sizeof(value)) ff_write_fail(fp);
     }
 }
@@ -431,9 +434,9 @@ void write_word(FIL *fp, uint16_t value)
             file_flush(fp);
         }
     } else {
-        UINT bytes;
-        FRESULT res = f_write(fp, &value, sizeof(value), &bytes);
-        if (res != FR_OK) ff_fail(fp, res);
+        uint8_t bytes;
+        uint32_t res = fwrite(*fp, &value, sizeof(value), &bytes);
+        // if (res != FR_OK) ff_fail(fp, res);
         if (bytes != sizeof(value)) ff_write_fail(fp);
     }
 }
@@ -449,9 +452,9 @@ void write_long(FIL *fp, uint32_t value)
             file_flush(fp);
         }
     } else {
-        UINT bytes;
-        FRESULT res = f_write(fp, &value, sizeof(value), &bytes);
-        if (res != FR_OK) ff_fail(fp, res);
+        uint8_t bytes;
+        uint32_t res = fwrite(*fp, &value, sizeof(value), &bytes);
+        // if (res != FR_OK) ff_fail(fp, res);
         if (bytes != sizeof(value)) ff_write_fail(fp);
     }
 }
@@ -472,10 +475,237 @@ void write_data(FIL *fp, const void *data, size_t size)
             file_flush(fp);
         }
     } else {
-        UINT bytes;
-        FRESULT res = f_write(fp, data, size, &bytes);
-        if (res != FR_OK) ff_fail(fp, res);
+        uint8_t bytes;
+        uint32_t res = fwrite(*fp, data, size, &bytes);
+        // if (res != FR_OK) ff_fail(fp, res);
         if (bytes != size) ff_write_fail(fp);
     }
 }
+
+
+#else
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void ff_unsupported_format(FIL *fp)
+{
+    if (*fp) fclose(*fp);
+}
+
+void ff_file_corrupted(FIL *fp)
+{
+    if (*fp) fclose(*fp);
+}
+void ff_not_equal(FIL *fp)
+{
+
+}
+
+void ff_no_intersection(FIL *fp)
+{
+
+}
+void file_read_open(FIL *fp, const char *path)
+{
+    *fp = fopen(path, "rb");
+    // if(NULL == *fp)
+    // {
+    //     // todo
+    // }
+}
+void file_write_open(FIL *fp, const char *path)
+{
+    *fp = fopen(path, "wb");
+}
+
+void file_close(FIL *fp)
+{
+    fclose(*fp);
+}
+void file_seek(FIL *fp, size_t offset)
+{
+
+}
+void file_truncate(FIL *fp)
+{
+
+}
+void file_sync(FIL *fp)
+{
+
+}
+
+void file_buffer_init0()
+{
+
+}
+
+
+void file_buffer_on(FIL *fp) // does fb_alloc_all
+{
+
+}
+uint32_t file_tell_w_buf(FIL *fp) // valid between on and off
+{
+
+}
+uint32_t file_size_w_buf(FIL *fp) // valid between on and off
+{
+
+}
+void file_buffer_off(FIL *fp) // does fb_free
+{
+
+}
+void read_byte(FIL *fp, uint8_t *value)
+{
+    int num;
+    num = fread(value, 1, 1, *fp);
+    if(num != 1)
+    {
+        printf("file error!\n");
+    }
+}
+void read_byte_expect(FIL *fp, uint8_t value)
+{
+    int num;
+    uint8_t str_s;
+    num = fread(&str_s, 1, 1, *fp);
+    if(str_s != value)
+    {
+        printf("file error!\n");
+    }
+}
+void read_byte_ignore(FIL *fp)
+{
+    int num;
+    uint32_t str_s;
+    num = fread(&str_s, 1, 1, *fp);
+    if(num != 1)
+    {
+        printf("file error!\n");
+    }
+}
+void read_word(FIL *fp, uint16_t *value)
+{
+    int num;
+    num = fread(value, 2, 1, *fp);
+    if(num != 1)
+    {
+        printf("file error!\n");
+    }
+}
+void read_word_expect(FIL *fp, uint16_t value)
+{
+    int num;
+    uint16_t str_s;
+    num = fread(&str_s, 2, 1, *fp);
+    if(str_s != value)
+    {
+        printf("file error!\n");
+    }
+}
+void read_word_ignore(FIL *fp)
+{
+    int num;
+    uint16_t str_s;
+    num = fread(&str_s, 2, 1, *fp);
+    if(num != 1)
+    {
+        printf("file error!\n");
+    }
+}
+void read_long(FIL *fp, uint32_t *value)
+{
+    int num;
+    num = fread(value, 4, 1, *fp);
+    if(num != 1)
+    {
+        printf("file error!\n");
+    }
+}
+void read_long_expect(FIL *fp, uint32_t value)
+{
+    int num;
+    uint32_t str_s;
+    num = fread(&str_s, 4, 1, *fp);
+    if(str_s != value)
+    {
+        printf("file error!\n");
+    }
+}
+void read_long_ignore(FIL *fp)
+{
+    int num;
+    uint32_t str_s;
+    num = fread(&str_s, 4, 1, *fp);
+    if(num != 1)
+    {
+        printf("file error!\n");
+    }
+}
+void read_data(FIL *fp, void *data, size_t size)
+{
+    int num;
+    num = fread(data, 1, size, *fp);
+    if(num != size)
+    {
+        printf("file error!\n");
+    }
+}
+
+
+void write_byte(FIL *fp, uint8_t value)
+{
+    int num;
+    num =  fwrite(&value, 1, 1, *fp);
+    if(num != 1)
+    {
+        printf("file error!\n");
+    }
+}
+void write_word(FIL *fp, uint16_t value)
+{
+    int num;
+    num =  fwrite(&value, 2, 1, *fp);
+    if(num != 1)
+    {
+        printf("file error!\n");
+    }
+}
+void write_long(FIL *fp, uint32_t value)
+{
+    int num;
+    num =  fwrite(&value, 4, 1, *fp);
+    if(num != 1)
+    {
+        printf("file error!\n");
+    }
+}
+void write_data(FIL *fp, const void *data, size_t size)
+{
+    int num;
+    num =  fwrite(data, 1, size, *fp);
+    if(num != size)
+    {
+        printf("file error!\n");
+    }
+}
+
+
+
+#endif
+
 #endif //IMLIB_ENABLE_IMAGE_FILE_IO
