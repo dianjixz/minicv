@@ -13,6 +13,7 @@
 #include "omv_boardconfig.h"
 #include "xalloc.h"
 #include <stdio.h>
+#include <string.h>
 #define true 1
 #define false 0
 #define bool uint8_t
@@ -133,7 +134,7 @@ void fb_alloc_free_till_mark()
 
 void fb_alloc_mark_permanent()
 {
-    if (pointer < &_fballoc) *((uint32_t *) pointer) |= FB_PERMANENT_FLAG;
+    if (pointer < _fballoc) *((uint32_t *) pointer) |= FB_PERMANENT_FLAG;
 }
 
 void fb_alloc_free_till_mark_past_mark_permanent()
@@ -186,7 +187,7 @@ void *fb_alloc(uint32_t size, int hints)
     // #endif
 
     if (hints & FB_ALLOC_CACHE_ALIGN) {
-        int offset = ((uint32_t) result) % FB_ALLOC_ALIGNMENT;
+        int offset = ((size_t) result) % FB_ALLOC_ALIGNMENT;
         if (offset) {
             result += FB_ALLOC_ALIGNMENT - offset;
         }
@@ -246,7 +247,7 @@ void *fb_alloc_all(uint32_t *size, int hints)
     // #endif
 
     if (hints & FB_ALLOC_CACHE_ALIGN) {
-        int offset = ((uint32_t) result) % FB_ALLOC_ALIGNMENT;
+        int offset = ((size_t) result) % FB_ALLOC_ALIGNMENT;
         if (offset) {
             int inc = FB_ALLOC_ALIGNMENT - offset;
             result += inc;

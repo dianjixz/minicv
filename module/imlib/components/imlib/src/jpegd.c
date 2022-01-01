@@ -11,6 +11,7 @@
 #include "ff_wrapper.h"
 #include "imlib.h"
 #include "omv_boardconfig.h"
+#include "arm_compat.h"
 
 /* Defines and variables */
 #define FILE_HIGHWATER      1536

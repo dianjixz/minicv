@@ -19,6 +19,7 @@ typedef unsigned char bool;
 #define false 0
 // #include "cmsis_gcc.h"
 // #include "py/mphal.h"
+#include "arm_compat.h"
 
 void mutex_init0(omv_mutex_t *mutex)
 {

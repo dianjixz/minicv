@@ -5,7 +5,7 @@ CC = $(CROSS)gcc
 CXX = $(CROSS)g++
 
 DEBUG = 
-CFLAGS = $(DEBUG) -Wall -c -fPIC
+CFLAGS = $(DEBUG) -Wall -c -fPIC -Wno-comment
 LDFLAGS = -fPIC -shared -lm
 MV = mv -f
 RM = rm -rf

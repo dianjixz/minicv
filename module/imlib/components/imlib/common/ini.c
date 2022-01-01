@@ -228,7 +228,7 @@ ini_fgets(char *dst, int max, FIL *fp)
     /* get max bytes or upto a newline */
 
     for (p = dst, max--; max > 0; max--) {
-        if ((c = ini_fgetc (fp)) == EOF)
+        if ((c = fgetc(*fp)) == EOF)
             break;
         *p++ = c;
         if (c == '\n')

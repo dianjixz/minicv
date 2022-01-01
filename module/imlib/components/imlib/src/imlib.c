@@ -19,6 +19,7 @@
 #include "common.h"
 #include "omv_boardconfig.h"
 
+
 void imlib_init_all()
 {
     #if (OMV_HARDWARE_JPEG == 1)
@@ -669,129 +670,149 @@ static void imlib_read_pixels(FIL *fp, image_t *img, int n_lines, img_read_setti
 }
 #endif  //IMLIB_ENABLE_IMAGE_FILE_IO
 
-// void imlib_image_operation(image_t *img, const char *path, image_t *other, int scalar, line_op_t op, void *data)
-// {
-//     if (path) {
-//         #if defined(IMLIB_ENABLE_IMAGE_FILE_IO)
-//         uint32_t size = fb_avail() / 2;
-//         void *alloc = fb_alloc(size, FB_ALLOC_NO_HINT); // We have to do this before the read.
-//         // This code reads a window of an image in at a time and then executes
-//         // the line operation on each line in that window before moving to the
-//         // next window. The vflipped part is here because BMP files can be saved
-//         // vertically flipped resulting in us reading the image backwards.
-//         FIL fp;
-//         image_t temp;
-//         img_read_settings_t rs;
-//         bool vflipped = imlib_read_geometry(&fp, &temp, path, &rs);
-//         if (!IM_EQUAL(img, &temp)) {
-//             f_close(&fp);
-//             mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT("Images not equal!"));
-//         }
-//         // When processing vertically flipped images the read function will fill
-//         // the window up from the bottom. The read function assumes that the
-//         // window is equal to an image in size. However, since this is not the
-//         // case we shrink the window size to how many lines we're buffering.
-//         temp.pixels = alloc;
-//         // Set the max buffer height to image height.
-//         temp.h = IM_MIN(img->h, (size / (temp.w * temp.bpp)));
-//         // This should never happen unless someone forgot to free.
-//         if ((!temp.pixels) || (!temp.h)) {
-//             mp_raise_msg(&mp_type_MemoryError, MP_ERROR_TEXT("Not enough memory available!"));
-//         }
-//         for (int i=0; i<img->h; i+=temp.h) { // goes past end
-//             int lines = IM_MIN(temp.h, img->h-i);
-//             imlib_read_pixels(&fp, &temp, lines, &rs);
-//             for (int j=0; j<lines; j++) {
-//                 if (!vflipped) {
-//                     op(img, i+j, temp.pixels+(temp.w*temp.bpp*j), data, false);
-//                 } else {
-//                     op(img, (img->h-i-lines)+j, temp.pixels+(temp.w*temp.bpp*j), data, true);
-//                 }
-//             }
-//         }
-//         file_buffer_off(&fp);
-//         file_close(&fp);
-//         fb_free();
-//         #else
-//         mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT("Image I/O is not supported"));
-//         #endif
-//     } else if (other) {
-//         if (!IM_EQUAL(img, other)) {
-//             mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT("Images not equal!"));
-//         }
-//         switch (img->pixfmt) {
-//             case PIXFORMAT_BINARY: {
-//                 for (int i=0, ii=img->h; i<ii; i++) {
-//                     op(img, i, IMAGE_COMPUTE_BINARY_PIXEL_ROW_PTR(other, i), data, false);
-//                 }
-//                 break;
-//             }
-//             case PIXFORMAT_GRAYSCALE: {
-//                 for (int i=0, ii=img->h; i<ii; i++) {
-//                     op(img, i, IMAGE_COMPUTE_GRAYSCALE_PIXEL_ROW_PTR(other, i), data, false);
-//                 }
-//                 break;
-//             }
-//             case PIXFORMAT_RGB565: {
-//                 for (int i=0, ii=img->h; i<ii; i++) {
-//                     op(img, i, IMAGE_COMPUTE_RGB565_PIXEL_ROW_PTR(other, i), data, false);
-//                 }
-//                 break;
-//             }
-//             default: {
-//                 break;
-//             }
-//         }
-//     } else {
-//         switch (img->pixfmt) {
-//             case PIXFORMAT_BINARY: {
-//                 uint32_t *row_ptr = fb_alloc(IMAGE_BINARY_LINE_LEN_BYTES(img), FB_ALLOC_NO_HINT);
+void imlib_image_operation(image_t *img, const char *path, image_t *other, int scalar, line_op_t op, void *data)
+{
+    if (path) {
+        #if defined(IMLIB_ENABLE_IMAGE_FILE_IO)
+        uint32_t size = fb_avail() / 2;
+        void *alloc = fb_alloc(size, FB_ALLOC_NO_HINT); // We have to do this before the read.
+        // This code reads a window of an image in at a time and then executes
+        // the line operation on each line in that window before moving to the
+        // next window. The vflipped part is here because BMP files can be saved
+        // vertically flipped resulting in us reading the image backwards.
+        FIL fp;
+        image_t temp;
+        img_read_settings_t rs;
+        bool vflipped = imlib_read_geometry(&fp, &temp, path, &rs);
+        if (!IM_EQUAL(img, &temp)) {
+            f_close(&fp);
+            mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT("Images not equal!"));
+        }
+        // When processing vertically flipped images the read function will fill
+        // the window up from the bottom. The read function assumes that the
+        // window is equal to an image in size. However, since this is not the
+        // case we shrink the window size to how many lines we're buffering.
+        temp.pixels = alloc;
+        // Set the max buffer height to image height.
+        temp.h = IM_MIN(img->h, (size / (temp.w * temp.bpp)));
+        // This should never happen unless someone forgot to free.
+        if ((!temp.pixels) || (!temp.h)) {
+            mp_raise_msg(&mp_type_MemoryError, MP_ERROR_TEXT("Not enough memory available!"));
+        }
+        for (int i=0; i<img->h; i+=temp.h) { // goes past end
+            int lines = IM_MIN(temp.h, img->h-i);
+            imlib_read_pixels(&fp, &temp, lines, &rs);
+            for (int j=0; j<lines; j++) {
+                if (!vflipped) {
+                    op(img, i+j, temp.pixels+(temp.w*temp.bpp*j), data, false);
+                } else {
+                    op(img, (img->h-i-lines)+j, temp.pixels+(temp.w*temp.bpp*j), data, true);
+                }
+            }
+        }
+        file_buffer_off(&fp);
+        file_close(&fp);
+        fb_free();
+        #else
+        // mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT("Image I/O is not supported"));
+        #endif
+    } else if (other) {
+        if (!IM_EQUAL(img, other)) {
+            // mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT("Images not equal!"));
+        }
+        switch (img->pixfmt) {
+            case PIXFORMAT_BINARY: {
+                for (int i=0, ii=img->h; i<ii; i++) {
+                    op(img, i, IMAGE_COMPUTE_BINARY_PIXEL_ROW_PTR(other, i), data, false);
+                }
+                break;
+            }
+            case PIXFORMAT_GRAYSCALE: {
+                for (int i=0, ii=img->h; i<ii; i++) {
+                    op(img, i, IMAGE_COMPUTE_GRAYSCALE_PIXEL_ROW_PTR(other, i), data, false);
+                }
+                break;
+            }
+            case PIXFORMAT_RGB565: {
+                for (int i=0, ii=img->h; i<ii; i++) {
+                    op(img, i, IMAGE_COMPUTE_RGB565_PIXEL_ROW_PTR(other, i), data, false);
+                }
+                break;
+            }
+            case PIXFORMAT_RGB888: {
+                for (int i=0, ii=img->h; i<ii; i++) {
+                    op(img, i, IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(other, i), data, false);
+                }
+                break;
+            }
+            default: {
+                break;
+            }
+        }
+    } else {
+        switch (img->pixfmt) {
+            case PIXFORMAT_BINARY: {
+                uint32_t *row_ptr = fb_alloc(IMAGE_BINARY_LINE_LEN_BYTES(img), FB_ALLOC_NO_HINT);
 
-//                 for (int i=0, ii=img->w; i<ii; i++) {
-//                     IMAGE_PUT_BINARY_PIXEL_FAST(row_ptr, i, scalar);
-//                 }
+                for (int i=0, ii=img->w; i<ii; i++) {
+                    IMAGE_PUT_BINARY_PIXEL_FAST(row_ptr, i, scalar);
+                }
 
-//                 for (int i=0, ii=img->h; i<ii; i++) {
-//                     op(img, i, row_ptr, data, false);
-//                 }
+                for (int i=0, ii=img->h; i<ii; i++) {
+                    op(img, i, row_ptr, data, false);
+                }
 
-//                 fb_free();
-//                 break;
-//             }
-//             case PIXFORMAT_GRAYSCALE: {
-//                 uint8_t *row_ptr = fb_alloc(IMAGE_GRAYSCALE_LINE_LEN_BYTES(img), FB_ALLOC_NO_HINT);
+                fb_free(row_ptr);
+                break;
+            }
+            case PIXFORMAT_GRAYSCALE: {
+                uint8_t *row_ptr = fb_alloc(IMAGE_GRAYSCALE_LINE_LEN_BYTES(img), FB_ALLOC_NO_HINT);
 
-//                 for (int i=0, ii=img->w; i<ii; i++) {
-//                     IMAGE_PUT_GRAYSCALE_PIXEL_FAST(row_ptr, i, scalar);
-//                 }
+                for (int i=0, ii=img->w; i<ii; i++) {
+                    IMAGE_PUT_GRAYSCALE_PIXEL_FAST(row_ptr, i, scalar);
+                }
 
-//                 for (int i=0, ii=img->h; i<ii; i++) {
-//                     op(img, i, row_ptr, data, false);
-//                 }
+                for (int i=0, ii=img->h; i<ii; i++) {
+                    op(img, i, row_ptr, data, false);
+                }
 
-//                 fb_free();
-//                 break;
-//             }
-//             case PIXFORMAT_RGB565: {
-//                 uint16_t *row_ptr = fb_alloc(IMAGE_RGB565_LINE_LEN_BYTES(img), FB_ALLOC_NO_HINT);
+                fb_free(row_ptr);
+                break;
+            }
+            case PIXFORMAT_RGB565: {
+                uint16_t *row_ptr = fb_alloc(IMAGE_RGB565_LINE_LEN_BYTES(img), FB_ALLOC_NO_HINT);
 
-//                 for (int i=0, ii=img->w; i<ii; i++) {
-//                     IMAGE_PUT_RGB565_PIXEL_FAST(row_ptr, i, scalar);
-//                 }
+                for (int i=0, ii=img->w; i<ii; i++) {
+                    IMAGE_PUT_RGB565_PIXEL_FAST(row_ptr, i, scalar);
+                }
 
-//                 for (int i=0, ii=img->h; i<ii; i++) {
-//                     op(img, i, row_ptr, data, false);
-//                 }
+                for (int i=0, ii=img->h; i<ii; i++) {
+                    op(img, i, row_ptr, data, false);
+                }
 
-//                 fb_free();
-//                 break;
-//             }
-//             default: {
-//                 break;
-//             }
-//         }
-//     }
-// }
+                fb_free(row_ptr);
+                break;
+            }
+            case PIXFORMAT_RGB888: {
+                pixel24_t *row_ptr = fb_alloc(IMAGE_RGB888_LINE_LEN_BYTES(img), FB_ALLOC_NO_HINT);
+
+                for (int i=0, ii=img->w; i<ii; i++) {
+                    IMAGE_PUT_RGB888_PIXEL_FAST(row_ptr, i, scalar);
+                }
+
+                for (int i=0, ii=img->h; i<ii; i++) {
+                    op(img, i, row_ptr, data, false);
+                }
+
+                fb_free(row_ptr);
+                break;
+            }
+            default: {
+                break;
+            }
+        }
+    }
+}
 
 #if defined(IMLIB_ENABLE_IMAGE_FILE_IO)
 void imlib_load_image(image_t *img, const char *path)
@@ -1105,11 +1126,11 @@ void imlib_lens_corr(image_t *img, float strength, float zoom, float x_corr, flo
             break;
         }
         case PIXFORMAT_RGB888: {
-            uint16_t *tmp = (uint16_t *) data;
+            pixel24_t *tmp = (pixel24_t *) data;
 
             for (int y = 0; y < halfHeight; y++) {
-                uint16_t *row_ptr = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(img, y);
-                uint16_t *row_ptr2 = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(img, h-1-y);
+                pixel24_t *row_ptr = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(img, y);
+                pixel24_t *row_ptr2 = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(img, h-1-y);
                 int newY = y - halfHeight;
                 int newY2 = newY * newY;
 
@@ -1127,7 +1148,7 @@ void imlib_lens_corr(image_t *img, float strength, float zoom, float x_corr, flo
                     // plot the 4 symmetrical pixels
                     // top 2 pixels
                     if (sourceY_down >= 0 && sourceY_down < h) {
-                        uint16_t *ptr = tmp + (w * sourceY_down);
+                        pixel24_t *ptr = tmp + (w * sourceY_down);
 
                         if (sourceX_right >= 0 && sourceX_right < w) {
                             row_ptr[x] = ptr[sourceX_right];
@@ -1140,7 +1161,7 @@ void imlib_lens_corr(image_t *img, float strength, float zoom, float x_corr, flo
 
                     // bottom 2 pixels
                     if (sourceY_up >= 0 && sourceY_up < h) {
-                        uint16_t *ptr = tmp + (w * sourceY_up);
+                        pixel24_t *ptr = tmp + (w * sourceY_up);
 
                         if (sourceX_right >= 0 && sourceX_right < w) {
                             row_ptr2[x] = ptr[sourceX_right];

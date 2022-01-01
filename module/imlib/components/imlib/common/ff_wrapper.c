@@ -11,7 +11,8 @@
 
 #define IMLIB_ENABLE_IMAGE_FILE_IO
 #if defined(IMLIB_ENABLE_IMAGE_FILE_IO)
-
+#include <stdio.h>
+#include <unistd.h>
 #include <string.h>
 // #include "py/runtime.h"
 // #include "extmod/vfs.h"
@@ -696,7 +697,7 @@ int read_long_expect(FIL *fp, uint32_t value)
         printf("file error!\n");
         return -1;
     }
-    return 0;
+    return num;
 }
 int read_long_ignore(FIL *fp)
 {
