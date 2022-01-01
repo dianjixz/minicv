@@ -1,6 +1,9 @@
 #ifndef __ARM_COMPAT__H
 #define __ARM_COMPAT__H
-
+// typedef __uint8_t uint8_t;
+typedef unsigned short uint16_t;
+typedef unsigned int uint32_t;
+// typedef __uint64_t uint64_t;
 #ifndef   __STATIC_FORCEINLINE
   #define __STATIC_FORCEINLINE                   __attribute__((always_inline)) static inline
 #endif
@@ -106,8 +109,8 @@ __STATIC_FORCEINLINE uint32_t __SMLADX (uint32_t op1, uint32_t op2, uint32_t op3
   __RES; \
  })
 
-extern float xtensa_cos_f32(float x);
-extern float arm_sin_f32(float x);
+float arm_cos_f32(float x);
+float arm_sin_f32(float x);
 #define __USAT(val1, val2) \
 ({\
     __typeof__ (val1) _val1 = val1;\
@@ -123,3 +126,60 @@ extern float arm_sin_f32(float x);
 
 
 #endif
+// #ifndef _CC_ARM_
+
+// #define __SMLAD(x, y, sum) \
+// ({\
+//     __typeof__ (x) __x = x;\
+//     __typeof__ (y) __y = y;\
+//     __typeof__ (sum) __sum = sum;\
+//     ((uint32_t)(((((int32_t)__x << 16) >> 16) * (((int32_t)__y << 16) >> 16)) + ((((int32_t)__x) >> 16) * (((int32_t)__y) >> 16)) + ( ((int32_t)__sum))));\
+// })
+
+// #define __SMUAD(val1, val2) \
+// ({\
+//     __typeof__ (val1) _val1 = val1;\
+//     __typeof__ (val2) _val2 = val2;\
+//     ((uint32_t)(((((int32_t)_val1 << 16) >> 16) * (((int32_t)_val2 << 16) >> 16)) + ((((int32_t)_val1) >> 16) * (((int32_t)_val2) >> 16))));\
+// })
+
+
+// #define __QADD16(val1, val2) \
+// ({\
+//     __typeof__ (val1) _val1 = val1;\
+//     __typeof__ (val2) _val2 = val2;\
+//     ((uint32_t)((((((int32_t)_val1 << 16) >> 16) + (((int32_t)_val2 << 16) >> 16))) | (((((int32_t)_val1) >> 16) + (((int32_t)_val2) >> 16)) << 16)));\
+// })
+
+// #define __USAT(val1, val2) \
+// ({\
+//     __typeof__ (val1) _val1 = val1;\
+//     __typeof__ (val2) _val2 = val2;\
+//     ((uint32_t)((0xffffffff >> (32 - _val2)) & _val1));\
+// })
+
+// #define __USAT16(val1, val2) \
+// ({\
+//     __typeof__ (val1) _val1 = val1;\
+//     __typeof__ (val2) _val2 = val2;\
+//     ((_val1 & ((0xffff >> (16 - _val2)) << 16)) | (_val1 & (0xffff >> (16 - _val2))));\
+// })
+
+// #define __SSUB16(val1, val2) \
+// ({\
+//     __typeof__ (val1) _val1 = val1;\
+//     __typeof__ (val2) _val2 = val2;\
+//     ((((_val1 >> 16) - (_val2 >> 16)) << 16) | ((_val1 & 0xffff) - (_val2 & 0xffff)));\
+// })
+
+// #define __REV16(_x) __builtin_bswap16(_x)
+
+
+// #define __CLZ(val1) \
+// ({\
+//     __typeof__ (val1) _val1 = val1;\
+//     uint32_t tmp_0 = 0, tmp_1 = 0x80000000, tmp_2 = 0;\
+//     if(_val1 == 0){tmp_2 = 32;}else{for(tmp_0 = 0; tmp_0 < 32; tmp_0 ++){if(_val1 & tmp_1){break;}else{tmp_2 ++;tmp_1 = tmp_1 >> 1;}}}\
+//     tmp_2;\
+// })
+// #endif //_CC_ARM_

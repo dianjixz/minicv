@@ -664,6 +664,22 @@ void imlib_draw_row(int x_start, int x_end, int y_row, imlib_draw_row_data_t *da
         int g_out = ((_src_pixel & 0x7e0) * _smuad_alpha) >> 5; \
         (rb_out & 0xf81f) | (g_out & 0x7e0); \
     })
+    //暂时将图像数据转成RGB565然后混合后再转回RGB888
+    #define BLEND_RGB888(src_pixel, dst_pixel, smuad_alpha) \
+    ({ \
+        __typeof__ (src_pixel) _src_pixel = (src_pixel); \
+        __typeof__ (dst_pixel) _dst_pixel = (dst_pixel); \
+        uint16_t _src_pixel16 = COLOR_RGB888_TO_RGB565(_src_pixel);\
+        uint16_t _dst_pixel16 = COLOR_RGB888_TO_RGB565(_dst_pixel);\
+        COLOR_RGB565_TO_RGB888(BLEND_RGB566(_src_pixel16, _dst_pixel16, smuad_alpha));\
+    })
+
+    #define BLEND_RGB888_0(src_pixel, smuad_alpha) \
+    ({ \
+        __typeof__ (src_pixel) _src_pixel = (src_pixel); \
+        uint16_t _src_pixel16 = COLOR_RGB888_TO_RGB565(_src_pixel);\
+        COLOR_RGB565_TO_RGB888(BLEND_RGB566_0(_src_pixel16, smuad_alpha));\
+    })
 
     #define COLOR_GRAYSCALE_BINARY_MIN_LSL16 (COLOR_GRAYSCALE_BINARY_MIN << 16)
     #define COLOR_GRAYSCALE_BINARY_MAX_LSL16 (COLOR_GRAYSCALE_BINARY_MAX << 16)
@@ -1385,7 +1401,7 @@ void imlib_draw_row(int x_start, int x_end, int y_row, imlib_draw_row_data_t *da
                                     IMAGE_PUT_BINARY_PIXEL_FAST(dst32, x, pixel);
                                 }
                             } else {
-                                const pixel24_t *color_palette = data->color_palette;
+                                const pixel24_t *color_palette = (pixel24_t*)data->color_palette;
                                 for (int x = x_start; x < x_end; x++) {
                                     int pixel = pixel24232(*src24++);
                                     pixel = pixel24232(color_palette[COLOR_RGB888_TO_Y(pixel)]);
@@ -1411,7 +1427,7 @@ void imlib_draw_row(int x_start, int x_end, int y_row, imlib_draw_row_data_t *da
                                     }
                                 }
                             } else {
-                                const pixel24_t *color_palette = data->color_palette;
+                                const pixel24_t *color_palette = (pixel24_t*)data->color_palette;
                                 if (!data->black_background) {
                                     for (int x = x_start; x < x_end; x++) {
                                         int pixel = pixel24232(*src24++);
@@ -1453,7 +1469,7 @@ void imlib_draw_row(int x_start, int x_end, int y_row, imlib_draw_row_data_t *da
                                     }
                                 }
                             } else {
-                                const pixel24_t *color_palette = data->color_palette;
+                                const pixel24_t *color_palette = (pixel24_t*)data->color_palette;
                                 if (!data->black_background) {
                                     for (int x = x_start; x < x_end; x++) {
                                         int pixel = pixel24232(*src24++);
@@ -1483,7 +1499,7 @@ void imlib_draw_row(int x_start, int x_end, int y_row, imlib_draw_row_data_t *da
                                     IMAGE_PUT_BINARY_PIXEL_FAST(dst32, x, pixel);
                                 }
                             } else {
-                                const pixel24_t *color_palette = data->color_palette;
+                                const pixel24_t *color_palette = (pixel24_t*)data->color_palette;
                                 for (int x = x_start; x < x_end; x++) {
                                     int pixel = pixel24232(*src24++);
                                     pixel = pixel24232(color_palette[COLOR_RGB888_TO_R8(pixel)]);
@@ -1509,7 +1525,7 @@ void imlib_draw_row(int x_start, int x_end, int y_row, imlib_draw_row_data_t *da
                                     }
                                 }
                             } else {
-                                const pixel24_t *color_palette = data->color_palette;
+                                const pixel24_t *color_palette = (pixel24_t*)data->color_palette;
                                 if (!data->black_background) {
                                     for (int x = x_start; x < x_end; x++) {
                                         int pixel = pixel24232(*src24++);
@@ -1551,7 +1567,7 @@ void imlib_draw_row(int x_start, int x_end, int y_row, imlib_draw_row_data_t *da
                                     }
                                 }
                             } else {
-                                const pixel24_t *color_palette = data->color_palette;
+                                const pixel24_t *color_palette = (pixel24_t*)data->color_palette;
                                 if (!data->black_background) {
                                     for (int x = x_start; x < x_end; x++) {
                                         int pixel = pixel24232(*src24++);
@@ -1581,7 +1597,7 @@ void imlib_draw_row(int x_start, int x_end, int y_row, imlib_draw_row_data_t *da
                                     IMAGE_PUT_BINARY_PIXEL_FAST(dst32, x, pixel);
                                 }
                             } else {
-                                const pixel24_t *color_palette = data->color_palette;
+                                const pixel24_t *color_palette = (pixel24_t*)data->color_palette;
                                 for (int x = x_start; x < x_end; x++) {
                                     int pixel = pixel24232(*src24++);
                                     pixel = pixel24232(color_palette[COLOR_RGB888_TO_G8(pixel)]);
@@ -1607,7 +1623,7 @@ void imlib_draw_row(int x_start, int x_end, int y_row, imlib_draw_row_data_t *da
                                     }
                                 }
                             } else {
-                                const pixel24_t *color_palette = data->color_palette;
+                                const pixel24_t *color_palette = (pixel24_t*)data->color_palette;
                                 if (!data->black_background) {
                                     for (int x = x_start; x < x_end; x++) {
                                         int pixel = pixel24232(*src24++);
@@ -1649,7 +1665,7 @@ void imlib_draw_row(int x_start, int x_end, int y_row, imlib_draw_row_data_t *da
                                     }
                                 }
                             } else {
-                                const pixel24_t *color_palette = data->color_palette;
+                                const pixel24_t *color_palette = (pixel24_t*)data->color_palette;
                                 if (!data->black_background) {
                                     for (int x = x_start; x < x_end; x++) {
                                         int pixel = pixel24232(*src24++);
@@ -1679,7 +1695,7 @@ void imlib_draw_row(int x_start, int x_end, int y_row, imlib_draw_row_data_t *da
                                     IMAGE_PUT_BINARY_PIXEL_FAST(dst32, x, pixel);
                                 }
                             } else {
-                                const pixel24_t *color_palette = data->color_palette;
+                                const pixel24_t *color_palette = (pixel24_t*)data->color_palette;
                                 for (int x = x_start; x < x_end; x++) {
                                     int pixel = pixel24232(*src24++);
                                     pixel = pixel24232(color_palette[COLOR_RGB888_TO_B8(pixel)]);
@@ -1705,7 +1721,7 @@ void imlib_draw_row(int x_start, int x_end, int y_row, imlib_draw_row_data_t *da
                                     }
                                 }
                             } else {
-                                const pixel24_t *color_palette = data->color_palette;
+                                const pixel24_t *color_palette = (pixel24_t*)data->color_palette;
                                 if (!data->black_background) {
                                     for (int x = x_start; x < x_end; x++) {
                                         int pixel = pixel24232(*src24++);
@@ -2257,6 +2273,363 @@ void imlib_draw_row(int x_start, int x_end, int y_row, imlib_draw_row_data_t *da
                                         int pixel = *src16++;
                                         pixel = color_palette[COLOR_RGB565_TO_B8(pixel)];
                                         *dst8++ = (smuad_alpha * COLOR_RGB565_TO_Y(pixel)) >> 8;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    break;
+                }
+                case PIXFORMAT_RGB888: {
+                    pixel24_t *src24 = ((pixel24_t *) data->row_buffer[!data->toggle]) + x_start;
+                    if (data->rgb_channel < 0) {
+                        if (data->smuad_alpha_palette) {
+                            const uint32_t *smuad_alpha_palette = data->smuad_alpha_palette;
+                            if (!data->color_palette) {
+                                if (!data->black_background) {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int pixel = pixel24232(*src24++);
+                                        int pixel_y = COLOR_RGB888_TO_Y(pixel);
+                                        long smuad_alpha = smuad_alpha_palette[pixel_y];
+                                        long smuad_pixel = (pixel_y << 16) | *dst8;
+                                        *dst8++ = __SMUAD(smuad_alpha, smuad_pixel) >> 8;
+                                    }
+                                } else {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int pixel = pixel24232(*src24++);
+                                        int pixel_y = COLOR_RGB888_TO_Y(pixel);
+                                        long smuad_alpha = smuad_alpha_palette[pixel_y];
+                                        *dst8++ = (smuad_alpha * pixel_y) >> 8;
+                                    }
+                                }
+                            } else {
+                                const pixel24_t *color_palette = (pixel24_t*)data->color_palette;
+                                if (!data->black_background) {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int pixel = pixel24232(*src24++);
+                                        int pixel_y = COLOR_RGB888_TO_Y(pixel);
+                                        long smuad_alpha = smuad_alpha_palette[pixel_y];
+                                        pixel = pixel24232(color_palette[pixel_y]);
+                                        long smuad_pixel = (COLOR_RGB888_TO_Y(pixel) << 16) | *dst8;
+                                        *dst8++ = __SMUAD(smuad_alpha, smuad_pixel) >> 8;
+                                    }
+                                } else {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int pixel = pixel24232(*src24++);
+                                        int pixel_y = COLOR_RGB888_TO_Y(pixel);
+                                        long smuad_alpha = smuad_alpha_palette[pixel_y];
+                                        pixel = pixel24232(color_palette[pixel_y]);
+                                        *dst8++ = (smuad_alpha * COLOR_RGB565_TO_Y(pixel)) >> 8;
+                                    }
+                                }
+                            }
+                        } else if (data->alpha == 256) {
+                            if (!data->color_palette) {
+                                for (int x = x_start; x < x_end; x++) {
+                                    int pixel = pixel24232(*src24++);
+                                    *dst8++ = COLOR_RGB888_TO_Y(pixel);
+                                }
+                            } else {
+                                const pixel24_t *color_palette = (pixel24_t*)data->color_palette;
+                                for (int x = x_start; x < x_end; x++) {
+                                    int pixel = pixel24232(*src24++);
+                                    pixel = pixel24232(color_palette[COLOR_RGB888_TO_Y(pixel)]);
+                                    *dst8++ = COLOR_RGB888_TO_Y(pixel);
+                                }
+                            }
+                        } else {
+                            long smuad_alpha = data->smuad_alpha;
+                            if (!data->color_palette) {
+                                if (!data->black_background) {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int pixel = pixel24232(*src24++);
+                                        long smuad_pixel = (COLOR_RGB888_TO_Y(pixel) << 16) | *dst8;
+                                        *dst8++ = __SMUAD(smuad_alpha, smuad_pixel) >> 8;
+                                    }
+                                } else {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int pixel = pixel24232(*src24++);
+                                        *dst8++ = (smuad_alpha * COLOR_RGB888_TO_Y(pixel)) >> 8;
+                                    }
+                                }
+                            } else {
+                                const pixel24_t *color_palette = (pixel24_t*)data->color_palette;
+                                if (!data->black_background) {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int pixel = pixel24232(*src24++);
+                                        pixel = pixel24232(color_palette[COLOR_RGB888_TO_Y(pixel)]);
+                                        long smuad_pixel = (COLOR_RGB888_TO_Y(pixel) << 16) | *dst8;
+                                        *dst8++ = __SMUAD(smuad_alpha, smuad_pixel) >> 8;
+                                    }
+                                } else {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int pixel = pixel24232(*src24++);
+                                        pixel = pixel24232(color_palette[COLOR_RGB888_TO_Y(pixel)]);
+                                        *dst8++ = (smuad_alpha * COLOR_RGB888_TO_Y(pixel)) >> 8;
+                                    }
+                                }
+                            }
+                        }
+                    } else if (data->rgb_channel == 0) {
+                        if (data->smuad_alpha_palette) {
+                            const uint32_t *smuad_alpha_palette = data->smuad_alpha_palette;
+                            if (!data->color_palette) {
+                                if (!data->black_background) {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int pixel = pixel24232(*src24++);
+                                        int pixel_y = COLOR_RGB888_TO_R8(pixel);
+                                        long smuad_alpha = smuad_alpha_palette[pixel_y];
+                                        long smuad_pixel = (pixel_y << 16) | *dst8;
+                                        *dst8++ = __SMUAD(smuad_alpha, smuad_pixel) >> 8;
+                                    }
+                                } else {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int pixel = pixel24232(*src24++);
+                                        int pixel_y = COLOR_RGB888_TO_R8(pixel);
+                                        long smuad_alpha = smuad_alpha_palette[pixel_y];
+                                        *dst8++ = (smuad_alpha * pixel_y) >> 8;
+                                    }
+                                }
+                            } else {
+                                const pixel24_t *color_palette = (pixel24_t*)data->color_palette;
+                                if (!data->black_background) {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int pixel = pixel24232(*src24++);
+                                        int pixel_y = COLOR_RGB888_TO_R8(pixel);
+                                        long smuad_alpha = smuad_alpha_palette[pixel_y];
+                                        pixel = pixel24232(color_palette[pixel_y]);
+                                        long smuad_pixel = (COLOR_RGB888_TO_Y(pixel) << 16) | *dst8;
+                                        *dst8++ = __SMUAD(smuad_alpha, smuad_pixel) >> 8;
+                                    }
+                                } else {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int pixel = pixel24232(*src24++);
+                                        int pixel_y = COLOR_RGB888_TO_R8(pixel);
+                                        long smuad_alpha = smuad_alpha_palette[pixel_y];
+                                        pixel = pixel24232(color_palette[pixel_y]);
+                                        *dst8++ = (smuad_alpha * COLOR_RGB888_TO_Y(pixel)) >> 8;
+                                    }
+                                }
+                            }
+                        } else if (data->alpha == 256) {
+                            if (!data->color_palette) {
+                                for (int x = x_start; x < x_end; x++) {
+                                    int pixel = pixel24232(*src24++);
+                                    *dst8++ = COLOR_RGB888_TO_R8(pixel);
+                                }
+                            } else {
+                                const pixel24_t *color_palette = (pixel24_t*)data->color_palette;
+                                for (int x = x_start; x < x_end; x++) {
+                                    int pixel = pixel24232(*src24++);
+                                    pixel = pixel24232(color_palette[COLOR_RGB888_TO_R8(pixel)]);
+                                    *dst8++ = COLOR_RGB888_TO_Y(pixel);
+                                }
+                            }
+                        } else {
+                            long smuad_alpha = data->smuad_alpha;
+                            if (!data->color_palette) {
+                                if (!data->black_background) {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int pixel = pixel24232(*src24++);
+                                        long smuad_pixel = (COLOR_RGB888_TO_R8(pixel) << 16) | *dst8;
+                                        *dst8++ = __SMUAD(smuad_alpha, smuad_pixel) >> 8;
+                                    }
+                                } else {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int pixel = pixel24232(*src24++);
+                                        *dst8++ = (smuad_alpha * COLOR_RGB888_TO_R8(pixel)) >> 8;
+                                    }
+                                }
+                            } else {
+                                const pixel24_t *color_palette = (pixel24_t*)data->color_palette;
+                                if (!data->black_background) {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int pixel = pixel24232(*src24++);
+                                        pixel = pixel24232(color_palette[COLOR_RGB888_TO_R8(pixel)]);
+                                        long smuad_pixel = (COLOR_RGB888_TO_Y(pixel) << 16) | *dst8;
+                                        *dst8++ = __SMUAD(smuad_alpha, smuad_pixel) >> 8;
+                                    }
+                                } else {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int pixel = pixel24232(*src24++);
+                                        pixel = pixel24232(color_palette[COLOR_RGB888_TO_R8(pixel)]);
+                                        *dst8++ = (smuad_alpha * COLOR_RGB888_TO_Y(pixel)) >> 8;
+                                    }
+                                }
+                            }
+                        }
+                    } else if (data->rgb_channel == 1) {
+                        if (data->smuad_alpha_palette) {
+                            const uint32_t *smuad_alpha_palette = data->smuad_alpha_palette;
+                            if (!data->color_palette) {
+                                if (!data->black_background) {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int pixel = pixel24232(*src24++);
+                                        int pixel_y = COLOR_RGB888_TO_G8(pixel);
+                                        long smuad_alpha = smuad_alpha_palette[pixel_y];
+                                        long smuad_pixel = (pixel_y << 16) | *dst8;
+                                        *dst8++ = __SMUAD(smuad_alpha, smuad_pixel) >> 8;
+                                    }
+                                } else {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int pixel = pixel24232(*src24++);
+                                        int pixel_y = COLOR_RGB888_TO_G8(pixel);
+                                        long smuad_alpha = smuad_alpha_palette[pixel_y];
+                                        *dst8++ = (smuad_alpha * pixel_y) >> 8;
+                                    }
+                                }
+                            } else {
+                                const pixel24_t *color_palette = (pixel24_t*)data->color_palette;
+                                if (!data->black_background) {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int pixel = pixel24232(*src24++);
+                                        int pixel_y = COLOR_RGB888_TO_G8(pixel);
+                                        long smuad_alpha = smuad_alpha_palette[pixel_y];
+                                        pixel = pixel24232(color_palette[pixel_y]);
+                                        long smuad_pixel = (COLOR_RGB888_TO_Y(pixel) << 16) | *dst8;
+                                        *dst8++ = __SMUAD(smuad_alpha, smuad_pixel) >> 8;
+                                    }
+                                } else {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int pixel = pixel24232(*src24++);
+                                        int pixel_y = COLOR_RGB888_TO_G8(pixel);
+                                        long smuad_alpha = smuad_alpha_palette[pixel_y];
+                                        pixel = pixel24232(color_palette[pixel_y]);
+                                        *dst8++ = (smuad_alpha * COLOR_RGB888_TO_Y(pixel)) >> 8;
+                                    }
+                                }
+                            }
+                        } else if (data->alpha == 256) {
+                            if (!data->color_palette) {
+                                for (int x = x_start; x < x_end; x++) {
+                                    int pixel = pixel24232(*src24++);
+                                    *dst8++ = COLOR_RGB888_TO_G8(pixel);
+                                }
+                            } else {
+                                const pixel24_t *color_palette = (pixel24_t*)data->color_palette;
+                                for (int x = x_start; x < x_end; x++) {
+                                    int pixel = pixel24232(*src24++);
+                                    pixel = pixel24232(color_palette[COLOR_RGB888_TO_G8(pixel)]);
+                                    *dst8++ = COLOR_RGB888_TO_Y(pixel);
+                                }
+                            }
+                        } else {
+                            long smuad_alpha = data->smuad_alpha;
+                            if (!data->color_palette) {
+                                if (!data->black_background) {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int pixel = pixel24232(*src24++);
+                                        long smuad_pixel = (COLOR_RGB888_TO_G8(pixel) << 16) | *dst8;
+                                        *dst8++ = __SMUAD(smuad_alpha, smuad_pixel) >> 8;
+                                    }
+                                } else {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int pixel = pixel24232(*src24++);
+                                        *dst8++ = (smuad_alpha * COLOR_RGB888_TO_G8(pixel)) >> 8;
+                                    }
+                                }
+                            } else {
+                                const pixel24_t *color_palette = (pixel24_t*)data->color_palette;
+                                if (!data->black_background) {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int pixel = pixel24232(*src24++);
+                                        pixel = pixel24232(color_palette[COLOR_RGB888_TO_G8(pixel)]);
+                                        long smuad_pixel = (COLOR_RGB888_TO_Y(pixel) << 16) | *dst8;
+                                        *dst8++ = __SMUAD(smuad_alpha, smuad_pixel) >> 8;
+                                    }
+                                } else {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int pixel = pixel24232(*src24++);
+                                        pixel = pixel24232(color_palette[COLOR_RGB888_TO_G8(pixel)]);
+                                        *dst8++ = (smuad_alpha * COLOR_RGB888_TO_Y(pixel)) >> 8;
+                                    }
+                                }
+                            }
+                        }
+                    } else if (data->rgb_channel == 2) {
+                        if (data->smuad_alpha_palette) {
+                            const uint32_t *smuad_alpha_palette = data->smuad_alpha_palette;
+                            if (!data->color_palette) {
+                                if (!data->black_background) {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int pixel = pixel24232(*src24++);
+                                        int pixel_y = COLOR_RGB888_TO_B8(pixel);
+                                        long smuad_alpha = smuad_alpha_palette[pixel_y];
+                                        long smuad_pixel = (pixel_y << 16) | *dst8;
+                                        *dst8++ = __SMUAD(smuad_alpha, smuad_pixel) >> 8;
+                                    }
+                                } else {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int pixel = pixel24232(*src24++);
+                                        int pixel_y = COLOR_RGB888_TO_B8(pixel);
+                                        long smuad_alpha = smuad_alpha_palette[pixel_y];
+                                        *dst8++ = (smuad_alpha * pixel_y) >> 8;
+                                    }
+                                }
+                            } else {
+                                const pixel24_t *color_palette = (pixel24_t*)data->color_palette;
+                                if (!data->black_background) {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int pixel = pixel24232(*src24++);
+                                        int pixel_y = COLOR_RGB888_TO_B8(pixel);
+                                        long smuad_alpha = smuad_alpha_palette[pixel_y];
+                                        pixel = pixel24232(color_palette[pixel_y]);
+                                        long smuad_pixel = (COLOR_RGB888_TO_Y(pixel) << 16) | *dst8;
+                                        *dst8++ = __SMUAD(smuad_alpha, smuad_pixel) >> 8;
+                                    }
+                                } else {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int pixel = pixel24232(*src24++);
+                                        int pixel_y = COLOR_RGB888_TO_B8(pixel);
+                                        long smuad_alpha = smuad_alpha_palette[pixel_y];
+                                        pixel = pixel24232(color_palette[pixel_y]);
+                                        *dst8++ = (smuad_alpha * COLOR_RGB888_TO_Y(pixel)) >> 8;
+                                    }
+                                }
+                            }
+                        } else if (data->alpha == 256) {
+                            if (!data->color_palette) {
+                                for (int x = x_start; x < x_end; x++) {
+                                    int pixel = pixel24232(*src24++);
+                                    *dst8++ = COLOR_RGB888_TO_B8(pixel);
+                                }
+                            } else {
+                                const pixel24_t *color_palette = (pixel24_t*)data->color_palette;
+                                for (int x = x_start; x < x_end; x++) {
+                                    int pixel = pixel24232(*src24++);
+                                    pixel = pixel24232(color_palette[COLOR_RGB888_TO_B8(pixel)]);
+                                    *dst8++ = COLOR_RGB888_TO_Y(pixel);
+                                }
+                            }
+                        } else {
+                            long smuad_alpha = data->smuad_alpha;
+                            if (!data->color_palette) {
+                                if (!data->black_background) {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int pixel = pixel24232(*src24++);
+                                        long smuad_pixel = (COLOR_RGB888_TO_B8(pixel) << 16) | *dst8;
+                                        *dst8++ = __SMUAD(smuad_alpha, smuad_pixel) >> 8;
+                                    }
+                                } else {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int pixel = pixel24232(*src24++);
+                                        *dst8++ = (smuad_alpha * COLOR_RGB888_TO_B8(pixel)) >> 8;
+                                    }
+                                }
+                            } else {
+                                const pixel24_t *color_palette = (pixel24_t*)data->color_palette;
+                                if (!data->black_background) {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int pixel = pixel24232(*src24++);
+                                        pixel = pixel24232(color_palette[COLOR_RGB888_TO_B8(pixel)]);
+                                        long smuad_pixel = (COLOR_RGB888_TO_Y(pixel) << 16) | *dst8;
+                                        *dst8++ = __SMUAD(smuad_alpha, smuad_pixel) >> 8;
+                                    }
+                                } else {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int pixel = pixel24232(*src24++);
+                                        pixel = pixel24232(color_palette[COLOR_RGB888_TO_B8(pixel)]);
+                                        *dst8++ = (smuad_alpha * COLOR_RGB888_TO_Y(pixel)) >> 8;
                                     }
                                 }
                             }
@@ -2848,6 +3221,584 @@ void imlib_draw_row(int x_start, int x_end, int y_row, imlib_draw_row_data_t *da
             }
             break;
         }
+        case PIXFORMAT_RGB888: {
+            pixel24_t *dst24 = (data->dst_row_override ? ((pixel24_t *) data->dst_row_override) : IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(data->dst_img, y_row)) + x_start;
+            switch (data->src_img_pixfmt) {
+                case PIXFORMAT_BINARY: {
+                    uint32_t *src32 = (uint32_t *) data->row_buffer[!data->toggle];
+                    if (data->smuad_alpha_palette) {
+                        const uint32_t *smuad_alpha_palette = data->smuad_alpha_palette;
+                        if (!data->color_palette) {
+                            uint32_t alpha_pal0 = smuad_alpha_palette[0], alpha_pal255 = smuad_alpha_palette[255];
+                            if (!data->black_background) {
+                                for (int x = x_start; x < x_end; x++) {
+                                    int pixel = IMAGE_GET_BINARY_PIXEL_FAST(src32, x);
+                                    long smuad_alpha = pixel ? alpha_pal255 : alpha_pal0;
+                                    int src_pixel = pixel ? COLOR_RGB888_BINARY_MAX : COLOR_RGB888_BINARY_MIN;
+                                    int dst_pixel = pixel24232(*dst24);
+                                    *dst24++ = pixel32224(BLEND_RGB888(src_pixel, dst_pixel, smuad_alpha));
+                                }
+                            } else {
+                                for (int x = x_start; x < x_end; x++) {
+                                    int pixel = IMAGE_GET_BINARY_PIXEL_FAST(src32, x);
+                                    long smuad_alpha = pixel ? alpha_pal255 : alpha_pal0;
+                                    int src_pixel = pixel ? COLOR_RGB888_BINARY_MAX : COLOR_RGB888_BINARY_MIN;
+                                    *dst24++ = pixel32224(BLEND_RGB888_0(src_pixel, smuad_alpha));
+                                }
+                            }
+                        } else {
+                            const pixel24_t *color_palette = data->color_palette;
+                            uint32_t alpha_pal0 = smuad_alpha_palette[0], alpha_pal255 = smuad_alpha_palette[255];
+                            pixel24_t pal0 = color_palette[0], pal255 = color_palette[255];
+                            if (!data->black_background) {
+                                for (int x = x_start; x < x_end; x++) {
+                                    int pixel = IMAGE_GET_BINARY_PIXEL_FAST(src32, x);
+                                    long smuad_alpha = pixel ? alpha_pal255 : alpha_pal0;
+                                    int src_pixel = pixel ? pixel24232(pal255) : pixel24232(pal0);
+                                    int dst_pixel = pixel24232(*dst24);
+                                    *dst24++ = pixel32224(BLEND_RGB888(src_pixel, dst_pixel, smuad_alpha));
+                                }
+                            } else {
+                                for (int x = x_start; x < x_end; x++) {
+                                    int pixel = IMAGE_GET_BINARY_PIXEL_FAST(src32, x);
+                                    long smuad_alpha = pixel ? alpha_pal255 : alpha_pal0;
+                                    int src_pixel = pixel ? pixel24232(pal255) : pixel24232(pal0);
+                                    *dst24++ = pixel32224(BLEND_RGB888_0(src_pixel, smuad_alpha));
+                                }
+                            }
+                        }
+                    } else if (data->alpha == 256) {
+                        if (!data->color_palette) {
+                            for (int x = x_start; x < x_end; x++) {
+                                *dst24++ = pixel32224(IMAGE_GET_BINARY_PIXEL_FAST(src32, x) ? COLOR_RGB888_BINARY_MAX : COLOR_RGB888_BINARY_MIN);
+                            }
+                        } else {
+                            const pixel24_t *color_palette = data->color_palette;
+                            pixel24_t pal0 = color_palette[0], pal255 = color_palette[255];
+                            for (int x = x_start; x < x_end; x++) {
+                                *dst24++ = pixel32224(IMAGE_GET_BINARY_PIXEL_FAST(src32, x) ? pixel24232(pal255) : pixel24232(pal0));
+                            }
+                        }
+                    } else {
+                        long smuad_alpha = data->smuad_alpha;
+                        if (!data->color_palette) {
+                            if (!data->black_background) {
+                                for (int x = x_start; x < x_end; x++) {
+                                    int src_pixel = IMAGE_GET_BINARY_PIXEL_FAST(src32, x) ? COLOR_RGB888_BINARY_MAX : COLOR_RGB888_BINARY_MIN;
+                                    int dst_pixel = pixel24232(*dst24);
+                                    *dst24++ = pixel32224(BLEND_RGB888(src_pixel, dst_pixel, smuad_alpha));
+                                }
+                            } else {
+                                for (int x = x_start; x < x_end; x++) {
+                                    int src_pixel = IMAGE_GET_BINARY_PIXEL_FAST(src32, x) ? COLOR_RGB888_BINARY_MAX : COLOR_RGB888_BINARY_MIN;
+                                    *dst24++ = pixel32224(BLEND_RGB888_0(src_pixel, smuad_alpha));
+                                }
+                            }
+                        } else {
+                            const pixel24_t *color_palette = data->color_palette;
+                            pixel24_t pal0 = color_palette[0], pal255 = color_palette[255];
+                            if (!data->black_background) {
+                                for (int x = x_start; x < x_end; x++) {
+                                    int src_pixel = IMAGE_GET_BINARY_PIXEL_FAST(src32, x) ? pixel24232(pal255) : pixel24232(pal0);
+                                    int dst_pixel = pixel24232(*dst24);
+                                    *dst24++ = pixel32224(BLEND_RGB888(src_pixel, dst_pixel, smuad_alpha));
+                                }
+                            } else {
+                                for (int x = x_start; x < x_end; x++) {
+                                    int src_pixel = IMAGE_GET_BINARY_PIXEL_FAST(src32, x) ? pixel24232(pal255) : pixel24232(pal0);
+                                    *dst24++ = pixel32224(BLEND_RGB888_0(src_pixel, smuad_alpha));
+                                }
+                            }
+                        }
+                    }
+                    break;
+                }
+                case PIXFORMAT_GRAYSCALE: {
+                    uint8_t *src8 = ((uint8_t *) data->row_buffer[!data->toggle]) + x_start;
+#ifdef IMLIB_ENABLE_DMA2D
+                    if (data->dma2d_enabled) {
+                        if (!data->callback) HAL_DMA2D_PollForTransfer(&data->dma2d, 1000);
+                        #if defined(MCU_SERIES_F7) || defined(MCU_SERIES_H7)
+                        SCB_CleanDCache_by_Addr((uint32_t *) src8, (x_end - x_start) * sizeof(uint8_t));
+                        SCB_CleanInvalidateDCache_by_Addr((uint32_t *) dst24, (x_end - x_start) * sizeof(uint16_t));
+                        #endif
+                        HAL_DMA2D_BlendingStart(&data->dma2d, (uint32_t) src8, (uint32_t) dst24, (uint32_t) dst24, x_end - x_start, 1);
+                        if (data->callback) HAL_DMA2D_PollForTransfer(&data->dma2d, 1000);
+                    } else if (data->smuad_alpha_palette) {
+#else
+                    if (data->smuad_alpha_palette) {
+#endif
+                        const uint32_t *smuad_alpha_palette = data->smuad_alpha_palette;
+                        if (!data->color_palette) {
+                            if (!data->black_background) {
+                                for (int x = x_start; x < x_end; x++) {
+                                    int src_pixel = *src8++;
+                                    long smuad_alpha = smuad_alpha_palette[src_pixel];
+                                    src_pixel = COLOR_Y_TO_RGB565(src_pixel);
+                                    int dst_pixel = pixel24232(*dst24);
+                                    *dst24++ = pixel32224(BLEND_RGB888(src_pixel, dst_pixel, smuad_alpha));
+                                }
+                            } else {
+                                for (int x = x_start; x < x_end; x++) {
+                                    int src_pixel = *src8++;
+                                    long smuad_alpha = smuad_alpha_palette[src_pixel];
+                                    src_pixel = COLOR_Y_TO_RGB565(src_pixel);
+                                    *dst24++ = pixel32224(BLEND_RGB888_0(src_pixel, smuad_alpha));
+                                }
+                            }
+                        } else {
+                            const pixel24_t *color_palette = data->color_palette;
+                            if (!data->black_background) {
+                                for (int x = x_start; x < x_end; x++) {
+                                    int src_pixel = *src8++;
+                                    long smuad_alpha = smuad_alpha_palette[src_pixel];
+                                    src_pixel = pixel24232(color_palette[src_pixel]);
+                                    int dst_pixel = pixel24232(*dst24);
+                                    *dst24++ = pixel32224(BLEND_RGB888(src_pixel, dst_pixel, smuad_alpha));
+                                }
+                            } else {
+                                for (int x = x_start; x < x_end; x++) {
+                                    int src_pixel = *src8++;
+                                    long smuad_alpha = smuad_alpha_palette[src_pixel];
+                                    src_pixel = pixel24232(color_palette[src_pixel]);
+                                    *dst24++ = pixel32224(BLEND_RGB888_0(src_pixel, smuad_alpha));
+                                }
+                            }
+                        }
+                    } else if (data->alpha == 256) {
+                        if (!data->color_palette) {
+                            for (int x = x_start; x < x_end; x++) {
+                                int pixel = *src8++;
+                                *dst24++ = pixel32224(COLOR_Y_TO_RGB888(pixel));
+                            }
+                        } else {
+                            const pixel24_t *color_palette = data->color_palette;
+                            for (int x = x_start; x < x_end; x++) {
+                                *dst24++ = color_palette[*src8++];
+                            }
+                        }
+                    } else {
+                        long smuad_alpha = data->smuad_alpha;
+                        if (!data->color_palette) {
+                            if (!data->black_background) {
+                                for (int x = x_start; x < x_end; x++) {
+                                    int src_pixel = *src8++;
+                                    src_pixel = COLOR_Y_TO_RGB565(src_pixel);
+                                    int dst_pixel = pixel24232(*dst24);
+                                    *dst24++ = pixel32224(BLEND_RGB888(src_pixel, dst_pixel, smuad_alpha));
+                                }
+                            } else {
+                                for (int x = x_start; x < x_end; x++) {
+                                    int src_pixel = *src8++;
+                                    src_pixel = COLOR_Y_TO_RGB565(src_pixel);
+                                    *dst24++ = pixel32224(BLEND_RGB888_0(src_pixel, smuad_alpha));
+                                }
+                            }
+                        } else {
+                            const pixel24_t *color_palette = data->color_palette;
+                            if (!data->black_background) {
+                                for (int x = x_start; x < x_end; x++) {
+                                    int src_pixel = pixel24232(color_palette[*src8++]);
+                                    int dst_pixel = pixel24232(*dst24);
+                                    *dst24++ = pixel32224(BLEND_RGB888(src_pixel, dst_pixel, smuad_alpha));
+                                }
+                            } else {
+                                for (int x = x_start; x < x_end; x++) {
+                                    int src_pixel = pixel24232(color_palette[*src8++]);
+                                    *dst24++ = pixel32224(BLEND_RGB888_0(src_pixel, smuad_alpha));
+                                }
+                            }
+                        }
+                    }
+                    break;
+                }
+                case PIXFORMAT_RGB565: {
+                    uint16_t *src16 = ((uint16_t *) data->row_buffer[!data->toggle]) + x_start;
+                    if (data->rgb_channel < 0) {
+                        if (data->smuad_alpha_palette) {
+                            const uint32_t *smuad_alpha_palette = data->smuad_alpha_palette;
+                            if (!data->color_palette) {
+                                if (!data->black_background) {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int src_pixel = *src16++;
+                                        long smuad_alpha = smuad_alpha_palette[COLOR_RGB565_TO_Y(src_pixel)];
+                                        int dst_pixel = pixel24232(*dst24);
+                                        *dst24++ = pixel32224(BLEND_RGB888(src_pixel, dst_pixel, smuad_alpha));
+                                    }
+                                } else {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int src_pixel = *src16++;
+                                        long smuad_alpha = smuad_alpha_palette[COLOR_RGB565_TO_Y(src_pixel)];
+                                        *dst24++ = pixel32224(BLEND_RGB888_0(src_pixel, smuad_alpha));
+                                    }
+                                }
+                            } else {
+                                const pixel24_t *color_palette = data->color_palette;
+                                if (!data->black_background) {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int src_pixel = *src16++;
+                                        int src_pixel_y = COLOR_RGB565_TO_Y(src_pixel);
+                                        long smuad_alpha = smuad_alpha_palette[src_pixel_y];
+                                        src_pixel = pixel24232(color_palette[src_pixel_y]);
+                                        int dst_pixel = pixel24232(*dst24);
+                                        *dst24++ = pixel32224(BLEND_RGB888(src_pixel, dst_pixel, smuad_alpha));
+                                    }
+                                } else {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int src_pixel = *src16++;
+                                        int src_pixel_y = COLOR_RGB565_TO_Y(src_pixel);
+                                        long smuad_alpha = smuad_alpha_palette[src_pixel_y];
+                                        src_pixel = pixel24232(color_palette[src_pixel_y]);
+                                        *dst24++ = pixel32224(BLEND_RGB888_0(src_pixel, smuad_alpha));
+                                    }
+                                }
+                            }
+                        } else if (data->alpha == 256) {
+                            if (!data->color_palette) {
+                                unaligned_memcpy(dst24, src16, (x_end - x_start) * sizeof(pixel24_t));
+                            } else {
+                                const pixel24_t *color_palette = data->color_palette;
+                                for (int x = x_start; x < x_end; x++) {
+                                    int pixel = *src16++;
+                                    *dst24++ = color_palette[COLOR_RGB565_TO_Y(pixel)];
+                                }
+                            }
+                        } else {
+                            long smuad_alpha = data->smuad_alpha;
+                            if (!data->color_palette) {
+#ifdef IMLIB_ENABLE_DMA2D
+                                if (data->dma2d_enabled) {
+                                    if (!data->callback) HAL_DMA2D_PollForTransfer(&data->dma2d, 1000);
+                                    #if defined(MCU_SERIES_F7) || defined(MCU_SERIES_H7)
+                                    SCB_CleanDCache_by_Addr((uint32_t *) src16, (x_end - x_start) * sizeof(uint16_t));
+                                    SCB_CleanInvalidateDCache_by_Addr((uint32_t *) dst24, (x_end - x_start) * sizeof(uint16_t));
+                                    #endif
+                                    HAL_DMA2D_BlendingStart(&data->dma2d, (uint32_t) src16, (uint32_t) dst24, (uint32_t) dst24, x_end - x_start, 1);
+                                    if (data->callback) HAL_DMA2D_PollForTransfer(&data->dma2d, 1000);
+                                } else if (!data->black_background) {
+#else
+                                if (!data->black_background) {
+#endif
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int src_pixel = *src16++;
+                                        int dst_pixel = pixel24232(*dst24);
+                                        *dst24++ = pixel32224(BLEND_RGB888(src_pixel, dst_pixel, smuad_alpha));
+                                    }
+                                } else {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int src_pixel = *src16++;
+                                        *dst24++ = pixel32224(BLEND_RGB888_0(src_pixel, smuad_alpha));
+                                    }
+                                }
+                            } else {
+                                const pixel24_t *color_palette = data->color_palette;
+                                if (!data->black_background) {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int src_pixel = *src16++;
+                                        src_pixel = pixel24232(color_palette[COLOR_RGB565_TO_Y(src_pixel)]);
+                                        int dst_pixel = pixel24232(*dst24);
+                                        *dst24++ = pixel32224(BLEND_RGB888(src_pixel, dst_pixel, smuad_alpha));
+                                    }
+                                } else {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int src_pixel = *src16++;
+                                        src_pixel = pixel24232(color_palette[COLOR_RGB565_TO_Y(src_pixel)]);
+                                        *dst24++ = pixel32224(BLEND_RGB888_0(src_pixel, smuad_alpha));
+                                    }
+                                }
+                            }
+                        }
+                    } else if (data->rgb_channel == 0) {
+                        if (data->smuad_alpha_palette) {
+                            const uint32_t *smuad_alpha_palette = data->smuad_alpha_palette;
+                            if (!data->color_palette) {
+                                if (!data->black_background) {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int src_pixel = *src16++;
+                                        int src_pixel_y = COLOR_RGB565_TO_R8(src_pixel);
+                                        long smuad_alpha = smuad_alpha_palette[src_pixel_y];
+                                        src_pixel = COLOR_Y_TO_RGB565(src_pixel_y);
+                                        int dst_pixel = pixel24232(*dst24);
+                                        *dst24++ = pixel32224(BLEND_RGB888(src_pixel, dst_pixel, smuad_alpha));
+                                    }
+                                } else {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int src_pixel = *src16++;
+                                        int src_pixel_y = COLOR_RGB565_TO_R8(src_pixel);
+                                        long smuad_alpha = smuad_alpha_palette[src_pixel_y];
+                                        src_pixel = COLOR_Y_TO_RGB565(src_pixel_y);
+                                        *dst24++ = pixel32224(BLEND_RGB888_0(src_pixel, smuad_alpha));
+                                    }
+                                }
+                            } else {
+                                const pixel24_t *color_palette = data->color_palette;
+                                if (!data->black_background) {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int src_pixel = *src16++;
+                                        int src_pixel_y = COLOR_RGB565_TO_R8(src_pixel);
+                                        long smuad_alpha = smuad_alpha_palette[src_pixel_y];
+                                        src_pixel = pixel24232(color_palette[src_pixel_y]);
+                                        int dst_pixel = pixel24232(*dst24);
+                                        *dst24++ = pixel32224(BLEND_RGB888(src_pixel, dst_pixel, smuad_alpha));
+                                    }
+                                } else {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int src_pixel = *src16++;
+                                        int src_pixel_y = COLOR_RGB565_TO_R8(src_pixel);
+                                        long smuad_alpha = smuad_alpha_palette[src_pixel_y];
+                                        src_pixel = pixel24232(color_palette[src_pixel_y]);
+                                        *dst24++ = pixel32224(BLEND_RGB888_0(src_pixel, smuad_alpha));
+                                    }
+                                }
+                            }
+                        } else if (data->alpha == 256) {
+                            if (!data->color_palette) {
+                                for (int x = x_start; x < x_end; x++) {
+                                    int pixel = *src16++;
+                                    pixel = COLOR_RGB565_TO_R8(pixel);
+                                    *dst24++ = pixel32224(COLOR_Y_TO_RGB565(pixel));
+                                }
+                            } else {
+                                const pixel24_t *color_palette = data->color_palette;
+                                for (int x = x_start; x < x_end; x++) {
+                                    int pixel = *src16++;
+                                    *dst24++ = color_palette[COLOR_RGB565_TO_R8(pixel)];
+                                }
+                            }
+                        } else {
+                            long smuad_alpha = data->smuad_alpha;
+                            if (!data->color_palette) {
+                                if (!data->black_background) {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int src_pixel = *src16++;
+                                        src_pixel = COLOR_RGB565_TO_R8(src_pixel);
+                                        src_pixel = COLOR_Y_TO_RGB565(src_pixel);
+                                        int dst_pixel = pixel24232(*dst24);
+                                        *dst24++ = pixel32224(BLEND_RGB888(src_pixel, dst_pixel, smuad_alpha));
+                                    }
+                                } else {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int src_pixel = *src16++;
+                                        src_pixel = COLOR_RGB565_TO_R8(src_pixel);
+                                        src_pixel = COLOR_Y_TO_RGB565(src_pixel);
+                                        *dst24++ = pixel32224(BLEND_RGB888_0(src_pixel, smuad_alpha));
+                                    }
+                                }
+                            } else {
+                                const pixel24_t *color_palette = data->color_palette;
+                                if (!data->black_background) {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int src_pixel = *src16++;
+                                        src_pixel = pixel24232(color_palette[COLOR_RGB565_TO_R8(src_pixel)]);
+                                        int dst_pixel = pixel24232(*dst24);
+                                        *dst24++ = pixel32224(BLEND_RGB888(src_pixel, dst_pixel, smuad_alpha));
+                                    }
+                                } else {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int src_pixel = *src16++;
+                                        src_pixel = pixel24232(color_palette[COLOR_RGB565_TO_R8(src_pixel)]);
+                                        *dst24++ = pixel32224(BLEND_RGB888_0(src_pixel, smuad_alpha));
+                                    }
+                                }
+                            }
+                        }
+                    } else if (data->rgb_channel == 1) {
+                        if (data->smuad_alpha_palette) {
+                            const uint32_t *smuad_alpha_palette = data->smuad_alpha_palette;
+                            if (!data->color_palette) {
+                                if (!data->black_background) {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int src_pixel = *src16++;
+                                        int src_pixel_y = COLOR_RGB565_TO_G8(src_pixel);
+                                        long smuad_alpha = smuad_alpha_palette[src_pixel_y];
+                                        src_pixel = COLOR_Y_TO_RGB565(src_pixel_y);
+                                        int dst_pixel = pixel24232(*dst24);
+                                        *dst24++ = pixel32224(BLEND_RGB888(src_pixel, dst_pixel, smuad_alpha));
+                                    }
+                                } else {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int src_pixel = *src16++;
+                                        int src_pixel_y = COLOR_RGB565_TO_G8(src_pixel);
+                                        long smuad_alpha = smuad_alpha_palette[src_pixel_y];
+                                        src_pixel = COLOR_Y_TO_RGB565(src_pixel_y);
+                                        *dst24++ = pixel32224(BLEND_RGB888_0(src_pixel, smuad_alpha));
+                                    }
+                                }
+                            } else {
+                                const pixel24_t *color_palette = data->color_palette;
+                                if (!data->black_background) {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int src_pixel = *src16++;
+                                        int src_pixel_y = COLOR_RGB565_TO_G8(src_pixel);
+                                        long smuad_alpha = smuad_alpha_palette[src_pixel_y];
+                                        src_pixel = pixel24232(color_palette[src_pixel_y]);
+                                        int dst_pixel = pixel24232(*dst24);
+                                        *dst24++ = pixel32224(BLEND_RGB888(src_pixel, dst_pixel, smuad_alpha));
+                                    }
+                                } else {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int src_pixel = *src16++;
+                                        int src_pixel_y = COLOR_RGB565_TO_G8(src_pixel);
+                                        long smuad_alpha = smuad_alpha_palette[src_pixel_y];
+                                        src_pixel = pixel24232(color_palette[src_pixel_y]);
+                                        *dst24++ = pixel32224(BLEND_RGB888_0(src_pixel, smuad_alpha));
+                                    }
+                                }
+                            }
+                        } else if (data->alpha == 256) {
+                            if (!data->color_palette) {
+                                for (int x = x_start; x < x_end; x++) {
+                                    int pixel = *src16++;
+                                    pixel = COLOR_RGB565_TO_G8(pixel);
+                                    *dst24++ = pixel32224(COLOR_Y_TO_RGB565(pixel));
+                                }
+                            } else {
+                                const pixel24_t *color_palette = data->color_palette;
+                                for (int x = x_start; x < x_end; x++) {
+                                    int pixel = *src16++;
+                                    *dst24++ = color_palette[COLOR_RGB565_TO_G8(pixel)];
+                                }
+                            }
+                        } else {
+                            long smuad_alpha = data->smuad_alpha;
+                            if (!data->color_palette) {
+                                if (!data->black_background) {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int src_pixel = *src16++;
+                                        src_pixel = COLOR_RGB565_TO_G8(src_pixel);
+                                        src_pixel = COLOR_Y_TO_RGB565(src_pixel);
+                                        int dst_pixel = pixel24232(*dst24);
+                                        *dst24++ = pixel32224(BLEND_RGB888(src_pixel, dst_pixel, smuad_alpha));
+                                    }
+                                } else {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int src_pixel = *src16++;
+                                        src_pixel = COLOR_RGB565_TO_G8(src_pixel);
+                                        src_pixel = COLOR_Y_TO_RGB565(src_pixel);
+                                        *dst24++ = pixel32224(BLEND_RGB888_0(src_pixel, smuad_alpha));
+                                    }
+                                }
+                            } else {
+                                const pixel24_t *color_palette = data->color_palette;
+                                if (!data->black_background) {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int src_pixel = *src16++;
+                                        src_pixel = pixel24232(color_palette[COLOR_RGB565_TO_G8(src_pixel)]);
+                                        int dst_pixel = pixel24232(*dst24);
+                                        *dst24++ = pixel32224(BLEND_RGB888(src_pixel, dst_pixel, smuad_alpha));
+                                    }
+                                } else {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int src_pixel = *src16++;
+                                        src_pixel = pixel24232(color_palette[COLOR_RGB565_TO_G8(src_pixel)]);
+                                        *dst24++ = pixel32224(BLEND_RGB888_0(src_pixel, smuad_alpha));
+                                    }
+                                }
+                            }
+                        }
+                    } else if (data->rgb_channel == 2) {
+                        if (data->smuad_alpha_palette) {
+                            const uint32_t *smuad_alpha_palette = data->smuad_alpha_palette;
+                            if (!data->color_palette) {
+                                if (!data->black_background) {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int src_pixel = *src16++;
+                                        int src_pixel_y = COLOR_RGB565_TO_B8(src_pixel);
+                                        long smuad_alpha = smuad_alpha_palette[src_pixel_y];
+                                        src_pixel = COLOR_Y_TO_RGB565(src_pixel_y);
+                                        int dst_pixel = pixel24232(*dst24);
+                                        *dst24++ = pixel32224(BLEND_RGB888(src_pixel, dst_pixel, smuad_alpha));
+                                    }
+                                } else {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int src_pixel = *src16++;
+                                        int src_pixel_y = COLOR_RGB565_TO_B8(src_pixel);
+                                        long smuad_alpha = smuad_alpha_palette[src_pixel_y];
+                                        src_pixel = COLOR_Y_TO_RGB565(src_pixel_y);
+                                        *dst24++ = pixel32224(BLEND_RGB888_0(src_pixel, smuad_alpha));
+                                    }
+                                }
+                            } else {
+                                const pixel24_t *color_palette = data->color_palette;
+                                if (!data->black_background) {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int src_pixel = *src16++;
+                                        int src_pixel_y = COLOR_RGB565_TO_B8(src_pixel);
+                                        long smuad_alpha = smuad_alpha_palette[src_pixel_y];
+                                        src_pixel = pixel24232(color_palette[src_pixel_y]);
+                                        int dst_pixel = pixel24232(*dst24);
+                                        *dst24++ = pixel32224(BLEND_RGB888(src_pixel, dst_pixel, smuad_alpha));
+                                    }
+                                } else {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int src_pixel = *src16++;
+                                        int src_pixel_y = COLOR_RGB565_TO_B8(src_pixel);
+                                        long smuad_alpha = smuad_alpha_palette[src_pixel_y];
+                                        src_pixel = pixel24232(color_palette[src_pixel_y]);
+                                        *dst24++ = pixel32224(BLEND_RGB888_0(src_pixel, smuad_alpha));
+                                    }
+                                }
+                            }
+                        } else if (data->alpha == 256) {
+                            if (!data->color_palette) {
+                                for (int x = x_start; x < x_end; x++) {
+                                    int pixel = *src16++;
+                                    pixel = COLOR_RGB565_TO_B8(pixel);
+                                    *dst24++ = pixel32224(COLOR_Y_TO_RGB565(pixel));
+                                }
+                            } else {
+                                const pixel24_t *color_palette = data->color_palette;
+                                for (int x = x_start; x < x_end; x++) {
+                                    int pixel = *src16++;
+                                    *dst24++ = color_palette[COLOR_RGB565_TO_B8(pixel)];
+                                }
+                            }
+                        } else {
+                            long smuad_alpha = data->smuad_alpha;
+                            if (!data->color_palette) {
+                                if (!data->black_background) {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int src_pixel = *src16++;
+                                        src_pixel = COLOR_RGB565_TO_B8(src_pixel);
+                                        src_pixel = COLOR_Y_TO_RGB565(src_pixel);
+                                        int dst_pixel = pixel24232(*dst24);
+                                        *dst24++ = pixel32224(BLEND_RGB888(src_pixel, dst_pixel, smuad_alpha));
+                                    }
+                                } else {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int src_pixel = *src16++;
+                                        src_pixel = COLOR_RGB565_TO_B8(src_pixel);
+                                        src_pixel = COLOR_Y_TO_RGB565(src_pixel);
+                                        *dst24++ = pixel32224(BLEND_RGB888_0(src_pixel, smuad_alpha));
+                                    }
+                                }
+                            } else {
+                                const pixel24_t *color_palette = data->color_palette;
+                                if (!data->black_background) {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int src_pixel = *src16++;
+                                        src_pixel = pixel24232(color_palette[COLOR_RGB565_TO_B8(src_pixel)]);
+                                        int dst_pixel = pixel24232(*dst24);
+                                        *dst24++ = pixel32224(BLEND_RGB888(src_pixel, dst_pixel, smuad_alpha));
+                                    }
+                                } else {
+                                    for (int x = x_start; x < x_end; x++) {
+                                        int src_pixel = *src16++;
+                                        src_pixel = pixel24232(color_palette[COLOR_RGB565_TO_B8(src_pixel)]);
+                                        *dst24++ = pixel32224(BLEND_RGB888_0(src_pixel, smuad_alpha));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    break;
+                }
+                default: {
+                    break;
+                }
+            }
+            break;
+        }
         // Only bayer copying/cropping is supported.
         case PIXFORMAT_BAYER_ANY: {
             uint8_t *dst8 = (data->dst_row_override
@@ -2877,6 +3828,8 @@ void imlib_draw_row(int x_start, int x_end, int y_row, imlib_draw_row_data_t *da
 
     #undef COLOR_GRAYSCALE_BINARY_MIN_LSL16
     #undef COLOR_GRAYSCALE_BINARY_MAX_LSL16
+    #undef BLEND_RGB888_0
+    #undef BLEND_RGB888
     #undef BLEND_RGB566_0
     #undef BLEND_RGB566
 }
@@ -3171,6 +4124,16 @@ void imlib_draw_image(image_t *dst_img, image_t *src_img, int dst_x_start, int d
                         imlib_deyuv_image(&new_src_img, src_img);
                     } else if (is_jpeg) {
                         jpeg_decompress_image_to_rgb565(&new_src_img, src_img);
+                    }
+                    break;
+                }
+                case PIXFORMAT_RGB888: {
+                    if (src_img->is_bayer) {
+                        imlib_debayer_image(&new_src_img, src_img);
+                    } else if (src_img->is_yuv) {
+                        imlib_deyuv_image(&new_src_img, src_img);
+                    } else if (is_jpeg) {
+                        jpeg_decompress_image_to_rgb888(&new_src_img, src_img);
                     }
                     break;
                 }

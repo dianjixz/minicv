@@ -18,22 +18,17 @@ extern "C"
 {
 #endif
 
-#if (__ARM_ARCH < 7)
+
 #include <math.h>
 
-#define fast_sqrtf sqrtf
-#define fast_floorf(_x) (int)floorf(_x)
-#define fast_ceilf ceilf
-#define fast_roundf(_x) (int)roundf(_x)
-#define fast_fabsf fabsf
-
-#else
 float fast_sqrtf(float x);
 int fast_floorf(float x);
 int fast_ceilf(float x);
 int fast_roundf(float x);
 float fast_fabsf(float x);
-#endif
+
+
+
 
 float fast_atanf(float x);
 float fast_atan2f(float y, float x);

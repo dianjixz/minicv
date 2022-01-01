@@ -20,13 +20,13 @@
 void bitmap_alloc(bitmap_t *ptr, size_t size)
 {
     ptr->size = size;
-    ptr->data = (char *) xalloc0(((size + CHAR_MASK) >> CHAR_SHIFT) * sizeof(char));
+    ptr->data = (char *) fb_alloc0(((size + CHAR_MASK) >> CHAR_SHIFT) * sizeof(char), FB_ALLOC_NO_HINT);
 }
 
 void bitmap_free(bitmap_t *ptr)
 {
     if (ptr->data) {
-        xfree(ptr->data);
+        fb_free(ptr->data);
     }
 }
 
@@ -54,13 +54,13 @@ void lifo_alloc(lifo_t *ptr, size_t size, size_t data_len)
     ptr->len = 0;
     ptr->size = size;
     ptr->data_len = data_len;
-    ptr->data = (char *) xalloc(size * data_len);
+    ptr->data = (char *) fb_alloc(size * data_len, FB_ALLOC_NO_HINT);
 }
 
 void lifo_alloc_all(lifo_t *ptr, size_t *size, size_t data_len)
 {
     uint32_t tmp_size;
-    ptr->data = (char *) xalloc_all(&tmp_size);
+    ptr->data = (char *) fb_alloc_all(&tmp_size, FB_ALLOC_NO_HINT);
     ptr->data_len = data_len;
     ptr->size = tmp_size / data_len;
     ptr->len = 0;
@@ -70,7 +70,7 @@ void lifo_alloc_all(lifo_t *ptr, size_t *size, size_t data_len)
 void lifo_free(lifo_t *ptr)
 {
     if (ptr->data) {
-        xfree(ptr->data);
+        fb_free(ptr->data);
     }
 }
 
@@ -131,13 +131,13 @@ void fifo_alloc(fifo_t *ptr, size_t size, size_t data_len)
     ptr->len = 0;
     ptr->size = size;
     ptr->data_len = data_len;
-    ptr->data = (char *) xalloc(size * data_len);
+    ptr->data = (char *) fb_alloc(size * data_len, FB_ALLOC_NO_HINT);
 }
 
 void fifo_alloc_all(fifo_t *ptr, size_t *size, size_t data_len)
 {
     uint32_t tmp_size;
-    ptr->data = (char *) xalloc_all(&tmp_size);
+    ptr->data = (char *) fb_alloc_all(&tmp_size, FB_ALLOC_NO_HINT);
     ptr->data_len = data_len;
     ptr->size = tmp_size / data_len;
     ptr->len = 0;
@@ -149,7 +149,7 @@ void fifo_alloc_all(fifo_t *ptr, size_t *size, size_t data_len)
 void fifo_free(fifo_t *ptr)
 {
     if (ptr->data) {
-        xfree(ptr->data);
+        fb_free(ptr->data);
     }
 }
 

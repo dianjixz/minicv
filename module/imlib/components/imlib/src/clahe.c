@@ -429,7 +429,7 @@ void imlib_clahe_histeq(image_t *img, float clip_limit, image_t *mask)
         case PIXFORMAT_RGB888: {
             for (int y = 0, yy = img->h; y < yy; y++) {
                 uint8_t *clahe_row_ptr = IMAGE_COMPUTE_GRAYSCALE_PIXEL_ROW_PTR(&temp, y + yOffset);
-                pixel24_t *row_ptr = IMAGE_COMPUTE_RGB88_PIXEL_ROW_PTR(img, y);
+                pixel24_t *row_ptr = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(img, y);
                 for (int x = 0, xx = img->w; x < xx; x++) {
                     if (mask && (!image_get_mask_pixel(mask, x, y))) continue;
                     int pixel = IMAGE_GET_RGB888_PIXEL_FAST(row_ptr, x);

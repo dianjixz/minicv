@@ -93,6 +93,37 @@ extern "C"
 // pixel Stuff //
 /////////////////
 
+
+
+#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+
+#define rgb24_Color(_r8, _g8, _b8) \
+({                                    \
+    ((_r8 << 8) | (_g8 << 16) | _b8 << 24); \
+})
+
+typedef struct pixel_s {
+    char blue;
+    char green;
+    char red;
+} pixel24_t;
+
+#define pixel24232(_u24_t) \
+({\
+    __typeof__ (_u24_t) ___u24_t = _u24_t;\
+    ((*((uint32_t*)((void*)&___u24_t))) & 0xffffff00);\
+})
+//input_ uint32_t，output pixel24_t
+#define pixel32224(_u32_t) \
+({\
+    __typeof__ (_u32_t) __u32_t = _u32_t;\
+    __u32_t = __u32_t >> 8;\
+    (*((pixel24_t*)((void*)&__u32_t)));\
+})
+
+#else
+//cpu is little
+//input pixel24_t，output uint32_t
 #define rgb24_Color(_r8, _g8, _b8) \
 ({                                    \
     ((_r8 << 16) | (_g8 << 8) | _b8); \
@@ -104,11 +135,6 @@ typedef struct pixel_s {
     char blue;
 } pixel24_t;
 
-#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-
-#else
-//cpu is little
-//input pixel24_t，output uint32_t
 #define pixel24232(_u24_t) \
 ({\
     __typeof__ (_u24_t) ___u24_t = _u24_t;\
@@ -121,64 +147,6 @@ typedef struct pixel_s {
     __u32_t = __builtin_bswap32(__u32_t) >> 8;\
     (*((pixel24_t*)((void*)&__u32_t)));\
 })
-
-// #ifndef _CC_ARM_
-
-// #define __SMLAD(x, y, sum) \
-// ({\
-//     __typeof__ (x) __x = x;\
-//     __typeof__ (y) __y = y;\
-//     __typeof__ (sum) __sum = sum;\
-//     ((uint32_t)(((((int32_t)__x << 16) >> 16) * (((int32_t)__y << 16) >> 16)) + ((((int32_t)__x) >> 16) * (((int32_t)__y) >> 16)) + ( ((int32_t)__sum))));\
-// })
-
-// #define __SMUAD(val1, val2) \
-// ({\
-//     __typeof__ (val1) _val1 = val1;\
-//     __typeof__ (val2) _val2 = val2;\
-//     ((uint32_t)(((((int32_t)_val1 << 16) >> 16) * (((int32_t)_val2 << 16) >> 16)) + ((((int32_t)_val1) >> 16) * (((int32_t)_val2) >> 16))));\
-// })
-
-
-// #define __QADD16(val1, val2) \
-// ({\
-//     __typeof__ (val1) _val1 = val1;\
-//     __typeof__ (val2) _val2 = val2;\
-//     ((uint32_t)((((((int32_t)_val1 << 16) >> 16) + (((int32_t)_val2 << 16) >> 16))) | (((((int32_t)_val1) >> 16) + (((int32_t)_val2) >> 16)) << 16)));\
-// })
-
-// #define __USAT(val1, val2) \
-// ({\
-//     __typeof__ (val1) _val1 = val1;\
-//     __typeof__ (val2) _val2 = val2;\
-//     ((uint32_t)((0xffffffff >> (32 - _val2)) & _val1));\
-// })
-
-// #define __USAT16(val1, val2) \
-// ({\
-//     __typeof__ (val1) _val1 = val1;\
-//     __typeof__ (val2) _val2 = val2;\
-//     ((_val1 & ((0xffff >> (16 - _val2)) << 16)) | (_val1 & (0xffff >> (16 - _val2))));\
-// })
-
-// #define __SSUB16(val1, val2) \
-// ({\
-//     __typeof__ (val1) _val1 = val1;\
-//     __typeof__ (val2) _val2 = val2;\
-//     ((((_val1 >> 16) - (_val2 >> 16)) << 16) | ((_val1 & 0xffff) - (_val2 & 0xffff)));\
-// })
-
-// #define __REV16(_x) __builtin_bswap16(_x)
-
-
-// #define __CLZ(val1) \
-// ({\
-//     __typeof__ (val1) _val1 = val1;\
-//     uint32_t tmp_0 = 0, tmp_1 = 0x80000000, tmp_2 = 0;\
-//     if(_val1 == 0){tmp_2 = 32;}else{for(tmp_0 = 0; tmp_0 < 32; tmp_0 ++){if(_val1 & tmp_1){break;}else{tmp_2 ++;tmp_1 = tmp_1 >> 1;}}}\
-//     tmp_2;\
-// })
-// #endif //_CC_ARM_
 
 #endif //__BYTE_ORDER__
 
@@ -326,7 +294,7 @@ color_thresholds_list_lnk_data_t;
 #define COLOR_RGB565_BINARY_MIN 0x0000
 #define COLOR_RGB565_BINARY_MAX 0xFFFF
 #define COLOR_RGB888_BINARY_MIN 0x000000
-#define COLOR_RGB888_BINARY_MAX 0xFFFFff
+#define COLOR_RGB888_BINARY_MAX 0xFFFFFF
 
 #define COLOR_GRAYSCALE_MIN 0
 #define COLOR_GRAYSCALE_MAX 255
@@ -460,9 +428,16 @@ extern const int8_t lab_table[196608/2];
 #define COLOR_BINARY_TO_RGB565(pixel) COLOR_YUV_TO_RGB565(((pixel) ? 127 : -128), 0, 0)
 #define COLOR_BINARY_TO_RGB888(pixel) COLOR_YUV_TO_RGB888(((pixel) ? 127 : -128), 0, 0)
 #define COLOR_RGB565_TO_BINARY(pixel) (COLOR_RGB565_TO_Y(pixel) > (((COLOR_Y_MAX - COLOR_Y_MIN) / 2) + COLOR_Y_MIN))
-#define COLOR_RGB888_TO_BINARY(pixel) (COLOR_RGB888_TO_Y(pixel) > (((COLOR_Y_MAX - COLOR_Y_MIN) / 2) + COLOR_Y_MIN))
 #define COLOR_RGB565_TO_GRAYSCALE(pixel) COLOR_RGB565_TO_Y(pixel)
+#define COLOR_RGB565_TO_RGB888(pixel) COLOR_R8_G8_B8_TO_RGB888(COLOR_RGB565_TO_R8(pixel), COLOR_RGB565_TO_G8(pixel), COLOR_RGB565_TO_B8(pixel))
 #define COLOR_RGB888_TO_GRAYSCALE(pixel) COLOR_RGB888_TO_Y(pixel)
+#define COLOR_RGB888_TO_BINARY(pixel) (COLOR_RGB888_TO_Y(pixel) > (((COLOR_Y_MAX - COLOR_Y_MIN) / 2) + COLOR_Y_MIN))
+#define COLOR_RGB888_TO_RGB565(pixel) COLOR_R8_G8_B8_TO_RGB565(COLOR_RGB888_TO_R8(pixel), COLOR_RGB888_TO_G8(pixel), COLOR_RGB888_TO_B8(pixel))
+
+
+
+
+
 #define COLOR_GRAYSCALE_TO_BINARY(pixel) ((pixel) > (((COLOR_GRAYSCALE_MAX - COLOR_GRAYSCALE_MIN) / 2) + COLOR_GRAYSCALE_MIN))
 #define COLOR_GRAYSCALE_TO_RGB565(pixel) COLOR_YUV_TO_RGB565(((pixel) - 128), 0, 0)
 #define COLOR_GRAYSCALE_TO_RGB888(pixel) COLOR_YUV_TO_RGB888(((pixel) - 128), 0, 0)
@@ -576,8 +551,8 @@ typedef enum {
      || (x == PIXFORMAT_BAYER_RGGB)     \
      || (x == PIXFORMAT_YUV422)         \
      || (x == PIXFORMAT_YVU422)         \
-     || (x == PIXFORMAT_JPEG))          \
-     || (x == PIXFORMAT_RGB888)         \
+     || (x == PIXFORMAT_JPEG)           \
+     || (x == PIXFORMAT_RGB888))         \
 
 #if defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
 #define PIXFORMAT_STRUCT            \

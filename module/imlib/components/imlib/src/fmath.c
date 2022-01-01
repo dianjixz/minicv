@@ -25,7 +25,30 @@ const float __atanf_lut[4] = {
 };
 
 #if (__ARM_ARCH < 7)
+float OMV_ATTR_ALWAYS_INLINE fast_sqrtf(float x)
+{
+    return sqrtf(x);
+}
 
+int OMV_ATTR_ALWAYS_INLINE fast_floorf(float x)
+{
+    return (int)floorf(x);
+}
+
+int OMV_ATTR_ALWAYS_INLINE fast_ceilf(float x)
+{
+    return (int)ceilf(x);
+}
+
+int OMV_ATTR_ALWAYS_INLINE fast_roundf(float x)
+{
+    return (int)roundf(x);
+}
+
+float OMV_ATTR_ALWAYS_INLINE fast_fabsf(float x)
+{
+    return fabsf(x);
+}
 #else
 float OMV_ATTR_ALWAYS_INLINE fast_sqrtf(float x)
 {
