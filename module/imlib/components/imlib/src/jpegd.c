@@ -48,7 +48,9 @@ enum {
     FOUR_BIT_DITHERED,
     TWO_BIT_DITHERED,
     ONE_BIT_DITHERED,
-    INVALID_PIXEL_TYPE
+    INVALID_PIXEL_TYPE,
+    RGB888_LITTLE_ENDIAN,
+    RGB888_BIG_ENDIAN
 };
 
 enum {
@@ -3175,6 +3177,40 @@ void jpeg_decompress_image_to_rgb565(image_t *dst, image_t *src)
         // set up dest image params
         jpg.pUser = (void *) dst;               // pass the image_t structure for the JPEGDraw function
         jpg.ucPixelType = RGB565_LITTLE_ENDIAN; // force output to be RGB565
+        // Destination buffer is already allocated, so just decode it
+        if (JPEG_decode(&jpg, 0, 0, 0)) {
+            // full size
+            // success
+        } else {
+            memset(dst->data, 0, image_size(dst)); // decode error, fill with 0's
+            return;
+        }
+    } else {
+        // failed to parse the header
+        return;
+    }
+    #if (TIME_JPEG == 1)
+    printf("time: %u ms\n", mp_hal_ticks_ms() - start);
+    #endif
+    return;
+} /* imlib_jpeg_decompress_image_to_rgb565() */
+// Dst is an already allocated RGB888 image. Fill it with JPEG data from source. On error fill
+// remaining pixels with 0.
+void jpeg_decompress_image_to_rgb888(image_t *dst, image_t *src)
+{
+    JPEGIMAGE jpg;
+    int rc;
+
+    #if (TIME_JPEG == 1)
+    mp_uint_t start = mp_hal_ticks_ms();
+    #endif
+
+    rc = JPEG_openRAM(&jpg, src->data, src->size, dst->data);
+    if (rc) {
+        // success
+        // set up dest image params
+        jpg.pUser = (void *) dst;               // pass the image_t structure for the JPEGDraw function
+        jpg.ucPixelType = RGB888_LITTLE_ENDIAN; // force output to be RGB565
         // Destination buffer is already allocated, so just decode it
         if (JPEG_decode(&jpg, 0, 0, 0)) {
             // full size

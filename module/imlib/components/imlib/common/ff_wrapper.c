@@ -499,77 +499,120 @@ void write_data(FIL *fp, const void *data, size_t size)
 
 
 
-void ff_unsupported_format(FIL *fp)
+int ff_unsupported_format(FIL *fp)
 {
     if (*fp) fclose(*fp);
+    return 0;
 }
 
-void ff_file_corrupted(FIL *fp)
+int ff_file_corrupted(FIL *fp)
 {
     if (*fp) fclose(*fp);
+    return 0;
 }
-void ff_not_equal(FIL *fp)
+int ff_not_equal(FIL *fp)
 {
     if (*fp) fclose(*fp);
+    return 0;
 }
 
-void ff_no_intersection(FIL *fp)
+int ff_no_intersection(FIL *fp)
 {
-
+    if (*fp) fclose(*fp);
+    return 0;
 }
-void file_read_open(FIL *fp, const char *path)
+int file_read_open(FIL *fp, const char *path)
 {
     *fp = fopen(path, "rb");
     // if(NULL == *fp)
     // {
     //     // todo
     // }
+    return 0;
 }
-void file_write_open(FIL *fp, const char *path)
+int file_write_open(FIL *fp, const char *path)
 {
     *fp = fopen(path, "wb");
+    return 0;
 }
 
-void file_close(FIL *fp)
+int file_close(FIL *fp)
 {
     fclose(*fp);
+    return 0;
 }
-void file_seek(FIL *fp, size_t offset)
+int file_seek(FIL *fp, size_t offset)
 {
-
+    fseek(*fp, offset, SEEK_SET);
+    return 0;
 }
-void file_truncate(FIL *fp)
+int file_truncate(FIL *fp)
 {
-
+    return -1;
 }
-void file_sync(FIL *fp)
+int file_sync(FIL *fp)
 {
-
-}
-
-void file_buffer_init0()
-{
-
+    int fd = fileno(*fp); 
+    fsync(fd);
+    return 0;
 }
 
 
-void file_buffer_on(FIL *fp) // does fb_alloc_all
-{
 
+
+
+
+static uint32_t file_buffer_offset = 0;
+static uint8_t *file_buffer_pointer = 0;
+static uint32_t file_buffer_size = 0;
+static uint32_t file_buffer_index = 0;
+
+int file_buffer_init0()
+{
+    file_buffer_offset = 0;
+    file_buffer_pointer = 0;
+    file_buffer_size = 0;
+    file_buffer_index = 0;
+    return 0;
+}
+
+
+
+
+
+
+int file_buffer_on(FIL *fp) // does fb_alloc_all
+{
+    file_buffer_offset = ftell(*fp) % 4;
+    file_buffer_pointer = fb_alloc_all(&file_buffer_size, FB_ALLOC_PREFER_SIZE) + file_buffer_offset;
+    if (!file_buffer_size) {
+        // mp_raise_msg(&mp_type_MemoryError, MP_ERROR_TEXT("No memory!"));
+    }
+    file_buffer_size -= file_buffer_offset;
+    file_buffer_index = 0;
+    // if (fp->flag & FA_READ) {
+    //     uint32_t file_remaining = fsize(*fp) - ftell(*fp);
+    //     uint32_t can_do = FF_MIN(file_buffer_size, file_remaining);
+    //     uint8_t bytes;
+    //     uint32_t res = fread(*fp, file_buffer_pointer, can_do, &bytes);
+    //     // if (res != FR_OK) ff_fail(fp, res);
+    //     // if (bytes != can_do) ff_read_fail(fp);
+    // }
+    return 0;
 }
 uint32_t file_tell_w_buf(FIL *fp) // valid between on and off
 {
-
+    return -1;
 }
 uint32_t file_size_w_buf(FIL *fp) // valid between on and off
 {
-
+    return -1;
 }
-void file_buffer_off(FIL *fp) // does fb_free
+int file_buffer_off(FIL *fp) // does fb_free
 {
-
+    return -1;
 }
-void read_byte(FIL *fp, uint8_t *value)
+int read_byte(FIL *fp, uint8_t *value)
 {
     int num;
     num = fread(value, 1, 1, *fp);
@@ -577,8 +620,9 @@ void read_byte(FIL *fp, uint8_t *value)
     {
         printf("file error!\n");
     }
+    return num;
 }
-void read_byte_expect(FIL *fp, uint8_t value)
+int read_byte_expect(FIL *fp, uint8_t value)
 {
     int num;
     uint8_t str_s;
@@ -587,8 +631,9 @@ void read_byte_expect(FIL *fp, uint8_t value)
     {
         printf("file error!\n");
     }
+    return num;
 }
-void read_byte_ignore(FIL *fp)
+int read_byte_ignore(FIL *fp)
 {
     int num;
     uint32_t str_s;
@@ -597,8 +642,9 @@ void read_byte_ignore(FIL *fp)
     {
         printf("file error!\n");
     }
+    return num;
 }
-void read_word(FIL *fp, uint16_t *value)
+int read_word(FIL *fp, uint16_t *value)
 {
     int num;
     num = fread(value, 2, 1, *fp);
@@ -606,8 +652,9 @@ void read_word(FIL *fp, uint16_t *value)
     {
         printf("file error!\n");
     }
+    return num;
 }
-void read_word_expect(FIL *fp, uint16_t value)
+int read_word_expect(FIL *fp, uint16_t value)
 {
     int num;
     uint16_t str_s;
@@ -616,8 +663,9 @@ void read_word_expect(FIL *fp, uint16_t value)
     {
         printf("file error!\n");
     }
+    return num;
 }
-void read_word_ignore(FIL *fp)
+int read_word_ignore(FIL *fp)
 {
     int num;
     uint16_t str_s;
@@ -626,8 +674,9 @@ void read_word_ignore(FIL *fp)
     {
         printf("file error!\n");
     }
+    return num;
 }
-void read_long(FIL *fp, uint32_t *value)
+int read_long(FIL *fp, uint32_t *value)
 {
     int num;
     num = fread(value, 4, 1, *fp);
@@ -635,8 +684,9 @@ void read_long(FIL *fp, uint32_t *value)
     {
         printf("file error!\n");
     }
+    return num;
 }
-void read_long_expect(FIL *fp, uint32_t value)
+int read_long_expect(FIL *fp, uint32_t value)
 {
     int num;
     uint32_t str_s;
@@ -644,64 +694,37 @@ void read_long_expect(FIL *fp, uint32_t value)
     if(str_s != value)
     {
         printf("file error!\n");
+        return -1;
     }
+    return 0;
 }
-void read_long_ignore(FIL *fp)
+int read_long_ignore(FIL *fp)
 {
-    int num;
     uint32_t str_s;
-    num = fread(&str_s, 4, 1, *fp);
-    if(num != 1)
-    {
-        printf("file error!\n");
-    }
+    return fread(&str_s, 4, 1, *fp);
 }
-void read_data(FIL *fp, void *data, size_t size)
+int read_data(FIL *fp, void *data, size_t size)
 {
-    int num;
-    num = fread(data, 1, size, *fp);
-    if(num != size)
-    {
-        printf("file error!\n");
-    }
+    return fread(data, 1, size, *fp);
+
 }
 
 
-void write_byte(FIL *fp, uint8_t value)
+int write_byte(FIL *fp, uint8_t value)
 {
-    int num;
-    num =  fwrite(&value, 1, 1, *fp);
-    if(num != 1)
-    {
-        printf("file error!\n");
-    }
+    return fwrite(&value, 1, 1, *fp);
 }
-void write_word(FIL *fp, uint16_t value)
+int write_word(FIL *fp, uint16_t value)
 {
-    int num;
-    num =  fwrite(&value, 2, 1, *fp);
-    if(num != 1)
-    {
-        printf("file error!\n");
-    }
+    return fwrite(&value, 2, 1, *fp);
 }
-void write_long(FIL *fp, uint32_t value)
+int write_long(FIL *fp, uint32_t value)
 {
-    int num;
-    num =  fwrite(&value, 4, 1, *fp);
-    if(num != 1)
-    {
-        printf("file error!\n");
-    }
+    return  fwrite(&value, 4, 1, *fp);
 }
-void write_data(FIL *fp, const void *data, size_t size)
+int write_data(FIL *fp, const void *data, size_t size)
 {
-    int num;
-    num =  fwrite(data, 1, size, *fp);
-    if(num != size)
-    {
-        printf("file error!\n");
-    }
+    return fwrite(data, 1, size, *fp);
 }
 
 

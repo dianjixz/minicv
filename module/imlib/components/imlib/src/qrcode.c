@@ -2488,7 +2488,7 @@ static void read_bit(const struct quirc_code *code,
     ds->data_bits++;
 }
 
-static void read_data(const struct quirc_code *code,
+static void read_data_(const struct quirc_code *code,
                       struct quirc_data *data,
                       struct datastream *ds)
 {
@@ -2853,7 +2853,7 @@ quirc_decode_error_t quirc_decode(const struct quirc_code *code,
     if (err)
         { xfree(ds); return err; }
 
-    read_data(code, data, ds);
+    read_data_(code, data, ds);
     err = codestream_ecc(data, ds);
     if (err)
         { xfree(ds); return err; }

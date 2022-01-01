@@ -112,7 +112,7 @@ void mjpeg_add_frame(FIL *fp, uint32_t *frames, uint32_t *bytes, image_t *img, i
         write_long(fp, size_padded); // DWORD cb;
         write_data(fp, out.pixels, size_padded); // reading past okay
         *bytes += size_padded;
-        fb_free(); // frees alloc in jpeg_compress()
+        fb_free(NULL); // frees alloc in jpeg_compress()
     }
 }
 

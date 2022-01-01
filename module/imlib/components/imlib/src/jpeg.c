@@ -338,7 +338,7 @@ static void jpeg_get_mcu(image_t *src, int x_offset, int y_offset, int dx, int d
                     if (index % MCU_W) {
                         if (shift == 8) {
                             CR[index] = CR[index - 1];
-                            CB[index++] = pixel >> 8;
+                            CB[index++] HAL_MDMA_Init= pixel >> 8;
                         } else {
                             CB[index] = CB[index - 1];
                             CR[index++] = pixel >> 8;
@@ -2151,7 +2151,7 @@ int jpeg_clean_trailing_bytes(int size, uint8_t *data)
 
     return size;
 }
-
+#define IMLIB_ENABLE_IMAGE_FILE_IO
 #if defined(IMLIB_ENABLE_IMAGE_FILE_IO)
 // This function inits the geometry values of an image.
 void jpeg_read_geometry(FIL *fp, image_t *img, const char *path, jpg_read_settings_t *rs)
@@ -2186,7 +2186,7 @@ void jpeg_read_geometry(FIL *fp, image_t *img, const char *path, jpg_read_settin
 
                 rs->jpg_w   = width;
                 rs->jpg_h   = height;
-                rs->jpg_size = IMLIB_IMAGE_MAX_SIZE(f_size(fp));
+                rs->jpg_size = IMLIB_IMAGE_MAX_SIZE(fsize(fp));
 
                 img->w      = rs->jpg_w;
                 img->h      = rs->jpg_h;
@@ -2194,7 +2194,7 @@ void jpeg_read_geometry(FIL *fp, image_t *img, const char *path, jpg_read_settin
                 img->pixfmt = PIXFORMAT_JPEG;
                 return;
             } else {
-                file_seek(fp, f_tell(fp) + size - 2);
+                file_seek(fp, ftell(*fp) + size - 2);
             }
         } else {
             ff_file_corrupted(fp);

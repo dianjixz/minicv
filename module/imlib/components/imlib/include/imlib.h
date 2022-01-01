@@ -28,6 +28,7 @@
 #include "collections.h"
 #include "imlib_config.h"
 #include "omv_boardconfig.h"
+#include "ff_wrapper.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -1293,6 +1294,7 @@ void jpeg_mdma_irq_handler();
 // void jpeg_decompress_image_to_binary(image_t *dst, image_t *src);
 // void jpeg_decompress_image_to_grayscale(image_t *dst, image_t *src);
 // void jpeg_decompress_image_to_rgb565(image_t *dst, image_t *src);
+// void jpeg_decompress_image_to_rgb888(image_t *dst, image_t *src);
 // bool jpeg_compress(image_t *src, image_t *dst, int quality, bool realloc);
 // int jpeg_clean_trailing_bytes(int bpp, uint8_t *data);
 // void jpeg_read_geometry(FIL *fp, image_t *img, const char *path, jpg_read_settings_t *rs);
@@ -1380,11 +1382,11 @@ int orb_filter_keypoints(array_t *kpts, rectangle_t *r, point_t *c);
 // int orb_load_descriptor(FIL *fp, array_t *kpts);
 // float orb_cluster_dist(int cx, int cy, void *kp);
 
-// /* LBP Operator */
-// uint8_t *imlib_lbp_desc(image_t *image, rectangle_t *roi);
-// int imlib_lbp_desc_distance(uint8_t *d0, uint8_t *d1);
-// int imlib_lbp_desc_save(FIL *fp, uint8_t *desc);
-// int imlib_lbp_desc_load(FIL *fp, uint8_t **desc);
+/* LBP Operator */
+uint8_t *imlib_lbp_desc(image_t *image, rectangle_t *roi);
+int imlib_lbp_desc_distance(uint8_t *d0, uint8_t *d1);
+int imlib_lbp_desc_save(FIL *fp, uint8_t *desc);
+int imlib_lbp_desc_load(FIL *fp, uint8_t **desc);
 
 /* Iris detector */
 void imlib_find_iris(image_t *src, point_t *iris, rectangle_t *roi);
