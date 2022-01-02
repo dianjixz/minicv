@@ -25,6 +25,7 @@ void imlib_init_all()
     #if (OMV_HARDWARE_JPEG == 1)
     imlib_jpeg_compress_init();
     #endif
+    fb_alloc_init0();
 }
 
 void imlib_deinit_all()
@@ -35,6 +36,7 @@ void imlib_deinit_all()
     #if (OMV_HARDWARE_JPEG == 1)
     imlib_jpeg_compress_deinit();
     #endif
+    fb_alloc_close0();
 }
 
 /////////////////

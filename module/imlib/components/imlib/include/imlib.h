@@ -96,7 +96,7 @@ extern "C"
 
 
 #if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-
+// ARGB
 #define rgb24_Color(_r8, _g8, _b8) \
 ({                                    \
     ((_r8 << 8) | (_g8 << 16) | _b8 << 24); \
@@ -124,21 +124,22 @@ typedef struct pixel_s {
 #else
 //cpu is little
 //input pixel24_t，output uint32_t
+// BGRA
 #define rgb24_Color(_r8, _g8, _b8) \
 ({                                    \
     ((_r8 << 16) | (_g8 << 8) | _b8); \
 })
 
 typedef struct pixel_s {
-    char red;
-    char green;
-    char blue;
+    uint8_t red;
+    uint8_t green;
+    uint8_t blue;
 } pixel24_t;
 
 #define pixel24232(_u24_t) \
 ({\
     __typeof__ (_u24_t) ___u24_t = _u24_t;\
-    ((*((uint32_t*)((void*)&___u24_t))) & 0x00ffffff);\
+    (__builtin_bswap32(((*((uint32_t*)((void*)&___u24_t))) & 0x00ffffff)) >> 8);\
 })
 //input_ uint32_t，output pixel24_t
 #define pixel32224(_u32_t) \
@@ -277,16 +278,15 @@ color_thresholds_list_lnk_data_t;
     (abs(COLOR_RGB565_TO_G6(_pixel0) - COLOR_RGB565_TO_G6(_pixel1)) <= COLOR_RGB565_TO_G6(_threshold)) && \
     (abs(COLOR_RGB565_TO_B5(_pixel0) - COLOR_RGB565_TO_B5(_pixel1)) <= COLOR_RGB565_TO_B5(_threshold)); \
 })
-#define COLOR_BOUND_RGB888(pixel0, pixel1, threshold)                                                                 \
-    (                                                                                                                 \
-        {                                                                                                             \
-            __typeof__(pixel0) _pixel0 = (pixel0);                                                                    \
-            __typeof__(pixel1) _pixel1 = (pixel1);                                                                    \
-            __typeof__(threshold) _threshold = (threshold);                                                           \
-            (abs(COLOR_RGB888_TO_R8(_pixel0) - COLOR_RGB888_TO_R8(_pixel1)) <= COLOR_RGB888_TO_R8(_threshold)) &&     \
-                (abs(COLOR_RGB888_TO_G8(_pixel0) - COLOR_RGB888_TO_G8(_pixel1)) <= COLOR_RGB888_TO_G8(_threshold)) && \
-                (abs(COLOR_RGB888_TO_B8(_pixel0) - COLOR_RGB888_TO_B8(_pixel1)) <= COLOR_RGB888_TO_B8(_threshold));   \
-        })
+#define COLOR_BOUND_RGB888(pixel0, pixel1, threshold)                                                         \
+({ \
+    __typeof__(pixel0) _pixel0 = (pixel0);                                                                    \
+    __typeof__(pixel1) _pixel1 = (pixel1);                                                                    \
+    __typeof__(threshold) _threshold = (threshold);                                                           \
+    (abs(COLOR_RGB888_TO_R8(_pixel0) - COLOR_RGB888_TO_R8(_pixel1)) <= COLOR_RGB888_TO_R8(_threshold)) &&     \
+    (abs(COLOR_RGB888_TO_G8(_pixel0) - COLOR_RGB888_TO_G8(_pixel1)) <= COLOR_RGB888_TO_G8(_threshold)) &&     \
+    (abs(COLOR_RGB888_TO_B8(_pixel0) - COLOR_RGB888_TO_B8(_pixel1)) <= COLOR_RGB888_TO_B8(_threshold));       \
+})
 #define COLOR_BINARY_MIN 0
 #define COLOR_BINARY_MAX 1
 #define COLOR_GRAYSCALE_BINARY_MIN 0x00
@@ -674,7 +674,7 @@ bool image_get_mask_pixel(image_t *ptr, int x, int y);
     __typeof__ (v) _v = (v); \
     ((uint8_t *) _image->data)[(_image->w * _y) + _x] = _v; \
 })
-
+//得到的是小端的数据
 #define IMAGE_GET_RGB565_PIXEL(image, x, y) \
 ({ \
     __typeof__ (image) _image = (image); \
@@ -682,7 +682,7 @@ bool image_get_mask_pixel(image_t *ptr, int x, int y);
     __typeof__ (y) _y = (y); \
     ((uint16_t *) _image->data)[(_image->w * _y) + _x]; \
 })
-
+//传入的是小端数据
 #define IMAGE_PUT_RGB565_PIXEL(image, x, y, v) \
 ({ \
     __typeof__ (image) _image = (image); \
@@ -691,7 +691,7 @@ bool image_get_mask_pixel(image_t *ptr, int x, int y);
     __typeof__ (v) _v = (v); \
     ((uint16_t *) _image->data)[(_image->w * _y) + _x] = _v; \
 })
-
+//得到的是大端的数据
 #define IMAGE_GET_RGB888_PIXEL(image, x, y) \
 ({ \
     __typeof__ (image) _image = (image); \
@@ -699,7 +699,7 @@ bool image_get_mask_pixel(image_t *ptr, int x, int y);
     __typeof__ (y) _y = (y); \
     pixel24232(((pixel24_t *) _image->data)[(_image->w * _y) + _x]); \
 })
-
+//传入的是大端数据
 #define IMAGE_PUT_RGB888_PIXEL(image, x, y, v) \
 ({ \
     __typeof__ (image) _image = (image); \

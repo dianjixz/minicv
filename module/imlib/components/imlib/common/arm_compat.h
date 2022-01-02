@@ -7,6 +7,13 @@ typedef unsigned int uint32_t;
 #ifndef   __STATIC_FORCEINLINE
   #define __STATIC_FORCEINLINE                   __attribute__((always_inline)) static inline
 #endif
+#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+
+
+
+#else //__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+
+
 // Reverse the bit order in a 32-bit word.
 __STATIC_FORCEINLINE uint32_t __RBIT(
   uint32_t i )
@@ -123,7 +130,7 @@ float arm_sin_f32(float x);
     __typeof__ (val2) _val2 = val2;\
     ((_val1 & ((0xffff >> (16 - _val2)) << 16)) | (_val1 & (0xffff >> (16 - _val2))));\
 })
-
+#endif //__BYTE_ORDER__ == __ORDER_LITTER_ENDIAN__
 
 #endif
 // #ifndef _CC_ARM_
