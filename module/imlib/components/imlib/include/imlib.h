@@ -96,7 +96,6 @@ extern "C"
 
 
 #if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-// ARGB
 #define rgb24_Color(_r8, _g8, _b8) \
 ({                                    \
     ((_r8 << 8) | (_g8 << 16) | _b8 << 24); \
@@ -120,16 +119,13 @@ typedef struct pixel_s {
     __u32_t = __u32_t >> 8;\
     (*((pixel24_t*)((void*)&__u32_t)));\
 })
-
+void nihao()
+{
+    printf("t am __ORDER_BIG_ENDIAN__ \n");
+}
 #else
 //cpu is little
 //input pixel24_t，output uint32_t
-// BGRA
-#define rgb24_Color(_r8, _g8, _b8) \
-({                                    \
-    ((_r8 << 16) | (_g8 << 8) | _b8); \
-})
-
 typedef struct pixel_s {
     uint8_t red;
     uint8_t green;
@@ -139,16 +135,14 @@ typedef struct pixel_s {
 #define pixel24232(_u24_t) \
 ({\
     __typeof__ (_u24_t) ___u24_t = _u24_t;\
-    (__builtin_bswap32(((*((uint32_t*)((void*)&___u24_t))) & 0x00ffffff)) >> 8);\
+    ((*(uint32_t*)&___u24_t) & 0x00ffffff);\
 })
 //input_ uint32_t，output pixel24_t
 #define pixel32224(_u32_t) \
 ({\
     __typeof__ (_u32_t) __u32_t = _u32_t;\
-    __u32_t = __builtin_bswap32(__u32_t) >> 8;\
-    (*((pixel24_t*)((void*)&__u32_t)));\
+    (*((pixel24_t*)&__u32_t));\
 })
-
 #endif //__BYTE_ORDER__
 
 
@@ -353,14 +347,14 @@ color_thresholds_list_lnk_data_t;
     __pixel | (__pixel >> 5); \
 })
 
-#define COLOR_RGB888_TO_R8(pixel) (((pixel) >> 16) & 0xff)
+#define COLOR_RGB888_TO_R8(pixel) ((pixel) & 0xff)
 #define COLOR_RGB888_TO_G8(pixel) (((pixel) >> 8) & 0xff)
-#define COLOR_RGB888_TO_B8(pixel) ((pixel) & 0xff)
+#define COLOR_RGB888_TO_B8(pixel) (((pixel) >> 16) & 0xff)
 
 #define COLOR_R5_G6_B5_TO_RGB565(r5, g6, b5) (((r5) << 11) | ((g6) << 5) | (b5))
 #define COLOR_R8_G8_B8_TO_RGB565(r8, g8, b8) ((((r8) & 0xF8) << 8) | (((g8) & 0xFC) << 3) | ((b8) >> 3))
 
-#define COLOR_R8_G8_B8_TO_RGB888(r8, g8, b8) ((r8 << 16) | (g8 << 8) | ( b8 ))
+#define COLOR_R8_G8_B8_TO_RGB888(r8, g8, b8) (((b8 << 16) | (g8 << 8) | ( r8 )) & 0x00ffffff)
 
 #define COLOR_RGB888_TO_Y_(r8, g8, b8) ((((r8) * 38) + ((g8) * 75) + ((b8) * 15)) >> 7) // 0.299R + 0.587G + 0.114B
 
