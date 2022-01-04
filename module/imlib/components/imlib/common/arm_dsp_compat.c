@@ -190,3 +190,4 @@ float arm_cos_f32(
   /* Return the output value */
   return (cosVal);
 }
+

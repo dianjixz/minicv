@@ -40,6 +40,8 @@ float fast_powf(float a, float b);
 void fast_get_min_max(float *data, size_t data_len, float *p_min, float *p_max);
 extern const float cos_table[360];
 extern const float sin_table[360];
+void fmath_init();
+uint32_t rng_randint(uint32_t min, uint32_t max);
 #ifdef __cplusplus
 }
 #endif

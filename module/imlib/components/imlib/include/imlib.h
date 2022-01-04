@@ -29,6 +29,7 @@
 #include "imlib_config.h"
 #include "omv_boardconfig.h"
 #include "ff_wrapper.h"
+#include "imlib_io.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -127,7 +128,7 @@ typedef struct pixel_s {
 // BGRA
 #define rgb24_Color(_r8, _g8, _b8) \
 ({                                    \
-    ((_r8 << 16) | (_g8 << 8) | _b8); \
+    ((_b8 << 16) | (_g8 << 8) | _r8); \
 })
 
 typedef struct pixel_s {
@@ -139,14 +140,13 @@ typedef struct pixel_s {
 #define pixel24232(_u24_t) \
 ({\
     __typeof__ (_u24_t) ___u24_t = _u24_t;\
-    (__builtin_bswap32(((*((uint32_t*)((void*)&___u24_t))) & 0x00ffffff)) >> 8);\
+    ((*((uint32_t*)&___u24_t)) & 0x00ffffff);\
 })
 //input_ uint32_t，output pixel24_t
 #define pixel32224(_u32_t) \
 ({\
     __typeof__ (_u32_t) __u32_t = _u32_t;\
-    __u32_t = __builtin_bswap32(__u32_t) >> 8;\
-    (*((pixel24_t*)((void*)&__u32_t)));\
+    (*((pixel24_t*)&__u32_t));\
 })
 
 #endif //__BYTE_ORDER__
@@ -572,6 +572,7 @@ struct {                            \
     uint32_t pixfmt;                \
   };                                \
   uint32_t size; /* for compressed images */ \
+  bool is_data_alloc;  /*data need to free when call destory*/\
 }
 #elif defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
 #define PIXFORMAT_STRUCT            \
@@ -591,6 +592,7 @@ struct {                            \
     uint32_t pixfmt;                \
   };                                \
   uint32_t size; /* for compressed images */ \
+  bool is_data_alloc;  /*data need to free when call destory*/\
 }
 #else
 #error "Byte order is not defined."
@@ -606,6 +608,8 @@ typedef struct image {
     };
 } image_t;
 
+image_t* image_create(int w, int h, pixformat_t pixfmt, uint32_t size, void *pixels, bool is_data_alloc);
+void image_destroy(image_t **obj);
 void image_init(image_t *ptr, int w, int h, pixformat_t pixfmt, uint32_t size, void *pixels);
 void image_copy(image_t *dst, image_t *src);
 size_t image_size(image_t *ptr);
@@ -908,6 +912,11 @@ extern const int kernel_high_pass_3[9];
        __typeof__ (x) _x = (x); \
        __typeof__ (y) _y = (y); \
        pixel24232(((pixel24_t*)_img->pixels)[(_y*_img->w)+_x]); })
+#define IM_GET_RGB888_PIXEL_(img, x, y) \
+    ({ __typeof__ (img) _img = (img); \
+       __typeof__ (x) _x = (x); \
+       __typeof__ (y) _y = (y); \
+       ((pixel24_t*)_img->pixels)[(_y*_img->w)+_x]; })
 
 #define IM_SET_GS_PIXEL(img, x, y, p) \
     ({ __typeof__ (img) _img = (img); \

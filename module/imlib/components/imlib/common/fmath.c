@@ -247,3 +247,18 @@ void fast_get_min_max(float *data, size_t data_len, float *p_min, float *p_max)
     *p_min = min;
     *p_max = max;
 }
+
+#include <stdlib.h>
+#include <time.h>
+
+void fmath_init()
+{
+    srand((unsigned int)time(0));
+}
+
+uint32_t rng_randint(uint32_t min, uint32_t max)
+{
+    uint32_t tmp = max - min;
+    tmp = rand() % tmp + min;
+    return tmp;
+}

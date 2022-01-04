@@ -2187,7 +2187,7 @@ void jpeg_read_geometry(FIL *fp, image_t *img, const char *path, jpg_read_settin
 
                 rs->jpg_w   = width;
                 rs->jpg_h   = height;
-                rs->jpg_size = IMLIB_IMAGE_MAX_SIZE(fsize(fp));
+                rs->jpg_size = IMLIB_IMAGE_MAX_SIZE(file_fsize(fp));
 
                 img->w      = rs->jpg_w;
                 img->h      = rs->jpg_h;

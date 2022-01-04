@@ -33,7 +33,7 @@ int file_close(FIL *fp);
 int file_seek(FIL *fp, size_t offset);
 int file_truncate(FIL *fp);
 int file_sync(FIL *fp);
-
+long file_fsize(FIL *fp);
 // File buffer functions.
 int file_buffer_init0();
 int file_buffer_on(FIL *fp); // does fb_alloc_all

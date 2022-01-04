@@ -12,6 +12,10 @@ int main()
     bmp_read(&img_ts, "./lin.bmp");
 
     imlib_draw_line(&img_ts, 10, 10, 200, 200, COLOR_R8_G8_B8_TO_RGB888(0x00, 0x00, 0xff), 3);
+    imlib_draw_line(&img_ts, 100, 10, 10, 100, COLOR_R8_G8_B8_TO_RGB888(0xff, 0x00, 0x00), 3);
+
+
+
     bmp_write_subimg(&img_ts, "./lin.bmp",NULL);
     imlib_deinit_all();
     printf("hello\n");

@@ -14,6 +14,7 @@
 #include "xalloc.h"
 #include <stdio.h>
 #include <string.h>
+#include "imlib_io.h"
 #define true 1
 #define false 0
 #define bool uint8_t
@@ -49,10 +50,7 @@ char *fb_alloc_stack_pointer()
 
 void fb_alloc_fail()
 {
-    printf("memfail!\r\n");
-    // mp_raise_msg(&mp_type_MemoryError,
-    //     MP_ERROR_TEXT("Out of fast Frame Buffer Stack Memory!"
-    //     " Please reduce the resolution of the image you are running this algorithm on to bypass this issue!"));
+    imlib_printf(0, "MemoryError :Out of fast Frame Buffer Stack Memory! Please reduce the resolution of the image you are running this algorithm on to bypass this issue!");
 }
 
 void fb_alloc_init0()
