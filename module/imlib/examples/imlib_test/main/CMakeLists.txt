@@ -21,7 +21,7 @@ append_srcs_dir(ADD_SRCS "src")       # append source file in src dir to var ADD
 # if(CONFIG_COMPONENT3_ENABLED)
 #     list(APPEND ADD_REQUIREMENTS component3)
 # endif()
-list(APPEND ADD_REQUIREMENTS imlib2)
+list(APPEND ADD_REQUIREMENTS imlib)
 ###############################################
 
 ###### Add link search path for requirements/libs ######
