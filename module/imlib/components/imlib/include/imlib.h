@@ -98,10 +98,6 @@ extern "C"
 
 #if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
 // ARGB
-#define rgb24_Color(_r8, _g8, _b8) \
-({                                    \
-    ((_r8 << 8) | (_g8 << 16) | _b8 << 24); \
-})
 
 typedef struct pixel_s {
     char blue;
@@ -126,10 +122,6 @@ typedef struct pixel_s {
 //cpu is little
 //input pixel24_t，output uint32_t
 // BGRA
-#define rgb24_Color(_r8, _g8, _b8) \
-({                                    \
-    ((_b8 << 16) | (_g8 << 8) | _r8); \
-})
 
 typedef struct pixel_s {
     uint8_t red;
@@ -249,9 +241,8 @@ color_thresholds_list_lnk_data_t;
     int8_t _a = COLOR_RGB888_TO_A(_pixel);                   \
     int8_t _b = COLOR_RGB888_TO_B(_pixel);                   \
     ((_threshold->LMin <= _l) && (_l <= _threshold->LMax) && \
-        (_threshold->AMin <= _a) && (_a <= _threshold->AMax) && \
-        (_threshold->BMin <= _b) && (_b <= _threshold->BMax)) ^ \
-        _invert;                                             \
+    (_threshold->AMin <= _a) && (_a <= _threshold->AMax) && \
+    (_threshold->BMin <= _b) && (_b <= _threshold->BMax)) ^ _invert; \
 })
 #define COLOR_BOUND_BINARY(pixel0, pixel1, threshold) \
 ({ \

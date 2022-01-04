@@ -1,9 +1,9 @@
-all : imlib_base_test
+all : imlib_find_blobs_test
 
 
 
 
-imlib_base_test :
+imlib_find_blobs_test :
 	python3 project.py build
 
 menuconfig :
@@ -15,9 +15,9 @@ clean :
 	$(RM) tmp.bmp
 
 run : 
-	@ echo "run imlib_base_test!"
+	@ echo "run imlib_find_blobs_test!"
 	@ echo "------------------------------------------------------------"
-	@ build/imlib_base_test
+	@ build/imlib_find_blobs_test
 
 test :
 	@ make 
