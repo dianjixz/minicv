@@ -9,7 +9,7 @@
 #include "imlib_config.h"
 
 
-#define IMLIB_ENABLE_IMAGE_FILE_IO
+
 #if defined(IMLIB_ENABLE_IMAGE_FILE_IO)
 #include <stdio.h>
 #include <unistd.h>
@@ -485,50 +485,45 @@ void write_data(FIL *fp, const void *data, size_t size)
 
 
 #else
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+#include "imlib_io.h"
 
 int ff_unsupported_format(FIL *fp)
 {
     if (*fp) fclose(*fp);
+    *fp = NULL;
+    ERR_PRINT("ff_unsupported_format");
     return 0;
 }
 
 int ff_file_corrupted(FIL *fp)
 {
     if (*fp) fclose(*fp);
+    *fp = NULL;
+    ERR_PRINT("ff_file_corrupted!\n");
     return 0;
 }
 int ff_not_equal(FIL *fp)
 {
     if (*fp) fclose(*fp);
+    *fp = NULL;
+    ERR_PRINT("ff_not_equal!\n");
     return 0;
 }
 
 int ff_no_intersection(FIL *fp)
 {
     if (*fp) fclose(*fp);
+    *fp = NULL;
+    ERR_PRINT("ff_no_intersection!\n");
     return 0;
 }
 int file_read_open(FIL *fp, const char *path)
 {
     *fp = fopen(path, "rb");
-    // if(NULL == *fp)
-    // {
-    //     // todo
-    // }
+    if(NULL == *fp)
+    {
+        LOG_PRINT("%s,not exit!", path);
+    }
     return 0;
 }
 int file_write_open(FIL *fp, const char *path)
@@ -558,10 +553,16 @@ int file_sync(FIL *fp)
     return 0;
 }
 
-
-
-
-
+long file_fsize(FIL *fp)
+{
+    long n;
+    fpos_t fpos;        //当前位置
+    fgetpos(*fp, &fpos); //获取当前位置
+    fseek(*fp, 0, SEEK_END);
+    n = ftell(*fp);
+    fsetpos(*fp, &fpos); //恢复之前的位置
+    return n;
+}
 
 static uint32_t file_buffer_offset = 0;
 static uint8_t *file_buffer_pointer = 0;
@@ -588,6 +589,8 @@ int file_buffer_on(FIL *fp) // does fb_alloc_all
     file_buffer_pointer = fb_alloc_all(&file_buffer_size, FB_ALLOC_PREFER_SIZE) + file_buffer_offset;
     if (!file_buffer_size) {
         // mp_raise_msg(&mp_type_MemoryError, MP_ERROR_TEXT("No memory!"));
+        ERR_PRINT("MemoryError: No memory!");
+        // printf("%s:%d,No memory!\n", __FUNCTION__, __LINE__);
     }
     file_buffer_size -= file_buffer_offset;
     file_buffer_index = 0;
@@ -619,7 +622,7 @@ int read_byte(FIL *fp, uint8_t *value)
     num = fread(value, 1, 1, *fp);
     if(num != 1)
     {
-        printf("file error!\n");
+        ERR_PRINT("file error!\n");
     }
     return num;
 }
@@ -630,7 +633,8 @@ int read_byte_expect(FIL *fp, uint8_t value)
     num = fread(&str_s, 1, 1, *fp);
     if(str_s != value)
     {
-        printf("file error!\n");
+        ERR_PRINT("file error!\n");
+        return -1;
     }
     return num;
 }
@@ -641,7 +645,7 @@ int read_byte_ignore(FIL *fp)
     num = fread(&str_s, 1, 1, *fp);
     if(num != 1)
     {
-        printf("file error!\n");
+        ERR_PRINT("file error!\n");
     }
     return num;
 }
@@ -651,7 +655,7 @@ int read_word(FIL *fp, uint16_t *value)
     num = fread(value, 2, 1, *fp);
     if(num != 1)
     {
-        printf("file error!\n");
+        ERR_PRINT("file error!\n");
     }
     return num;
 }
@@ -662,7 +666,8 @@ int read_word_expect(FIL *fp, uint16_t value)
     num = fread(&str_s, 2, 1, *fp);
     if(str_s != value)
     {
-        printf("file error!\n");
+        ERR_PRINT("file error!\n");
+        return -1;
     }
     return num;
 }
@@ -673,7 +678,8 @@ int read_word_ignore(FIL *fp)
     num = fread(&str_s, 2, 1, *fp);
     if(num != 1)
     {
-        printf("file error!\n");
+        ERR_PRINT("file error!\n");
+        return -1;
     }
     return num;
 }
@@ -683,7 +689,8 @@ int read_long(FIL *fp, uint32_t *value)
     num = fread(value, 4, 1, *fp);
     if(num != 1)
     {
-        printf("file error!\n");
+        ERR_PRINT("file error!\n");
+        return -1;
     }
     return num;
 }
@@ -694,7 +701,7 @@ int read_long_expect(FIL *fp, uint32_t value)
     num = fread(&str_s, 4, 1, *fp);
     if(str_s != value)
     {
-        printf("file error!\n");
+        ERR_PRINT("file error!\n");
         return -1;
     }
     return num;

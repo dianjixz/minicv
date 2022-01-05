@@ -11,3 +11,4 @@ build
 ports/unix/build-standard/
 .vscode/
 dist/
+.vscode-ctags

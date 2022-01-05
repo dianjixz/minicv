@@ -26,6 +26,7 @@ void imlib_init_all()
     imlib_jpeg_compress_init();
     #endif
     fb_alloc_init0();
+    fmath_init();
 }
 
 void imlib_deinit_all()
@@ -250,8 +251,42 @@ void image_init(image_t *ptr, int w, int h, pixformat_t pixfmt, uint32_t size, v
     ptr->pixfmt = pixfmt;
     ptr->size   = size;
     ptr->pixels = pixels;
+    ptr->is_data_alloc = false;
 }
 
+image_t* image_create(int w, int h, pixformat_t pixfmt, uint32_t size, void *pixels, bool is_data_alloc)
+{
+    image_t *ptr = xalloc(sizeof(image_t));
+    ptr->w = w;
+    ptr->h = h;
+    ptr->pixfmt = pixfmt;
+    ptr->size   = size;
+    ptr->pixels = pixels;
+    if(is_data_alloc)
+    {
+        ptr->pixels = xalloc(size);
+        ptr->is_data_alloc = is_data_alloc;
+    }
+    else
+    {
+        ptr->is_data_alloc = false;
+    }
+    return ptr;
+}
+
+void image_destroy(image_t **obj)
+{
+    if (*obj)
+    {
+        if ((*obj)->is_data_alloc)
+        {
+        xfree((*obj)->data);
+        (*obj)->data = NULL;
+        }
+        xfree(*obj);
+        *obj = NULL;
+    }
+}
 void image_copy(image_t *dst, image_t *src)
 {
     memcpy(dst, src, sizeof(image_t));
@@ -591,7 +626,8 @@ static save_image_format_t imblib_parse_extension(image_t *img, const char *path
                &&  ((p[-3] == 'b') || (p[-3] == 'B'))
                &&  ((p[-4] == '.') || (p[-4] == '.'))) {
                     if (IM_IS_JPEG(img) || IM_IS_BAYER(img)) {
-                        mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT("Image is not BMP!"));
+                        ERR_PRINT("OSError:Image is not BMP!");
+                        // mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT("Image is not BMP!"));
                     }
                     return FORMAT_BMP;
         } else if (((p[-1] == 'm') || (p[-1] == 'M'))
@@ -599,7 +635,17 @@ static save_image_format_t imblib_parse_extension(image_t *img, const char *path
                &&  ((p[-3] == 'p') || (p[-3] == 'P'))
                &&  ((p[-4] == '.') || (p[-4] == '.'))) {
                     if (!IM_IS_RGB565(img)) {
-                        mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT("Image is not PPM!"));
+                        ERR_PRINT("OSError:Image is not PPM!");
+                        // mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT("Image is not PPM!"));
+                    }
+                    return FORMAT_PNM;
+        } else if (((p[-1] == 'm') || (p[-1] == 'M'))
+               &&  ((p[-2] == 'p') || (p[-2] == 'P'))
+               &&  ((p[-3] == 'p') || (p[-3] == 'P'))
+               &&  ((p[-4] == '.') || (p[-4] == '.'))) {
+                    if (!IM_IS_RGB888(img)) {
+                        ERR_PRINT("OSError:Image is not PPM!");
+                        // mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT("Image is not PPM!"));
                     }
                     return FORMAT_PNM;
         } else if (((p[-1] == 'm') || (p[-1] == 'M'))
@@ -607,7 +653,8 @@ static save_image_format_t imblib_parse_extension(image_t *img, const char *path
                &&  ((p[-3] == 'p') || (p[-3] == 'P'))
                &&  ((p[-4] == '.') || (p[-4] == '.'))) {
                     if (!IM_IS_GS(img)) {
-                        mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT("Image is not PGM!"));
+                        ERR_PRINT("OSError:Image is not PGM!");
+                        // mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT("Image is not PGM!"));
                     }
                     return FORMAT_PNM;
         } else if (((p[-1] == 'w') || (p[-1] == 'W'))
@@ -615,7 +662,8 @@ static save_image_format_t imblib_parse_extension(image_t *img, const char *path
                &&  ((p[-3] == 'r') || (p[-3] == 'R'))
                &&  ((p[-4] == '.') || (p[-4] == '.'))) {
                     if (!IM_IS_BAYER(img)) {
-                        mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT("Image is not BAYER!"));
+                        ERR_PRINT("OSError:Image is not BAYER!");
+                        // mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT("Image is not BAYER!"));
                     }
                     return FORMAT_RAW;
         }
@@ -687,8 +735,10 @@ void imlib_image_operation(image_t *img, const char *path, image_t *other, int s
         img_read_settings_t rs;
         bool vflipped = imlib_read_geometry(&fp, &temp, path, &rs);
         if (!IM_EQUAL(img, &temp)) {
-            f_close(&fp);
-            mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT("Images not equal!"));
+            // f_close(&fp);
+            file_close(&fp);
+            ERR_PRINT("OSError:Images not equal!");
+            // mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT("Images not equal!"));
         }
         // When processing vertically flipped images the read function will fill
         // the window up from the bottom. The read function assumes that the
@@ -699,7 +749,8 @@ void imlib_image_operation(image_t *img, const char *path, image_t *other, int s
         temp.h = IM_MIN(img->h, (size / (temp.w * temp.bpp)));
         // This should never happen unless someone forgot to free.
         if ((!temp.pixels) || (!temp.h)) {
-            mp_raise_msg(&mp_type_MemoryError, MP_ERROR_TEXT("Not enough memory available!"));
+            ERR_PRINT("OSError:Not enough memory available!");
+            // mp_raise_msg(&mp_type_MemoryError, MP_ERROR_TEXT("Not enough memory available!"));
         }
         for (int i=0; i<img->h; i+=temp.h) { // goes past end
             int lines = IM_MIN(temp.h, img->h-i);
@@ -714,7 +765,7 @@ void imlib_image_operation(image_t *img, const char *path, image_t *other, int s
         }
         file_buffer_off(&fp);
         file_close(&fp);
-        fb_free();
+        fb_free(alloc);
         #else
         // mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT("Image I/O is not supported"));
         #endif
@@ -863,18 +914,18 @@ void imlib_save_image(image_t *img, const char *path, rectangle_t *roi, int qual
             if (IM_IS_JPEG(img)) {
                 char *new_path = strcat(strcpy(fb_alloc(strlen(path)+5, FB_ALLOC_NO_HINT), path), ".jpg");
                 jpeg_write(img, new_path, quality);
-                fb_free();
+                fb_free(NULL);
             } else if (IM_IS_BAYER(img)) {
                 FIL fp;
                 char *new_path = strcat(strcpy(fb_alloc(strlen(path)+5, FB_ALLOC_NO_HINT), path), ".raw");
                 file_write_open(&fp, new_path);
                 write_data(&fp, img->pixels, img->w * img->h);
                 file_close(&fp);
-                fb_free();
+                fb_free(NULL);
             } else { // RGB or GS, save as BMP.
                 char *new_path = strcat(strcpy(fb_alloc(strlen(path)+5, FB_ALLOC_NO_HINT), path), ".bmp");
                 bmp_write_subimg(img, new_path, roi);
-                fb_free();
+                fb_free(NULL);
             }
             break;
     }
@@ -1223,10 +1274,10 @@ int imlib_image_mean(image_t *src, int *r_mean, int *g_mean, int *b_mean)
         }
         case PIXFORMAT_RGB888: {
             for (int i=0; i<n; i++) {
-                uint16_t p = ((uint16_t*)src->pixels)[i];
-                r_s += COLOR_RGB888_TO_R8(p);
-                g_s += COLOR_RGB888_TO_G8(p);
-                b_s += COLOR_RGB888_TO_B8(p);
+                pixel24_t p = ((pixel24_t*)src->pixels)[i];
+                r_s += COLOR_RGB888_TO_R8(pixel24232(p));
+                g_s += COLOR_RGB888_TO_G8(pixel24232(p));
+                b_s += COLOR_RGB888_TO_B8(pixel24232(p));
             }
             *r_mean = r_s/n;
             *g_mean = g_s/n;

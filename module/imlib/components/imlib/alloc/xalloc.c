@@ -15,10 +15,11 @@
 #include "xalloc.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "imlib_io.h"
 
 static void xalloc_fail(uint32_t size)
 {
-    printf("nihao\n");
+    imlib_printf(0, "MemoryError :memory allocation failed, allocating %u bytes", (uint)size);
     // mp_raise_msg_varg(&mp_type_MemoryError,
     //         MP_ERROR_TEXT("memory allocation failed, allocating %u bytes"), (uint)size);
 }

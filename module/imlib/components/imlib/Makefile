@@ -69,7 +69,7 @@ LIB_PATH += -L$(MOD_LIB_PATH)
 ##########################################################
 # building
 ##########################################################
-all:$(TARGET)
+all:$(TARGET) 
 
 $(TARGET) : $(OBJS_CPP) $(OBJS_CC) $(OBJS_C)
 	@ for i in $(MODULES_PATH); \

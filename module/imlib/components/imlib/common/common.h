@@ -19,7 +19,7 @@
 
 #ifdef OMV_DEBUG_PRINTF
 #define debug_printf(fmt, ...) \
-            do { printf("%s(): " fmt, __func__, ##__VA_ARGS__);} while (0)
+            do { imlib_printf(5, "%s(): " fmt, __func__, ##__VA_ARGS__);} while (0)
 #else
 #define debug_printf(...)
 #endif

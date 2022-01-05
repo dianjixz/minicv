@@ -170,7 +170,7 @@ int imlib_load_cascade_from_file(cascade_t *cascade, const char *path)
 {
     int i;
     FIL fp;
-    FRESULT res=FR_OK;
+    // FRESULT res=FR_OK;
 
     file_read_open(&fp, path);
     file_buffer_on(&fp);
@@ -185,7 +185,7 @@ int imlib_load_cascade_from_file(cascade_t *cascade, const char *path)
     cascade->stages_thresh_array = xalloc (sizeof(*cascade->stages_thresh_array) * cascade->n_stages);
     if (cascade->stages_array == NULL ||
         cascade->stages_thresh_array == NULL) {
-        res = 20;
+        // res = 20;
         goto error;
     }
 
@@ -207,7 +207,7 @@ int imlib_load_cascade_from_file(cascade_t *cascade, const char *path)
         cascade->alpha1_array   == NULL ||
         cascade->alpha2_array   == NULL ||
         cascade->num_rectangles_array == NULL) {
-        res = 20;
+        // res = 20;
         goto error;
     }
 
@@ -236,7 +236,7 @@ int imlib_load_cascade_from_file(cascade_t *cascade, const char *path)
 
     if (cascade->weights_array  == NULL ||
         cascade->rectangles_array == NULL) {
-        res = 20;
+        // res = 20;
         goto error;
     }
 
@@ -249,7 +249,7 @@ int imlib_load_cascade_from_file(cascade_t *cascade, const char *path)
 error:
     file_buffer_off(&fp);
     file_close(&fp);
-    return res;
+    return 0;
 }
 #endif //(IMLIB_ENABLE_IMAGE_FILE_IO)
 

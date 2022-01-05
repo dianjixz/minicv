@@ -4216,6 +4216,7 @@ void imlib_draw_row(int x_start, int x_end, int y_row, imlib_draw_row_data_t *da
 }
 
 // False == Image is black, True == rect valid
+//是lcd的函数，暂时可以不处理
 bool imlib_draw_image_rectangle(image_t *dst_img, image_t *src_img, int dst_x_start, int dst_y_start, float x_scale, float y_scale, rectangle_t *roi,
                                 int alpha, const uint8_t *alpha_palette, image_hint_t hint,
                                 int *x0, int *x1, int *y0, int *y1)

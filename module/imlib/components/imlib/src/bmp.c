@@ -8,7 +8,7 @@
  *
  * BMP reader/writer.
  */
-#define IMLIB_ENABLE_IMAGE_FILE_IO
+
 #include "imlib.h"
 #if defined(IMLIB_ENABLE_IMAGE_FILE_IO)
 
@@ -22,6 +22,7 @@
 // This function inits the geometry values of an image (opens file).
 bool bmp_read_geometry(FIL *fp, image_t *img, const char *path, bmp_read_settings_t *rs)
 {
+    int is_ps_image = 0;
     read_byte_expect(fp, 'B');
     read_byte_expect(fp, 'M');
 
@@ -35,7 +36,18 @@ bool bmp_read_geometry(FIL *fp, image_t *img, const char *path, bmp_read_setting
     if (file_size <= header_size) ff_file_corrupted(fp);
 
     uint32_t data_size = file_size - header_size;
-    if (data_size % 4) ff_file_corrupted(fp);
+    if (data_size % 4)
+    {
+        uint32_t tmp_uint32 = data_size - 2;
+        if(tmp_uint32 % 4 == 0)
+        {
+            is_ps_image = 1;
+        }
+        else
+        {
+            ff_file_corrupted(fp);
+        }
+    }
 
     uint32_t header_type;
     read_long(fp, &header_type);
@@ -55,8 +67,19 @@ bool bmp_read_geometry(FIL *fp, image_t *img, const char *path, bmp_read_setting
     if ((rs->bmp_bpp != 8) && (rs->bmp_bpp != 16) && (rs->bmp_bpp != 24)) {
         ff_unsupported_format(fp);
     }
-    img->pixfmt = (rs->bmp_bpp == 8) ? PIXFORMAT_GRAYSCALE : PIXFORMAT_RGB565;
-
+    // img->pixfmt = (rs->bmp_bpp == 8) ? PIXFORMAT_GRAYSCALE : PIXFORMAT_RGB565;
+    switch (rs->bmp_bpp)
+    {
+    case 8:
+        img->pixfmt = PIXFORMAT_GRAYSCALE;
+        break;
+    case 16:
+        img->pixfmt = PIXFORMAT_RGB565;
+        break;
+    case 24:
+        img->pixfmt = PIXFORMAT_RGB888;
+        break;
+    }
     read_long(fp, &rs->bmp_fmt);
     if ((rs->bmp_fmt != 0) && (rs->bmp_fmt != 3)) ff_unsupported_format(fp);
 
@@ -120,7 +143,14 @@ bool bmp_read_geometry(FIL *fp, image_t *img, const char *path, bmp_read_setting
     }
 
     rs->bmp_row_bytes = (((img->w * rs->bmp_bpp) + 31) / 32) * 4;
-    if (data_size != (rs->bmp_row_bytes * img->h)) ff_file_corrupted(fp);
+    if(is_ps_image)
+    {
+        if ((data_size - 2) != (rs->bmp_row_bytes * img->h)) ff_file_corrupted(fp);
+    }
+    else
+    {
+        if (data_size != (rs->bmp_row_bytes * img->h)) ff_file_corrupted(fp);
+    }
     return (rs->bmp_h >= 0);
 }
 
@@ -182,19 +212,19 @@ void bmp_read_pixels(FIL *fp, image_t *img, int n_lines, bmp_read_settings_t *rs
                 read_byte(fp, &b);
                 read_byte(fp, &g);
                 read_byte(fp, &r);
-                uint16_t pixel = COLOR_R8_G8_B8_TO_RGB565(r, g, b);
+                int pixel = COLOR_R8_G8_B8_TO_RGB888(r, g, b);
                 if (j < img->w) {
                     if (rs->bmp_h < 0) { // vertical flip
                         if (rs->bmp_w < 0) { // horizontal flip
-                            IM_SET_RGB565_PIXEL(img, (img->w-j-1), i, pixel);
+                            IM_SET_RGB888_PIXEL(img, (img->w-j-1), i, pixel);
                         } else {
-                            IM_SET_RGB565_PIXEL(img, j, i, pixel);
+                            IM_SET_RGB888_PIXEL(img, j, i, pixel);
                         }
                     } else {
                         if (rs->bmp_w < 0) {
-                            IM_SET_RGB565_PIXEL(img, (img->w-j-1), (img->h-i-1), pixel);
+                            IM_SET_RGB888_PIXEL(img, (img->w-j-1), (img->h-i-1), pixel);
                         } else {
-                            IM_SET_RGB565_PIXEL(img, j, (img->h-i-1), pixel);
+                            IM_SET_RGB888_PIXEL(img, j, (img->h-i-1), pixel);
                         }
                     }
                 }
@@ -211,24 +241,34 @@ void bmp_read(image_t *img, const char *path)
     FIL fp;
     bmp_read_settings_t rs;
     file_read_open(&fp, path);
-    file_buffer_on(&fp);
+    // file_buffer_on(&fp);
     bmp_read_geometry(&fp, img, path, &rs);
     if (!img->pixels) img->pixels = xalloc(img->w * img->h * img->bpp);
     bmp_read_pixels(&fp, img, img->h, &rs);
-    file_buffer_off(&fp);
+    // file_buffer_off(&fp);
     file_close(&fp);
 }
 
 void bmp_write_subimg(image_t *img, const char *path, rectangle_t *r)
 {
     rectangle_t rect;
-    if (!rectangle_subimg(img, r, &rect)) {
-        // mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT("No intersection!"));
+    if(!r)
+    {
+        rectangle_t tmp_rect;
+        rectangle_init(&tmp_rect, 0, 0, img->w, img->h);
+        if (!rectangle_subimg(img, &tmp_rect, &rect)) {
+            ERR_PRINT("OSError: No intersection!");
+        }
     }
-
+    else
+    {
+        if (!rectangle_subimg(img, r, &rect)) {
+            ERR_PRINT("OSError: No intersection!");
+        }
+    }
     FIL fp;
     file_write_open(&fp, path);
-    file_buffer_on(&fp);
+    // file_buffer_on(&fp);
     if (IM_IS_GS(img)) {
         const int row_bytes = (((rect.w * 8) + 31) / 32) * 4;
         const int data_size = (row_bytes * rect.h);
@@ -268,31 +308,31 @@ void bmp_write_subimg(image_t *img, const char *path, rectangle_t *r)
                 }
             }
         }
-    } else {
+    } else if(IM_IS_RGB565(img)) {
         const int row_bytes = (((rect.w * 16) + 31) / 32) * 4;
         const int data_size = (row_bytes * rect.h);
         const int waste = (row_bytes / sizeof(uint16_t)) - rect.w;
         // File Header (14 bytes)
-        write_byte(&fp, 'B');
+        write_byte(&fp, 'B');                                               //表示文件类型
         write_byte(&fp, 'M');
-        write_long(&fp, 14 + 40 + 12 + data_size);
-        write_word(&fp, 0);
-        write_word(&fp, 0);
-        write_long(&fp, 14 + 40 + 12);
+        write_long(&fp, 14 + 40 + 12 + data_size);                          //表示文件的大小
+        write_word(&fp, 0);                                                 //保留位，必须设置为0；
+        write_word(&fp, 0);                                                 //保留位，必须设置为0；
+        write_long(&fp, 14 + 40 + 12);                                      //4字节的偏移，表示从文件头到位图数据的偏移
         // Info Header (40 bytes)
-        write_long(&fp, 40);
-        write_long(&fp, rect.w);
-        write_long(&fp, -rect.h); // store the image flipped (correctly)
-        write_word(&fp, 1);
-        write_word(&fp, 16);
-        write_long(&fp, 3);
-        write_long(&fp, data_size);
-        write_long(&fp, 0);
-        write_long(&fp, 0);
-        write_long(&fp, 0);
-        write_long(&fp, 0);
+        write_long(&fp, 40);                                                //信息头的大小，即40；
+        write_long(&fp, rect.w);                                            //以像素为单位说明图像的宽度；
+        write_long(&fp, -rect.h); // store the image flipped (correctly)    //以像素为单位说明图像的高度，同时如果为正，说明位图倒立
+        write_word(&fp, 1);                                                 //为目标设备说明颜色平面数，总被设置为1；
+        write_word(&fp, 16);                                                //说明比特数/像素数，值有1、2、4、8、16、24、32；
+        write_long(&fp, 3);                                                 //说明图像的压缩类型，最常用的就是0（BI_RGB），表示不压缩；
+        write_long(&fp, data_size);                                         //说明位图数据的大小，当用BI_RGB格式时，可以设置为0
+        write_long(&fp, 0);                                                 //表示水平分辨率，单位是像素/米，有符号整数；
+        write_long(&fp, 0);                                                 //表示垂直分辨率，单位是像素/米，有符号整数；
+        write_long(&fp, 0);                                                 //说明位图使用的调色板中的颜色索引数，为0说明使用所有；
+        write_long(&fp, 0);                                                 //说明对图像显示有重要影响的颜色索引数，为0说明都重要；
         // Bit Masks (12 bytes)
-        write_long(&fp, 0x1F << 11);
+        write_long(&fp, 0x1F << 11);                                        //调色板
         write_long(&fp, 0x3F << 5);
         write_long(&fp, 0x1F);
         for (int i = 0; i < rect.h; i++) {
@@ -303,8 +343,40 @@ void bmp_write_subimg(image_t *img, const char *path, rectangle_t *r)
                 write_word(&fp, 0);
             }
         }
+    }else if(IM_IS_RGB888(img)) {
+        const int row_bytes = (((rect.w * 24) + 31) / 32) * 4;
+        const int data_size = (row_bytes * rect.h);
+        const int waste = row_bytes - rect.w * 24;
+        // File Header (14 bytes)
+        write_byte(&fp, 'B');              //0x42
+        write_byte(&fp, 'M');               //0x4d
+        write_long(&fp, 14 + 40 + data_size);
+        write_word(&fp, 0);
+        write_word(&fp, 0);
+        write_long(&fp, 14 + 40);
+        // Info Header (40 bytes)
+        write_long(&fp, 40);
+        write_long(&fp, rect.w);
+        write_long(&fp, -rect.h); // store the image flipped (correctly)
+        write_word(&fp, 1);
+        write_word(&fp, 24);
+        write_long(&fp, 0);         //说明图像的压缩类型，最常用的就是0（BI_RGB），表示不压缩；
+        write_long(&fp, data_size);
+        write_long(&fp, 0);
+        write_long(&fp, 0);
+        write_long(&fp, 0);
+        write_long(&fp, 0);
+        for (int i = 0; i < rect.h; i++) {
+            for (int j = 0; j < rect.w; j++) {
+                pixel24_t pixel_tmp = IM_GET_RGB888_PIXEL_(img, (rect.x + j), (rect.y + i));
+                write_data(&fp, &pixel_tmp, 3);
+            }
+            for (int j = 0; j < waste; j++) {
+                write_byte(&fp, 0);
+            }
+        }
     }
-    file_buffer_off(&fp);
+    // file_buffer_off(&fp);
 
     file_close(&fp);
 }

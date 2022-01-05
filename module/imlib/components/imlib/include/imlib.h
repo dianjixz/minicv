@@ -29,6 +29,7 @@
 #include "imlib_config.h"
 #include "omv_boardconfig.h"
 #include "ff_wrapper.h"
+#include "imlib_io.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -96,10 +97,14 @@ extern "C"
 
 
 #if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+<<<<<<< HEAD
 #define rgb24_Color(_r8, _g8, _b8) \
 ({                                    \
     ((_r8 << 8) | (_g8 << 16) | _b8 << 24); \
 })
+=======
+// ARGB
+>>>>>>> 949d2a6d9720ce39ce6e84d72b83d0aaa1a56354
 
 typedef struct pixel_s {
     char blue;
@@ -126,6 +131,8 @@ void nihao()
 #else
 //cpu is little
 //input pixel24_t，output uint32_t
+// BGRA
+
 typedef struct pixel_s {
     uint8_t red;
     uint8_t green;
@@ -135,7 +142,7 @@ typedef struct pixel_s {
 #define pixel24232(_u24_t) \
 ({\
     __typeof__ (_u24_t) ___u24_t = _u24_t;\
-    ((*(uint32_t*)&___u24_t) & 0x00ffffff);\
+    ((*((uint32_t*)&___u24_t)) & 0x00ffffff);\
 })
 //input_ uint32_t，output pixel24_t
 #define pixel32224(_u32_t) \
@@ -243,9 +250,8 @@ color_thresholds_list_lnk_data_t;
     int8_t _a = COLOR_RGB888_TO_A(_pixel);                   \
     int8_t _b = COLOR_RGB888_TO_B(_pixel);                   \
     ((_threshold->LMin <= _l) && (_l <= _threshold->LMax) && \
-        (_threshold->AMin <= _a) && (_a <= _threshold->AMax) && \
-        (_threshold->BMin <= _b) && (_b <= _threshold->BMax)) ^ \
-        _invert;                                             \
+    (_threshold->AMin <= _a) && (_a <= _threshold->AMax) && \
+    (_threshold->BMin <= _b) && (_b <= _threshold->BMax)) ^ _invert; \
 })
 #define COLOR_BOUND_BINARY(pixel0, pixel1, threshold) \
 ({ \
@@ -566,6 +572,7 @@ struct {                            \
     uint32_t pixfmt;                \
   };                                \
   uint32_t size; /* for compressed images */ \
+  bool is_data_alloc;  /*data need to free when call destory*/\
 }
 #elif defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
 #define PIXFORMAT_STRUCT            \
@@ -585,6 +592,7 @@ struct {                            \
     uint32_t pixfmt;                \
   };                                \
   uint32_t size; /* for compressed images */ \
+  bool is_data_alloc;  /*data need to free when call destory*/\
 }
 #else
 #error "Byte order is not defined."
@@ -600,6 +608,8 @@ typedef struct image {
     };
 } image_t;
 
+image_t* image_create(int w, int h, pixformat_t pixfmt, uint32_t size, void *pixels, bool is_data_alloc);
+void image_destroy(image_t **obj);
 void image_init(image_t *ptr, int w, int h, pixformat_t pixfmt, uint32_t size, void *pixels);
 void image_copy(image_t *dst, image_t *src);
 size_t image_size(image_t *ptr);
@@ -902,6 +912,11 @@ extern const int kernel_high_pass_3[9];
        __typeof__ (x) _x = (x); \
        __typeof__ (y) _y = (y); \
        pixel24232(((pixel24_t*)_img->pixels)[(_y*_img->w)+_x]); })
+#define IM_GET_RGB888_PIXEL_(img, x, y) \
+    ({ __typeof__ (img) _img = (img); \
+       __typeof__ (x) _x = (x); \
+       __typeof__ (y) _y = (y); \
+       ((pixel24_t*)_img->pixels)[(_y*_img->w)+_x]; })
 
 #define IM_SET_GS_PIXEL(img, x, y, p) \
     ({ __typeof__ (img) _img = (img); \

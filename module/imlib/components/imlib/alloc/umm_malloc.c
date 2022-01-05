@@ -14,10 +14,10 @@
 #include "fb_alloc.h"
 #include "umm_malloc.h"
 #include "omv_boardconfig.h"
-
+#include "imlib_io.h"
 void umm_alloc_fail()
 {
-  printf("nihao\n");
+  imlib_printf(0, "MemoryError: Out of temporary Frame Buffer Heap Memory! Please reduce the resolution of the image you are running this algorithm on to bypass this issue!");
     // mp_raise_msg(&mp_type_MemoryError,
     //     MP_ERROR_TEXT("Out of temporary Frame Buffer Heap Memory!"
     //     " Please reduce the resolution of the image you are running this algorithm on to bypass this issue!"));

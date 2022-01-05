@@ -1,9 +1,9 @@
-all : demo1
+all : imlib_base_test
 
 
 
 
-demo1 :
+imlib_base_test :
 	python3 project.py build
 
 menuconfig :
@@ -11,12 +11,13 @@ menuconfig :
 
 clean :
 	python3 project.py clean
-	rm -r build 
+	$(RM) -r build 
+	$(RM) tmp.bmp
 
 run : 
-	@ echo "run imlib_test!"
+	@ echo "run imlib_base_test!"
 	@ echo "------------------------------------------------------------"
-	@ build/imlib_test
+	@ build/imlib_base_test
 
 test :
 	@ make 
