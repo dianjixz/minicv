@@ -4292,6 +4292,116 @@ bool imlib_draw_image_rectangle(image_t *dst_img, image_t *src_img, int dst_x_st
     return true;
 }
 
+void imlib_draw_image_rgb565(image_t *img, image_t *other, int x_off, int y_off, float x_scale, float y_scale, float alpha, image_t *mask)
+{
+    float over_xscale = IM_DIV(1.0, x_scale), over_yscale = IM_DIV(1.0f, y_scale);
+
+    for (int y = 0, yy = fast_roundf(other->h * y_scale); y < yy; y++) {
+        int other_y = fast_roundf(y * over_yscale);
+
+        for (int x = 0, xx = fast_roundf(other->w * x_scale); x < xx; x++) {
+            int other_x = fast_roundf(x * over_xscale);
+
+            if ((!mask) || image_get_mask_pixel(mask, other_x, other_y)) {
+                int pixel = imlib_get_pixel(other, other_x, other_y);
+                if(alpha == 1) {
+                    uint8_t r = COLOR_RGB565_TO_R8(pixel);
+                    uint8_t g = COLOR_RGB565_TO_G8(pixel);
+                    uint8_t b = COLOR_RGB565_TO_B8(pixel);
+                    uint16_t c=COLOR_R8_G8_B8_TO_RGB565(r>255?255:r,g>255?255:g, b>255?255:b);
+                    imlib_set_pixel(img, x_off + x, y_off + y, c);
+                } else {
+                    int pixel2=imlib_get_pixel(img, x_off + x, y_off + y);
+
+                    uint8_t t_r = COLOR_RGB565_TO_R8(pixel);
+                    uint8_t t_g = COLOR_RGB565_TO_G8(pixel);
+                    uint8_t t_b = COLOR_RGB565_TO_B8(pixel);
+
+                    float tmp = ((uint16_t)(((t_r)) | (t_g) | (t_b)) / (256.0));
+                    
+                    float t_alpha = alpha * tmp; // 0.01 ~ 0.00001
+
+                    float beta = 1 - t_alpha;
+                    uint16_t r=(uint16_t)(((float)(uint16_t)COLOR_RGB565_TO_R8(pixel))*t_alpha+((float)(uint16_t)COLOR_RGB565_TO_R8(pixel2))*beta);
+                    uint16_t g=(uint16_t)(((float)(uint16_t)COLOR_RGB565_TO_G8(pixel))*t_alpha+((float)(uint16_t)COLOR_RGB565_TO_G8(pixel2))*beta);
+                    uint16_t b=(uint16_t)(((float)(uint16_t)COLOR_RGB565_TO_B8(pixel))*t_alpha+((float)(uint16_t)COLOR_RGB565_TO_B8(pixel2))*beta);
+                    uint16_t c=COLOR_R8_G8_B8_TO_RGB565(r>255?255:r,g>255?255:g,b>255?255:b);
+                    imlib_set_pixel(img, x_off + x, y_off + y,c);
+
+                }
+            }
+        }
+    }
+}
+void imlib_draw_image_rgb888(image_t *img, image_t *other, int x_off, int y_off, float x_scale, float y_scale, float alpha, image_t *mask)
+{
+    float over_xscale = IM_DIV(1.0, x_scale), over_yscale = IM_DIV(1.0f, y_scale);
+
+    for (int y = 0, yy = fast_roundf(other->h * y_scale); y < yy; y++) {
+        int other_y = fast_roundf(y * over_yscale);
+
+        for (int x = 0, xx = fast_roundf(other->w * x_scale); x < xx; x++) {
+            int other_x = fast_roundf(x * over_xscale);
+
+            if ((!mask) || image_get_mask_pixel(mask, other_x, other_y)) {
+                int pixel = imlib_get_pixel(other, other_x, other_y);
+                if(alpha == 1) {
+                    uint8_t r = COLOR_RGB888_TO_R8(pixel);
+                    uint8_t g = COLOR_RGB888_TO_G8(pixel);
+                    uint8_t b = COLOR_RGB888_TO_B8(pixel);
+                    uint16_t c = COLOR_R8_G8_B8_TO_RGB888(r>255?255:r, g>255?255:g, b>255?255:b);
+                    imlib_set_pixel(img, x_off + x, y_off + y, c);
+                } else {
+                    int pixel2=imlib_get_pixel(img, x_off + x, y_off + y);
+
+                    uint8_t t_r = COLOR_RGB888_TO_R8(pixel);
+                    uint8_t t_g = COLOR_RGB888_TO_G8(pixel);
+                    uint8_t t_b = COLOR_RGB888_TO_B8(pixel);
+
+                    float tmp = ((uint16_t)(((t_r)) | (t_g) | (t_b)) / (256.0));
+                    
+                    float t_alpha = alpha * tmp; // 0.01 ~ 0.00001
+
+                    float beta = 1 - t_alpha;
+                    uint16_t r = (uint16_t)(((float)(uint16_t)COLOR_RGB888_TO_R8(pixel)) * t_alpha + ((float)(uint16_t)COLOR_RGB888_TO_R8(pixel2)) * beta);
+                    uint16_t g = (uint16_t)(((float)(uint16_t)COLOR_RGB888_TO_G8(pixel)) * t_alpha + ((float)(uint16_t)COLOR_RGB888_TO_G8(pixel2)) * beta);
+                    uint16_t b = (uint16_t)(((float)(uint16_t)COLOR_RGB888_TO_B8(pixel)) * t_alpha + ((float)(uint16_t)COLOR_RGB888_TO_B8(pixel2)) * beta);
+                    uint32_t c = COLOR_R8_G8_B8_TO_RGB888(r > 255 ? 255 : r, g > 255 ? 255 : g, b > 255 ? 255 : b);
+                    imlib_set_pixel(img, x_off + x, y_off + y, c);
+                }
+            }
+        }
+    }
+}
+
+/**
+ * @brief 绘制一个 image ，其左上角从位置x，y开始。 您可以单独传递x，y，也可以传递给元组(x，y)。
+ * 这种方法非常灵活，不需要在目标图像上绘制的图像具有相同的宽度/高度/或像素格式(灰度/RGB565)。 该方法还可以自动处理从目标图像边缘绘制的裁剪像素。
+ * 
+ * @param dst_img 目标图像
+ * @param src_img 传入图像
+ * @param dst_x_start 开始的x位置
+ * @param dst_y_start  开始的y位置
+ * @param x_scale 是一个浮点值，通过它可以在x方向上缩放图像。如果此值为负，则图像将水平翻转。
+ * @param y_scale 是一个浮点值，通过它可以在y方向上缩放图像。如果此值为负，则图像将垂直翻转。
+ * @param roi 是要绘制的源图像的感兴趣区域矩形元组 (x, y, w, h)。 这允许您仅提取 ROI 中的像素以在目标图像上进行缩放和绘制。
+ * @param rgb_channel 是从 RGB565 图像（如果传递）中提取并渲染到目标图像上的 RGB 通道（0=R，G=1，B=2）。 
+ *                      例如，如果您传递 rgb_channel=1 这将提取源 RGB565 图像的绿色通道并在目标图像上以灰度方式绘制该通道。
+ * @param alpha 控制另一幅图像与这幅图像的混合程度。 alpha 应该是0到256之间的一个整数值。接近零的值会将更多其他图像混合到该图像中，而接近256的值则相反。
+ * @param color_palette 如果不是 -1 可以是 sensor.PALETTE_RAINBOW、sensor.PALETTE_IRONBOW，或总共 256 像素的 RGB565 图像，用作任何源图像的灰度值的颜色查找表。 如果使用，这将在 rgb_channel 提取之后应用。
+ * @param alpha_palette 如果不是 -1 可以是总共 256 像素的 GRAYSCALE 图像，用作 alpha 调色板， 以像素级别调制正在绘制的源图像的``alpha``值，允许您根据像素的灰度值精确控制像素的 alpha 值。 alpha 查找表中的 255 像素值是不透明的，任何小于 255 的像素值都会变成更透明，直到 0。 如果使用，这将在 rgb_channel 提取之后应用。
+ * @param hint 可以是标志的OR逻辑：
+ * image.AREA: 与最近邻的默认值相比，在缩小时使用区域缩放。
+ * image.BILINEAR: 使用双线性缩放而不是最近邻缩放的默认值。
+ * image.BICUBIC: 使用双三次缩放而不是最近邻缩放的默认值。
+ * image.CENTER: 将要绘制的图像图像居中 (x, y)。
+ * image.EXTRACT_RGB_CHANNEL_FIRST: 在缩放之前进行 rgb_channel 提取。
+ * image.APPLY_COLOR_PALETTE_FIRST: 在缩放之前应用调色板。
+ * image.BLACK_BACKGROUND: 假设目标图像是黑色的。 这加快了绘图速度。
+ * 
+ * @param callback 回调函数
+ * @param dst_row_override 回调参数
+ */
 void imlib_draw_image(image_t *dst_img, image_t *src_img, int dst_x_start, int dst_y_start,
         float x_scale, float y_scale, rectangle_t *roi,int rgb_channel, int alpha, const uint16_t *color_palette,
         const uint8_t *alpha_palette, image_hint_t hint, imlib_draw_row_callback_t callback, void *dst_row_override)
@@ -4429,7 +4539,15 @@ void imlib_draw_image(image_t *dst_img, image_t *src_img, int dst_x_start, int d
     || ((hint & IMAGE_HINT_APPLY_COLOR_PALETTE_FIRST) && color_palette)) {
         new_src_img.w = src_img_w; // same width as source image
         new_src_img.h = src_img_h; // same height as source image
-        new_src_img.pixfmt = color_palette ? PIXFORMAT_RGB565 : PIXFORMAT_GRAYSCALE;
+        if(color_palette){
+            if(src_img.pixfmt == PIXFORMAT_RGB888){
+                new_src_img.pixfmt = PIXFORMAT_RGB888;
+            }else{
+                new_src_img.pixfmt = PIXFORMAT_RGB565;
+            }
+        }else{
+            new_src_img.pixfmt = PIXFORMAT_GRAYSCALE;
+        }
         new_src_img.data = fb_alloc(image_size(&new_src_img), FB_ALLOC_NO_HINT);
         imlib_draw_image(&new_src_img, src_img, 0, 0, 1.f, 1.f, NULL, rgb_channel, 256, color_palette, NULL, 0, NULL, NULL);
         src_img = &new_src_img;
@@ -4440,9 +4558,25 @@ void imlib_draw_image(image_t *dst_img, image_t *src_img, int dst_x_start, int d
     // Special destination?
     bool is_jpeg = (src_img->pixfmt == PIXFORMAT_JPEG);
     // Best format to convert yuv/bayer/jpeg image to.
-    int new_not_mutable_pixfmt = (rgb_channel != -1) ? PIXFORMAT_RGB565 :
-            (color_palette ? PIXFORMAT_GRAYSCALE :
-            dst_img->pixfmt);
+    // int new_not_mutable_pixfmt = (rgb_channel != -1) ? PIXFORMAT_RGB565 :
+    //         (color_palette ? PIXFORMAT_GRAYSCALE :
+    //         dst_img->pixfmt);
+    if(rgb_channel != -1)
+    {
+        if(src_img.pixfmt == PIXFORMAT_RGB888)
+        {
+            new_not_mutable_pixfmt = PIXFORMAT_RGB888;
+        }else{
+            new_not_mutable_pixfmt = PIXFORMAT_RGB565;
+        }
+    }else{
+        if(color_palette)
+        {
+            new_not_mutable_pixfmt = PIXFORMAT_GRAYSCALE;
+        }else{
+            new_not_mutable_pixfmt = dst_img->pixfmt;
+        }
+    }
 
     bool no_scaling_nearest_neighbor = (dst_delta_x == 1)
             && (dst_x_start == 0) && (src_x_start == 0)
