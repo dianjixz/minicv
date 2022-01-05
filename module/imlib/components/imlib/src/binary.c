@@ -17,7 +17,7 @@ void imlib_binary(image_t *out, image_t *img, list_t *thresholds, bool invert, b
     bmp.w = img->w;
     bmp.h = img->h;
     bmp.pixfmt = PIXFORMAT_BINARY;
-    bmp.data = xalloc(image_size(&bmp));
+    bmp.data = fb_alloc0(image_size(&bmp), FB_ALLOC_NO_HINT);
 
     for (list_lnk_t *it = iterator_start_from_head(thresholds); it; it = iterator_next(it)) {
         color_thresholds_list_lnk_data_t lnk_data;
@@ -279,7 +279,7 @@ void imlib_binary(image_t *out, image_t *img, list_t *thresholds, bool invert, b
         }
     }
 
-    xfree(bmp.data);
+    fb_free(bmp.data);
 }
 
 void imlib_invert(image_t *img)
@@ -313,9 +313,7 @@ void imlib_invert(image_t *img)
             for (pixel24_t *start = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(img, 0),
                  *end = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(img, img->h);
                  start < end; start++) {
-                 uint32_t piex_tmp = pixel24232(*start);
-                 piex_tmp = ~piex_tmp;
-                 *start = pixel32224(piex_tmp);
+                 *start = pixel32224((~ pixel24232(*start)));
             }
             break;
         }
@@ -737,10 +735,10 @@ static void imlib_b_xor_line_op(image_t *img, int line, void *other, void *data,
             break;
         }
         case PIXFORMAT_RGB888: {
-            pixel24_t *data = IMAGE_COMPUTE_RGB565_PIXEL_ROW_PTR(img, line);
+            pixel24_t *data = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(img, line);
 
             if(!mask) {
-                for (int i = 0, j = IMAGE_RGB565_LINE_LEN(img); i < j; i++) {
+                for (int i = 0, j = IMAGE_RGB888_LINE_LEN(img); i < j; i++) {
                     data[i] = pixel32224((pixel24232(data[i]) ^ pixel24232(((pixel24_t *) other)[i])));
                 }
             } else {
@@ -863,7 +861,7 @@ static void imlib_erode_dilate(image_t *img, int ksize, int threshold, int e_or_
 
     switch (img->pixfmt) {
         case PIXFORMAT_BINARY: {
-            buf.data = xalloc(IMAGE_BINARY_LINE_LEN_BYTES(img) * brows);
+            buf.data = fb_alloc(IMAGE_BINARY_LINE_LEN_BYTES(img) * brows, FB_ALLOC_NO_HINT);
 
             for (int y = 0, yy = img->h; y < yy; y++) {
                 uint32_t *row_ptr = IMAGE_COMPUTE_BINARY_PIXEL_ROW_PTR(img, y);
@@ -920,11 +918,11 @@ static void imlib_erode_dilate(image_t *img, int ksize, int threshold, int e_or_
                        IMAGE_BINARY_LINE_LEN_BYTES(img));
             }
 
-            xfree(buf.data);
+            fb_free(buf.data);
             break;
         }
         case PIXFORMAT_GRAYSCALE: {
-            buf.data = xalloc(IMAGE_GRAYSCALE_LINE_LEN_BYTES(img) * brows);
+            buf.data = fb_alloc(IMAGE_GRAYSCALE_LINE_LEN_BYTES(img) * brows, FB_ALLOC_NO_HINT);
 
             for (int y = 0, yy = img->h; y < yy; y++) {
                 uint8_t *row_ptr = IMAGE_COMPUTE_GRAYSCALE_PIXEL_ROW_PTR(img, y);
@@ -984,11 +982,11 @@ static void imlib_erode_dilate(image_t *img, int ksize, int threshold, int e_or_
                        IMAGE_GRAYSCALE_LINE_LEN_BYTES(img));
             }
 
-            xfree(buf.data);
+            fb_free(buf.data);
             break;
         }
         case PIXFORMAT_RGB565: {
-            buf.data = xalloc(IMAGE_RGB565_LINE_LEN_BYTES(img) * brows);
+            buf.data = fb_alloc(IMAGE_RGB565_LINE_LEN_BYTES(img) * brows, FB_ALLOC_NO_HINT);
 
             for (int y = 0, yy = img->h; y < yy; y++) {
                 uint16_t *row_ptr = IMAGE_COMPUTE_RGB565_PIXEL_ROW_PTR(img, y);
@@ -1048,11 +1046,11 @@ static void imlib_erode_dilate(image_t *img, int ksize, int threshold, int e_or_
                        IMAGE_RGB565_LINE_LEN_BYTES(img));
             }
 
-            xfree(buf.data);
+            fb_free(buf.data);
             break;
         }
         case PIXFORMAT_RGB888: {
-            buf.data = xalloc(IMAGE_RGB888_LINE_LEN_BYTES(img) * brows);
+            buf.data = fb_alloc(IMAGE_RGB888_LINE_LEN_BYTES(img) * brows, FB_ALLOC_NO_HINT);
 
             for (int y = 0, yy = img->h; y < yy; y++) {
                 pixel24_t *row_ptr = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(img, y);
@@ -1112,7 +1110,7 @@ static void imlib_erode_dilate(image_t *img, int ksize, int threshold, int e_or_
                        IMAGE_RGB888_LINE_LEN_BYTES(img));
             }
 
-            xfree(buf.data);
+            fb_free(buf.data);
             break;
         }
         default: {
@@ -1159,11 +1157,11 @@ void imlib_top_hat(image_t *img, int ksize, int threshold, image_t *mask)
     temp.w = img->w;
     temp.h = img->h;
     temp.pixfmt = img->pixfmt;
-    temp.data = xalloc(image_size(img));
+    temp.data = fb_alloc(image_size(img), FB_ALLOC_NO_HINT);
     memcpy(temp.data, img->data, image_size(img));
     imlib_open(&temp, ksize, threshold, mask);
     imlib_difference(img, NULL, &temp, 0, mask);
-    xfree(temp.data);
+    fb_free(temp.data);
 }
 
 void imlib_black_hat(image_t *img, int ksize, int threshold, image_t *mask)
@@ -1172,10 +1170,10 @@ void imlib_black_hat(image_t *img, int ksize, int threshold, image_t *mask)
     temp.w = img->w;
     temp.h = img->h;
     temp.pixfmt = img->pixfmt;
-    temp.data = xalloc(image_size(img));
+    temp.data = fb_alloc(image_size(img), FB_ALLOC_NO_HINT);
     memcpy(temp.data, img->data, image_size(img));
     imlib_close(&temp, ksize, threshold, mask);
     imlib_difference(img, NULL, &temp, 0, mask);
-    xfree(temp.data);
+    fb_free(temp.data);
 }
 #endif

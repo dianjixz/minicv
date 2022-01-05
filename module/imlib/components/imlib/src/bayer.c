@@ -242,6 +242,19 @@ void imlib_debayer_line(int x_start, int x_end, int y_row, void *dst_row_ptr, pi
 
                     break;
                 }
+                case PIXFORMAT_RGB888: {
+                    pixel24_t *dst_row_ptr_24 = (pixel24_t *) dst_row_ptr;
+                    int rgb888_0 = COLOR_R8_G8_B8_TO_RGB888(r_pixels_0, g_pixels_0, b_pixels_0);
+
+                    if (x == w_limit) { // just put bottom
+                        IMAGE_PUT_RGB888_PIXEL_FAST(dst_row_ptr_24, i, rgb888_0);
+                    } else { // put both
+
+                        *((pixel24_t *) (dst_row_ptr_24 + i)) = pixel32224(rgb888_0);
+                    }
+
+                    break;
+                }
                 default: {
                     break;
                 }
@@ -446,6 +459,18 @@ void imlib_debayer_line(int x_start, int x_end, int y_row, void *dst_row_ptr, pi
 
                     break;
                 }
+                case PIXFORMAT_RGB888: {
+                    pixel24_t *dst_row_ptr_24 = (pixel24_t *) dst_row_ptr;
+                    int rgb888_1 = COLOR_R8_G8_B8_TO_RGB888(r_pixels_1, g_pixels_1, b_pixels_1);
+
+                    if (x == w_limit) { // just put bottom
+                        IMAGE_PUT_RGB888_PIXEL_FAST(dst_row_ptr_24, i, rgb888_1);
+                    } else { // put both
+                        *((pixel24_t *) (dst_row_ptr_24 + i)) = pixel32224(rgb888_1);
+                    }
+
+                    break;
+                }
                 default: {
                     break;
                 }
@@ -478,6 +503,11 @@ void imlib_debayer_image(image_t *dst, image_t *src)
             case PIXFORMAT_RGB565: {
                 row_ptr_e = IMAGE_COMPUTE_RGB565_PIXEL_ROW_PTR(dst, y);
                 row_ptr_o = IMAGE_COMPUTE_RGB565_PIXEL_ROW_PTR(dst, y + 1);
+                break;
+            }
+            case PIXFORMAT_RGB888: {
+                row_ptr_e = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(dst, y);
+                row_ptr_o = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(dst, y + 1);
                 break;
             }
         }
@@ -717,6 +747,18 @@ void imlib_debayer_image(image_t *dst, image_t *src)
 
                     break;
                 }
+                case PIXFORMAT_RGB888: {
+                    pixel24_t *row_ptr_e_24 = (pixel24_t *) row_ptr_e;
+                    int rgb888_0 = COLOR_R8_G8_B8_TO_RGB888(r_pixels_0, g_pixels_0, b_pixels_0);
+
+                    if (x == w_limit) { // just put bottom
+                        IMAGE_PUT_RGB888_PIXEL_FAST(row_ptr_e_24, x, rgb888_0);
+                    } else { // put both
+                        *((pixel24_t *) (row_ptr_e_24 + x)) = pixel32224(rgb888_0);
+                    }
+
+                    break;
+                }
             }
 
             if (y == h_limit) {
@@ -867,6 +909,18 @@ void imlib_debayer_image(image_t *dst, image_t *src)
                         IMAGE_PUT_RGB565_PIXEL_FAST(row_ptr_o_16, x, rgb565_1);
                     } else { // put both
                         *((uint32_t *) (row_ptr_o_16 + x)) = rgb565_1;
+                    }
+
+                    break;
+                }
+                case PIXFORMAT_RGB888: {
+                    pixel24_t *row_ptr_o_24 = (pixel24_t *) row_ptr_o;
+                    int rgb888_1 = COLOR_R8_G8_B8_TO_RGB888(r_pixels_1, g_pixels_1, b_pixels_1);
+
+                    if (x == w_limit) { // just put bottom
+                        IMAGE_PUT_RGB888_PIXEL_FAST(row_ptr_o_24, x, rgb888_1);
+                    } else { // put both
+                        *((pixel24_t *) (row_ptr_o_24 + x)) = pixel32224(rgb888_1);
                     }
 
                     break;
