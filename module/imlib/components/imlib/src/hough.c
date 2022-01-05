@@ -22,9 +22,9 @@ void imlib_find_lines(list_t *out, image_t *ptr, rectangle_t *roi, unsigned int 
         theta_size = 1 + ((180 + hough_divide - 1) / hough_divide) + 1; // left & right padding
         r_size = (r_diag_len_div * 2) + 1; // -r_diag_len to +r_diag_len
         /*****************************************will be change******************************************************/
-        // if ((sizeof(uint32_t) * theta_size * r_size) <= fb_avail()) break;
+        if ((sizeof(uint32_t) * theta_size * r_size) <= fb_avail()) break;
         hough_divide = hough_divide << 1; // powers of 2...
-        // if (hough_divide > 4) fb_alloc_fail(); // support 1, 2, 4
+        if (hough_divide > 4) fb_alloc_fail(); // support 1, 2, 4
         /*************************************************************************************************************/
     }
 

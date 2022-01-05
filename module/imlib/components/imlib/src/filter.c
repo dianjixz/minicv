@@ -139,7 +139,7 @@ void imlib_histeq(image_t *img, image_t *mask)
                     y = (uint8_t)(((r * 9770) + (g * 19182) + (b * 3736)) >> 15); // .299*r + .587*g + .114*b
                     u = (uint8_t)(((b << 14) - (r * 5529) - (g * 10855)) >> 15);  // -0.168736*r + -0.331264*g + 0.5*b
                     v = (uint8_t)(((r << 14) - (g * 13682) - (b * 2664)) >> 15);  // 0.5*r + -0.418688*g + -0.081312*b
-                    IMAGE_PUT_RGB888_PIXEL_FAST(row_ptr, x, imlib_yuv_to_rgb(fast_floorf(s * hist[y]), u,v));
+                    IMAGE_PUT_RGB888_PIXEL_FAST(row_ptr, x, imlib_yuv_to_rgb888(fast_floorf(s * hist[y]), u,v));
                 }
             }
 

@@ -640,6 +640,15 @@ static save_image_format_t imblib_parse_extension(image_t *img, const char *path
                     }
                     return FORMAT_PNM;
         } else if (((p[-1] == 'm') || (p[-1] == 'M'))
+               &&  ((p[-2] == 'p') || (p[-2] == 'P'))
+               &&  ((p[-3] == 'p') || (p[-3] == 'P'))
+               &&  ((p[-4] == '.') || (p[-4] == '.'))) {
+                    if (!IM_IS_RGB888(img)) {
+                        ERR_PRINT("OSError:Image is not PPM!");
+                        // mp_raise_msg(&mp_type_OSError, MP_ERROR_TEXT("Image is not PPM!"));
+                    }
+                    return FORMAT_PNM;
+        } else if (((p[-1] == 'm') || (p[-1] == 'M'))
                &&  ((p[-2] == 'g') || (p[-2] == 'G'))
                &&  ((p[-3] == 'p') || (p[-3] == 'P'))
                &&  ((p[-4] == '.') || (p[-4] == '.'))) {
@@ -1265,10 +1274,10 @@ int imlib_image_mean(image_t *src, int *r_mean, int *g_mean, int *b_mean)
         }
         case PIXFORMAT_RGB888: {
             for (int i=0; i<n; i++) {
-                uint16_t p = ((uint16_t*)src->pixels)[i];
-                r_s += COLOR_RGB888_TO_R8(p);
-                g_s += COLOR_RGB888_TO_G8(p);
-                b_s += COLOR_RGB888_TO_B8(p);
+                pixel24_t p = ((pixel24_t*)src->pixels)[i];
+                r_s += COLOR_RGB888_TO_R8(pixel24232(p));
+                g_s += COLOR_RGB888_TO_G8(pixel24232(p));
+                b_s += COLOR_RGB888_TO_B8(pixel24232(p));
             }
             *r_mean = r_s/n;
             *g_mean = g_s/n;
