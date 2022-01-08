@@ -396,9 +396,10 @@ color_thresholds_list_lnk_data_t;
     COLOR_RGB888_TO_V_(r, g, b); \
 })
 
-extern const int8_t lab_table[196608/2];
+
 
 #ifdef IMLIB_ENABLE_LAB_LUT
+extern const int8_t lab_table[196608/2];
 #define COLOR_RGB565_TO_L(pixel) lab_table[((pixel>>1) * 3) + 0]
 #define COLOR_RGB565_TO_A(pixel) lab_table[((pixel>>1) * 3) + 1]
 #define COLOR_RGB565_TO_B(pixel) lab_table[((pixel>>1) * 3) + 2]
