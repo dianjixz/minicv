@@ -190,4 +190,6 @@ float arm_cos_f32(
   /* Return the output value */
   return (cosVal);
 }
-
+int abs__(int n) {
+    return n<0 ? -n : n;
+}

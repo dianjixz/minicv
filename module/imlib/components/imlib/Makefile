@@ -16,12 +16,10 @@ TARGET = libimlib.so
 
 TOP_PATH = $(shell pwd)
 SRC_PATH = $(TOP_PATH)/src
-SRC_PATH += $(TOP_PATH)/common
-SRC_PATH += $(TOP_PATH)/alloc
+
 INC_PATH = 
 INC_PATH += -I$(TOP_PATH)/include 
-INC_PATH += -I$(TOP_PATH)/common 
-INC_PATH += -I$(TOP_PATH)/alloc 
+
 
 
 MOD_PATH = $(TOP_PATH)/modules
@@ -77,7 +75,8 @@ $(TARGET) : $(OBJS_CPP) $(OBJS_CC) $(OBJS_C)
 	make -C $$i; \
 	done
 
-	@ $(CC) $^ -o $@ $(LIB_PATH) $(LIBS) $(LDFLAGS)
+	$(CXX) $^ -o $@ $(LIB_PATH) $(LIBS) $(LDFLAGS)
+	# $(AR) -r libimlib.a $(OBJS_C) 
 	@ echo Create $(TARGET) ok...
 
 $(OBJS_CPP):%.o : %.cpp
@@ -92,6 +91,7 @@ $(OBJS_C):%.o : %.c
 .PHONY : clean
 clean:
 	@ $(RM) $(TARGET) $(OBJS_CPP) $(OBJS_CC) $(OBJS_C)
+	# @ $(RM) libimlib.a
 	@ for i in $(MODULES_PATH); \
 	do \
 	make clean -C $$i; \

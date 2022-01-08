@@ -37,7 +37,26 @@ void* imlib_compute_row_ptr(const image_t *img, int y) {
         }
     }
 }
-
+inline int imlib_get_pixel(image_t *img, int x, int y)
+{
+    switch (img->pixfmt) {
+        case PIXFORMAT_BINARY: {
+            return IMAGE_GET_BINARY_PIXEL(img, x, y);
+        }
+        case PIXFORMAT_GRAYSCALE: {
+            return IMAGE_GET_GRAYSCALE_PIXEL(img, x, y);
+        }
+        case PIXFORMAT_RGB565: {
+            return IMAGE_GET_RGB565_PIXEL(img, x, y);
+        }
+        case PIXFORMAT_RGB888: {
+            return pixel24232(IMAGE_GET_RGB888_PIXEL(img, x, y));
+        }
+        default: {
+            return -1;
+        }
+    }
+}
 inline int imlib_get_pixel_fast(image_t *img, const void *row_ptr, int x)
 {
     switch (img->pixfmt) {
@@ -669,16 +688,28 @@ void imlib_draw_row(int x_start, int x_end, int y_row, imlib_draw_row_data_t *da
     ({ \
         __typeof__ (src_pixel) _src_pixel = (src_pixel); \
         __typeof__ (dst_pixel) _dst_pixel = (dst_pixel); \
-        uint16_t _src_pixel16 = COLOR_RGB888_TO_RGB565(_src_pixel);\
-        uint16_t _dst_pixel16 = COLOR_RGB888_TO_RGB565(_dst_pixel);\
-        COLOR_RGB565_TO_RGB888(BLEND_RGB566(_src_pixel16, _dst_pixel16, smuad_alpha));\
+        __typeof__ (smuad_alpha) _smuad_alpha = (smuad_alpha); \
+        int rgb_out = 0;\
+        uint8_t *_rgb_s = (uint8_t)&_src_pixel;\
+        uint8_t *_rgb_d = (uint8_t)&_dst_pixel;\
+        uint8_t *_rgb_o = (uint8_t)&rgb_out;\
+        _rgb_o[0] = ((_rgb_s[0] * smuad_alpha + _rgb_d[0] * smuad_alpha) / 256);\
+        _rgb_o[1] = ((_rgb_s[1] * smuad_alpha + _rgb_d[1] * smuad_alpha) / 256);\
+        _rgb_o[2] = ((_rgb_s[2] * smuad_alpha + _rgb_d[2] * smuad_alpha) / 256);\
+        rgb_out;\
     })
 
     #define BLEND_RGB888_0(src_pixel, smuad_alpha) \
     ({ \
         __typeof__ (src_pixel) _src_pixel = (src_pixel); \
-        uint16_t _src_pixel16 = COLOR_RGB888_TO_RGB565(_src_pixel);\
-        COLOR_RGB565_TO_RGB888(BLEND_RGB566_0(_src_pixel16, smuad_alpha));\
+        __typeof__ (smuad_alpha) _smuad_alpha = (smuad_alpha); \
+        int rgb_out = 0;\
+        uint8_t *_rgb_s = (uint8_t)&_src_pixel;\
+        uint8_t *_rgb_o = (uint8_t)&rgb_out;\
+        _rgb_o[0] = ((_rgb_s[0] * smuad_alpha) / 256);\
+        _rgb_o[1] = ((_rgb_s[1] * smuad_alpha) / 256);\
+        _rgb_o[2] = ((_rgb_s[2] * smuad_alpha) / 256);\
+        rgb_out;\
     })
 
     #define COLOR_GRAYSCALE_BINARY_MIN_LSL16 (COLOR_GRAYSCALE_BINARY_MIN << 16)
@@ -4540,7 +4571,7 @@ void imlib_draw_image(image_t *dst_img, image_t *src_img, int dst_x_start, int d
         new_src_img.w = src_img_w; // same width as source image
         new_src_img.h = src_img_h; // same height as source image
         if(color_palette){
-            if(src_img.pixfmt == PIXFORMAT_RGB888){
+            if(src_img->pixfmt == PIXFORMAT_RGB888){
                 new_src_img.pixfmt = PIXFORMAT_RGB888;
             }else{
                 new_src_img.pixfmt = PIXFORMAT_RGB565;
@@ -4557,13 +4588,14 @@ void imlib_draw_image(image_t *dst_img, image_t *src_img, int dst_x_start, int d
 
     // Special destination?
     bool is_jpeg = (src_img->pixfmt == PIXFORMAT_JPEG);
+    int new_not_mutable_pixfmt = 0;
     // Best format to convert yuv/bayer/jpeg image to.
     // int new_not_mutable_pixfmt = (rgb_channel != -1) ? PIXFORMAT_RGB565 :
     //         (color_palette ? PIXFORMAT_GRAYSCALE :
     //         dst_img->pixfmt);
     if(rgb_channel != -1)
     {
-        if(src_img.pixfmt == PIXFORMAT_RGB888)
+        if(src_img->pixfmt == PIXFORMAT_RGB888)
         {
             new_not_mutable_pixfmt = PIXFORMAT_RGB888;
         }else{
@@ -4699,13 +4731,13 @@ void imlib_draw_image(image_t *dst_img, image_t *src_img, int dst_x_start, int d
     if (hint & IMAGE_HINT_AREA) {
         // The area scaling algorithm runs in fast mode if the image is being scaled down by
         // 1, 2, 3, 4, 5, etc. or slow mode if it's a fractional scale.
-        //
+        
         // In fast mode area scaling is just the sum of the specified area. No weighting of pixels
         // is required to get the job done.
-        //
+        
         // In slow mode we need to weight pixels that lie on the edges of the area scale rectangle.
         // This prevents making the inner loop of the algorithm tight.
-        //
+        // 
         if ((!(src_x_frac & 0xFFFF)) && (!(src_y_frac & 0xFFFF))) { // fast
             switch (src_img->pixfmt) {
                 case PIXFORMAT_BINARY: {

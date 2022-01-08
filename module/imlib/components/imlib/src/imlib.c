@@ -244,7 +244,7 @@ void rectangle_united(rectangle_t *dst, rectangle_t *src)
 // Image Stuff //
 /////////////////
 
-void image_init(image_t *ptr, int w, int h, pixformat_t pixfmt, uint32_t size, void *pixels)
+void imlib_image_init(image_t *ptr, int w, int h, pixformat_t pixfmt, uint32_t size, void *pixels)
 {
     ptr->w = w;
     ptr->h = h;
@@ -254,7 +254,7 @@ void image_init(image_t *ptr, int w, int h, pixformat_t pixfmt, uint32_t size, v
     ptr->is_data_alloc = false;
 }
 
-image_t* image_create(int w, int h, pixformat_t pixfmt, uint32_t size, void *pixels, bool is_data_alloc)
+image_t* imlib_image_create(int w, int h, pixformat_t pixfmt, uint32_t size, void *pixels, bool is_data_alloc)
 {
     image_t *ptr = xalloc(sizeof(image_t));
     ptr->w = w;
@@ -262,19 +262,17 @@ image_t* image_create(int w, int h, pixformat_t pixfmt, uint32_t size, void *pix
     ptr->pixfmt = pixfmt;
     ptr->size   = size;
     ptr->pixels = pixels;
-    if(is_data_alloc)
+    ptr->is_data_alloc = is_data_alloc;
+    if(ptr->is_data_alloc)
     {
-        ptr->pixels = xalloc(size);
+        ptr->size = image_size(ptr);
+        ptr->pixels = xalloc(ptr->size);
         ptr->is_data_alloc = is_data_alloc;
-    }
-    else
-    {
-        ptr->is_data_alloc = false;
     }
     return ptr;
 }
 
-void image_destroy(image_t **obj)
+void imlib_image_destroy(image_t **obj)
 {
     if (*obj)
     {

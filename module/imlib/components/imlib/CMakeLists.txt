@@ -3,8 +3,6 @@ if(CONFIG_IMLIB_ENABLED)
 
     ################# Add include #################
     list(APPEND ADD_INCLUDE "include")
-    list(APPEND ADD_INCLUDE "common")
-    list(APPEND ADD_INCLUDE "alloc")
     # list(APPEND ADD_PRIVATE_INCLUDE "common")
     # list(APPEND ADD_PRIVATE_INCLUDE "alloc")
     ###############################################
@@ -14,8 +12,6 @@ if(CONFIG_IMLIB_ENABLED)
     #     )
     # aux_source_directory(src ADD_SRCS)  # collect all source file in src dir, will set var ADD_SRCS
     append_srcs_dir(ADD_SRCS "src")     # append source file in src dir to var ADD_SRCS
-    append_srcs_dir(ADD_SRCS "common")     # append source file in src dir to var ADD_SRCS
-    append_srcs_dir(ADD_SRCS "alloc")     # append source file in src dir to var ADD_SRCS
     # list(REMOVE_ITEM COMPONENT_SRCS "src/test.c")
     # set(ADD_ASM_SRCS "src/asm.S")
     # list(APPEND ADD_SRCS ${ADD_ASM_SRCS})

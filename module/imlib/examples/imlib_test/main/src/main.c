@@ -8,7 +8,7 @@ int main()
 {
     image_t img_ts;
     imlib_init_all();
-    image_init(&img_ts, 240, 240, PIXFORMAT_RGB888, 0, NULL);
+    imlib_image_init(&img_ts, 240, 240, PIXFORMAT_RGB888, 0, NULL);
     bmp_read(&img_ts, "./lin.bmp");
 
     imlib_draw_line(&img_ts, 10, 10, 200, 200, COLOR_R8_G8_B8_TO_RGB888(0x00, 0x00, 0xff), 3);

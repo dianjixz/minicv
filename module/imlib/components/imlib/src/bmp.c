@@ -243,7 +243,12 @@ void bmp_read(image_t *img, const char *path)
     file_read_open(&fp, path);
     // file_buffer_on(&fp);
     bmp_read_geometry(&fp, img, path, &rs);
-    if (!img->pixels) img->pixels = xalloc(img->w * img->h * img->bpp);
+    if(img->is_data_alloc){
+        img->pixels = xrealloc(img->pixels, img->w * img->h * img->bpp);
+    }else{
+        img->pixels = xalloc(img->w * img->h * img->bpp);
+        img->is_data_alloc = true;
+    }
     bmp_read_pixels(&fp, img, img->h, &rs);
     // file_buffer_off(&fp);
     file_close(&fp);

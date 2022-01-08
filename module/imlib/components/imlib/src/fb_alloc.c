@@ -18,6 +18,120 @@
 #define true 1
 #define false 0
 #define bool uint8_t
+
+#ifdef USE_FB_ALLOC
+
+uint32_t fb_size[100];
+size_t fb_point[100];
+uint32_t fb_size_idx;
+uint32_t fb_alloc_num;
+
+char *fb_alloc_stack_pointer()
+{
+    return NULL;
+}
+void fb_alloc_fail()
+{
+    imlib_printf(0, "MemoryError :Out of fast Frame Buffer Stack Memory! Please reduce the resolution of the image you are running this algorithm on to bypass this issue!");
+}
+void fb_alloc_init0()
+{
+    fb_size[0] = OMV_FB_ALLOC_SIZE;
+    fb_size_idx = 1;
+    fb_alloc_num = 0;
+}
+void fb_alloc_close0()
+{
+
+}
+uint32_t fb_avail()
+{
+    return fb_size[0];
+}
+void fb_alloc_mark()
+{
+    fb_alloc_num = 0;
+}
+void fb_alloc_free_till_mark()
+{
+
+}
+void fb_alloc_mark_permanent() // tag memory that should not be popped on exception
+{
+
+}
+void fb_alloc_free_till_mark_past_mark_permanent() // frees past marked permanent allocations
+{
+
+}
+void *fb_alloc(uint32_t size, int hints)
+{
+    uint8_t *tmp = xalloc(size);
+    fb_size[0] -= size;
+    fb_size[fb_size_idx] = size;
+    fb_point[fb_size_idx] = tmp;
+    fb_size_idx ++;
+    fb_alloc_num ++;
+    return tmp;
+}
+void *fb_alloc0(uint32_t size, int hints)
+{
+    uint8_t *tmp = xalloc0(size);
+    fb_size[0] -= size;
+    fb_size[fb_size_idx] = size;
+    fb_point[fb_size_idx] = tmp;
+    fb_size_idx ++;
+    fb_alloc_num ++;
+    return tmp;
+}
+void *fb_alloc_all(uint32_t *size, int hints) // returns pointer and sets size
+{
+    uint8_t *tmp = xalloc(fb_size[0]);
+    fb_size[fb_size_idx] = size;
+    fb_point[fb_size_idx] = tmp;
+    fb_size_idx ++;
+    *size = fb_size[0];
+    fb_size[0] = 0;
+    fb_alloc_num ++;
+    return tmp;
+}
+void *fb_alloc0_all(uint32_t *size, int hints) // returns pointer and sets size
+{
+    uint8_t *tmp = xalloc0(fb_size[0]);
+    fb_size[fb_size_idx] = size;
+    fb_point[fb_size_idx] = tmp;
+    fb_size_idx ++;
+    *size = fb_size[0];
+    fb_size[0] = 0;
+    fb_alloc_num ++;
+    return tmp;
+}
+void fb_free(void *msm)
+{
+    fb_size_idx --;
+    if(NULL == msm)
+    {
+        uint8_t *tmp = fb_point[fb_size_idx];
+        xfree(tmp);
+    }
+    else
+    {
+        xfree(msm);
+    }
+    fb_size[0] += fb_size[fb_size_idx];
+}
+void fb_free_all()
+{
+    for (;fb_alloc_num != 0; fb_alloc_num--)
+    {
+        fb_free(NULL);
+    }
+}
+
+
+
+
+#else
 #ifndef __DCACHE_PRESENT
 #define FB_ALLOC_ALIGNMENT 32 // Use 32-byte alignment on MCUs with no cache for DMA buffer alignment.
 #else
@@ -300,3 +414,5 @@ void fb_free_all()
         pointer += size; // Get size and pop.
     }
 }
+
+#endif

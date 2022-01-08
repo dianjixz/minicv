@@ -608,9 +608,9 @@ typedef struct image {
     };
 } image_t;
 
-image_t* image_create(int w, int h, pixformat_t pixfmt, uint32_t size, void *pixels, bool is_data_alloc);
-void image_destroy(image_t **obj);
-void image_init(image_t *ptr, int w, int h, pixformat_t pixfmt, uint32_t size, void *pixels);
+image_t* imlib_image_create(int w, int h, pixformat_t pixfmt, uint32_t size, void *pixels, bool is_data_alloc);
+void imlib_image_destroy(image_t **obj);
+void imlib_image_init(image_t *ptr, int w, int h, pixformat_t pixfmt, uint32_t size, void *pixels);
 void image_copy(image_t *dst, image_t *src);
 size_t image_size(image_t *ptr);
 bool image_get_mask_pixel(image_t *ptr, int x, int y);
