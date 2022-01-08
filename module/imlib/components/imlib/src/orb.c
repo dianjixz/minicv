@@ -708,14 +708,14 @@ int orb_filter_keypoints(array_t *kpts, rectangle_t *r, point_t *c)
 #if defined(IMLIB_ENABLE_IMAGE_FILE_IO)
 int orb_save_descriptor(FIL *fp, array_t *kpts)
 {
-    uint8_t bytes;
     uint32_t res;
 
     int kpts_size = array_length(kpts);
 
     // Write the number of keypoints
-    res = fwrite(&kpts_size, sizeof(kpts_size), 1, *fp);
-    if (res != 1) {
+    res = write_data(fp, &kpts_size, sizeof(kpts_size));
+    // res = fwrite(&kpts_size, sizeof(kpts_size), 1, *fp);
+    if (res != sizeof(kpts_size)) {
         goto error;
     }
 
@@ -724,38 +724,44 @@ int orb_save_descriptor(FIL *fp, array_t *kpts)
         kp_t *kp = array_at(kpts, i);
 
         // Write X
-        res = fwrite(&kp->x, sizeof(kp->x), 1, *fp);
-        if (res != 1) {
+        res = write_data(fp, &kp->x, sizeof(kp->x));
+        // res = fwrite(&kp->x, sizeof(kp->x), 1, *fp);
+        if (res != sizeof(kp->x)) {
             goto error;
         }
 
         // Write Y
-        res = f_write(fp, &kp->y, sizeof(kp->y), &bytes);
-        if (res != FR_OK || bytes != sizeof(kp->y)) {
+        res = write_data(fp, &kp->y, sizeof(kp->y));
+        // res = f_write(fp, &kp->y, sizeof(kp->y), &bytes);
+        if (res != sizeof(kp->y)) {
             goto error;
         }
 
         // Write Score
-        res = f_write(fp, &kp->score, sizeof(kp->score), &bytes);
-        if (res != FR_OK || bytes != sizeof(kp->score)) {
+        res = write_data(fp, &kp->score, sizeof(kp->score));
+        // res = f_write(fp, &kp->score, sizeof(kp->score), &bytes);
+        if (res != sizeof(kp->score)) {
             goto error;
         }
 
         // Write Octave
-        res = f_write(fp, &kp->octave, sizeof(kp->octave), &bytes);
-        if (res != FR_OK || bytes != sizeof(kp->octave)) {
+        res = write_data(fp, &kp->octave, sizeof(kp->octave));
+        // res = f_write(fp, &kp->octave, sizeof(kp->octave), &bytes);
+        if (res != sizeof(kp->octave)) {
             goto error;
         }
 
         // Write Angle
-        res = f_write(fp, &kp->angle, sizeof(kp->angle), &bytes);
-        if (res != FR_OK || bytes != sizeof(kp->angle)) {
+        res = write_data(fp, &kp->angle, sizeof(kp->angle));
+        // res = f_write(fp, &kp->angle, sizeof(kp->angle), &bytes);
+        if (res != sizeof(kp->angle)) {
             goto error;
         }
 
         // Write descriptor
-        res = f_write(fp, kp->desc, KDESC_SIZE, &bytes);
-        if (res != FR_OK || bytes != KDESC_SIZE) {
+        res = write_data(fp, kp->desc, KDESC_SIZE);
+        // res = f_write(fp, kp->desc, KDESC_SIZE, &bytes);
+        if (res != KDESC_SIZE) {
             goto error;
         }
     }
@@ -766,14 +772,14 @@ error:
 
 int orb_load_descriptor(FIL *fp, array_t *kpts)
 {
-    UINT bytes;
-    FRESULT res=FR_OK;
+    uint32_t res;
 
     int kpts_size=0;
 
     // Read number of keypoints
-    res = f_read(fp, &kpts_size, sizeof(kpts_size), &bytes);
-    if (res != FR_OK || bytes != sizeof(kpts_size)) {
+    res = read_data(fp, &kpts_size, sizeof(kpts_size));
+    // res = f_read(fp, &kpts_size, sizeof(kpts_size), &bytes);
+    if (res != sizeof(kpts_size)) {
         goto error;
     }
 
@@ -783,38 +789,39 @@ int orb_load_descriptor(FIL *fp, array_t *kpts)
         kp->matched = 0;
 
         // Read X
-        res = f_read(fp, &kp->x, sizeof(kp->x), &bytes);
-        if (res != FR_OK || bytes != sizeof(kp->x)) {
+        res = read_data(fp, &kp->x, sizeof(kp->x));
+        // res = f_read(fp, &kp->x, sizeof(kp->x), &bytes);
+        if (res != sizeof(kp->x)) {
             goto error;
         }
 
         // Read Y
-        res = f_read(fp, &kp->y, sizeof(kp->y), &bytes);
-        if (res != FR_OK || bytes != sizeof(kp->y)) {
+        res = read_data(fp, &kp->y, sizeof(kp->y));
+        if (res != sizeof(kp->y)) {
             goto error;
         }
 
         // Read Score
-        res = f_read(fp, &kp->score, sizeof(kp->score), &bytes);
-        if (res != FR_OK || bytes != sizeof(kp->score)) {
+        res = read_data(fp, &kp->score, sizeof(kp->score));
+        if (res != sizeof(kp->score)) {
             goto error;
         }
 
         // Read Octave
-        res = f_read(fp, &kp->octave, sizeof(kp->octave), &bytes);
-        if (res != FR_OK || bytes != sizeof(kp->octave)) {
+        res = read_data(fp, &kp->octave, sizeof(kp->octave));
+        if (res != sizeof(kp->octave)) {
             goto error;
         }
 
         // Read Angle
-        res = f_read(fp, &kp->angle, sizeof(kp->angle), &bytes);
-        if (res != FR_OK || bytes != sizeof(kp->angle)) {
+        res = read_data(fp, &kp->angle, sizeof(kp->angle));
+        if (res != sizeof(kp->angle)) {
             goto error;
         }
 
         // Read descriptor
-        res = f_read(fp, kp->desc,  KDESC_SIZE, &bytes);
-        if (res != FR_OK || bytes != KDESC_SIZE) {
+        res = read_data(fp, kp->desc,  KDESC_SIZE);
+        if (res != KDESC_SIZE) {
             goto error;
         }
 

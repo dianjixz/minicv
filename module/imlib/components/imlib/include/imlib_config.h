@@ -126,7 +126,7 @@
 #endif
 
 // Enable FAST (20+ KBs).
-//#define IMLIB_ENABLE_FAST
+#define IMLIB_ENABLE_FAST
 
 // Enable find_template()
 #define IMLIB_FIND_TEMPLATE
@@ -135,7 +135,7 @@
 // #define IMLIB_ENABLE_FIND_LBP
 
 // Enable find_keypoints()
-// #define IMLIB_ENABLE_FIND_KEYPOINTS
+#define IMLIB_ENABLE_FIND_KEYPOINTS
 
 // Enable load, save and match descriptor
 #define IMLIB_ENABLE_DESCRIPTOR

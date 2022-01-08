@@ -142,6 +142,9 @@ static char* _fballoc_start = NULL;
 static char* _fballoc = NULL;
 static char* pointer = NULL;
 
+static int alloc_num = 0;
+
+
 #if defined(FB_ALLOC_STATS)
 static uint32_t alloc_bytes;
 static uint32_t alloc_bytes_peak;
@@ -210,6 +213,7 @@ void fb_alloc_mark()
     alloc_bytes = 0;
     alloc_bytes_peak = 0;
     #endif
+    printf("开始一个栈！\n");
 }
 
 static void int_fb_alloc_free_till_mark(bool free_permanent)
@@ -237,6 +241,7 @@ static void int_fb_alloc_free_till_mark(bool free_permanent)
     #if defined(FB_ALLOC_STATS)
     printf("fb_alloc peak memory: %lu\n", alloc_bytes_peak);
     #endif
+    printf("释放一个栈！\n");
 }
 
 void fb_alloc_free_till_mark()
@@ -304,7 +309,7 @@ void *fb_alloc(uint32_t size, int hints)
             result += FB_ALLOC_ALIGNMENT - offset;
         }
     }
-
+    printf("申请内存!%d\n", ++ alloc_num);
     return result;
 }
 
@@ -367,7 +372,7 @@ void *fb_alloc_all(uint32_t *size, int hints)
         }
         *size = (*size / FB_ALLOC_ALIGNMENT) * FB_ALLOC_ALIGNMENT;
     }
-
+    printf("申请全部的内存!%d\n", ++ alloc_num);
     return result;
 }
 
@@ -395,6 +400,7 @@ void fb_free(void *msm)
         #endif
         pointer += size; // Get size and pop.
     }
+    printf("释放内存!%d\n", -- alloc_num);
 }
 
 void fb_free_all()
@@ -413,6 +419,7 @@ void fb_free_all()
         #endif
         pointer += size; // Get size and pop.
     }
+    printf("一起释放内存!\n");
 }
 
 #endif

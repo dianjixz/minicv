@@ -125,7 +125,7 @@ void ppm_read(image_t *img, const char *path)
     ppm_read_settings_t rs;
 
     file_read_open(&fp, path);
-    file_buffer_on(&fp);
+    // file_buffer_on(&fp);
     ppm_read_geometry(&fp, img, path, &rs);
 
     if (!img->pixels) {
@@ -133,7 +133,7 @@ void ppm_read(image_t *img, const char *path)
     }
     ppm_read_pixels(&fp, img, img->h, &rs);
 
-    file_buffer_off(&fp);
+    // file_buffer_off(&fp);
     file_close(&fp);
 }
 
@@ -147,7 +147,7 @@ void ppm_write_subimg(image_t *img, const char *path, rectangle_t *r)
 
     FIL fp;
     file_write_open(&fp, path);
-    file_buffer_on(&fp);
+    // file_buffer_on(&fp);
     if (IM_IS_GS(img)) {
         char buffer[20]; // exactly big enough for 5-digit w/h
         int len = snprintf(buffer, 20, "P5\n%d %d\n255\n", rect.w, rect.h);
@@ -176,7 +176,7 @@ void ppm_write_subimg(image_t *img, const char *path, rectangle_t *r)
             }
         }
     }
-    file_buffer_off(&fp);
+    // file_buffer_off(&fp);
 
     file_close(&fp);
 }

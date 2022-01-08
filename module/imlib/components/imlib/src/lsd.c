@@ -21,16 +21,11 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 #define PI 3.1415926
-// #define error(msg) fb_alloc_fail()
-// #define free(ptr) ({ umm_free(ptr); })
-// #define malloc(size) ({ void *_r = umm_malloc(size); if(!_r) fb_alloc_fail(); _r; })
-// #define realloc(ptr, size) ({ void *_r = umm_realloc((ptr), (size)); if(!_r) fb_alloc_fail(); _r; })
-// #define calloc(num, item_size) ({ void *_r = umm_calloc((num), (item_size)); if(!_r) fb_alloc_fail(); _r; })
-#define error(msg) 
-#define free(ptr) xfree(ptr)
-#define malloc(size) xalloc(size)
-#define realloc(ptr, size) xrealloc(ptr, size)
-#define calloc(num, item_size) xcalloc(num, item_size)
+#define error(msg) fb_alloc_fail()
+#define free(ptr) ({ umm_free(ptr); })
+#define malloc(size) ({ void *_r = umm_malloc(size); if(!_r) fb_alloc_fail(); _r; })
+#define realloc(ptr, size) ({ void *_r = umm_realloc((ptr), (size)); if(!_r) fb_alloc_fail(); _r; })
+#define calloc(num, item_size) ({ void *_r = umm_calloc((num), (item_size)); if(!_r) fb_alloc_fail(); _r; })
 #define sqrt(x) fast_sqrtf(x)
 #define floor(x) fast_floorf(x)
 #define ceil(x) fast_ceilf(x)
@@ -2746,7 +2741,7 @@ float * lsd(int * n_out, unsigned char * img, int X, int Y)
 
 void imlib_lsd_find_line_segments(list_t *out, image_t *ptr, rectangle_t *roi, unsigned int merge_distance, unsigned int max_theta_diff)
 {
-    uint8_t *grayscale_image = malloc(roi->w * roi->h);
+    uint8_t *grayscale_image = fb_alloc(roi->w * roi->h, FB_ALLOC_NO_HINT);
 
     image_t img;
     img.w = roi->w;
@@ -2755,7 +2750,7 @@ void imlib_lsd_find_line_segments(list_t *out, image_t *ptr, rectangle_t *roi, u
     img.data = grayscale_image;
     imlib_draw_image(&img, ptr, 0, 0, 1.f, 1.f, roi, -1, 256, NULL, NULL, 0, NULL, NULL);
 
-    // umm_init_x(fb_avail());
+    umm_init_x(fb_avail());
 
     int n_ls;
     float *ls = LineSegmentDetection(&n_ls, grayscale_image, roi->w, roi->h, 0.8, 0.6, 2.0, 22.5, 0.0, 0.7, 1024, NULL, NULL, NULL);
@@ -2779,7 +2774,7 @@ void imlib_lsd_find_line_segments(list_t *out, image_t *ptr, rectangle_t *roi, u
             int dy = lnk_line.line.y2 - lnk_line.line.y1, mdy = lnk_line.line.y1 + (dy/2);
             float rotation = (dx ? fast_atan2f(dy, dx) : 1.570796f) + 1.570796f; // PI/2
 
-            lnk_line.theta = (int)fast_roundf(rotation * 57.295780) % 180; // * (180 / PI)
+            lnk_line.theta = fast_roundf(rotation * 57.295780) % 180; // * (180 / PI)
             if (lnk_line.theta < 0) lnk_line.theta += 180;
             lnk_line.rho = fast_roundf((mdx * cos_table[lnk_line.theta]) + (mdy * sin_table[lnk_line.theta]));
 
@@ -2794,8 +2789,8 @@ void imlib_lsd_find_line_segments(list_t *out, image_t *ptr, rectangle_t *roi, u
         merge_alot(out, merge_distance, max_theta_diff);
     }
 
-    // fb_free(); // umm_init_x();
-    free(grayscale_image); // grayscale_image;
+    fb_free(NULL); // umm_init_x();
+    fb_free(grayscale_image); // grayscale_image;
 }
 
 #pragma GCC diagnostic pop
