@@ -5,35 +5,14 @@
 // assets/image/565.bmp
 // assets/image/888.bmp
 
-#define _888_e
+// #define _888_e
 
-int main()
+
+
+
+
+void find_blobs(image_t *img_ts)
 {
-    image_t *img_ts = imlib_image_create(240, 240, PIXFORMAT_BINARY, 0, NULL, false);
-    imlib_init_all();
-#ifdef _888_e
-                                    bmp_read(img_ts, "../../assets/image/888.bmp");
-    imlib_draw_line(img_ts, 10, 10, 10, 100,        COLOR_R8_G8_B8_TO_RGB888(0xff, 0x00, 0x00), 4);
-    imlib_draw_line(img_ts, 20, 10, 20, 100,        COLOR_R8_G8_B8_TO_RGB888(0x00, 0xff, 0x00), 4);
-    imlib_draw_line(img_ts, 30, 10, 30, 100,        COLOR_R8_G8_B8_TO_RGB888(0x00, 0x00, 0xff), 4);
-    imlib_draw_rectangle(img_ts, 10, 120, 14, 100,  COLOR_R8_G8_B8_TO_RGB888(0xff, 0x00, 0x00), 2, 0);
-    imlib_draw_rectangle(img_ts, 26, 120, 14, 100,  COLOR_R8_G8_B8_TO_RGB888(0x00, 0x00, 0xff), 1, 1);
-    imlib_draw_circle(img_ts, 70, 30, 20,           COLOR_R8_G8_B8_TO_RGB888(0x00, 0x00, 0xff), 2, false);
-    imlib_draw_circle(img_ts, 70, 100, 20,          COLOR_R8_G8_B8_TO_RGB888(0x00, 0x00, 0xff), 2, true);
-    imlib_draw_string(img_ts, 70, 150, "nihao",     COLOR_R8_G8_B8_TO_RGB888(0x00, 0x00, 0xff), 3.0, 0, 0, 1, 0, 0, 0, 0, 0, 0);
-#else
-                                    bmp_read(img_ts, "../../assets/image/565.bmp");
-    imlib_draw_line(img_ts, 10, 10, 10, 100,        COLOR_R8_G8_B8_TO_RGB565(0xff, 0x00, 0x00), 4);
-    imlib_draw_line(img_ts, 20, 10, 20, 100,        COLOR_R8_G8_B8_TO_RGB565(0x00, 0xff, 0x00), 4);
-    imlib_draw_line(img_ts, 30, 10, 30, 100,        COLOR_R8_G8_B8_TO_RGB565(0x00, 0x00, 0xff), 4);
-    imlib_draw_rectangle(img_ts, 10, 120, 14, 100,  COLOR_R8_G8_B8_TO_RGB565(0xff, 0x00, 0x00), 2, 0);
-    imlib_draw_rectangle(img_ts, 26, 120, 14, 100,  COLOR_R8_G8_B8_TO_RGB565(0x00, 0x00, 0xff), 1, 1);
-    imlib_draw_circle(img_ts, 70, 30, 20,           COLOR_R8_G8_B8_TO_RGB565(0x00, 0x00, 0xff), 2, false);
-    imlib_draw_circle(img_ts, 70, 100, 20,          COLOR_R8_G8_B8_TO_RGB565(0x00, 0x00, 0xff), 2, true);
-    imlib_draw_string(img_ts, 70, 150, "nihao",     COLOR_R8_G8_B8_TO_RGB565(0x00, 0x00, 0xff), 3.0, 0, 0, 1, 0, 0, 0, 0, 0, 0);
-#endif
-// (44, 80, 10, 110, -49, 115)
-
     image_t *arg_img = img_ts;
 
     list_t thresholds;
@@ -134,6 +113,59 @@ int main()
     //     if (lnk_data.x_hist_bins) xfree(lnk_data.x_hist_bins);
     //     if (lnk_data.y_hist_bins) xfree(lnk_data.y_hist_bins);
     // }
+}
+void find_lines(image_t *img_ts)
+{
+    image_t *arg_img = img_ts;
+
+    rectangle_t roi;
+    roi.x = 0;
+    roi.y = 0;
+    roi.w = 240;
+    roi.h = 240;
+
+
+    unsigned int x_stride = 2;
+    unsigned int y_stride = 1;
+    uint32_t threshold = 1000;
+    unsigned int theta_margin = 25;
+    unsigned int rho_margin = 25;
+
+    list_t out_;
+    fb_alloc_mark();
+    imlib_find_lines(&out_, arg_img, &roi, x_stride, y_stride, threshold, theta_margin, rho_margin);
+    fb_alloc_free_till_mark();
+
+
+    for (size_t i = 0; list_size(&out_); i++) {
+        find_lines_list_lnk_data_t lnk_data;
+        list_pop_front(&out_, &lnk_data);
+        printf("fine line ones!\n");
+
+
+
+#ifdef _888_e
+        imlib_draw_line(img_ts, lnk_data.line.x1, lnk_data.line.y1, lnk_data.line.x2, lnk_data.line.y2,COLOR_R8_G8_B8_TO_RGB888(0x00, 0xff, 0x00), 1);
+#else
+        imlib_draw_line(img_ts, lnk_data.line.x1, lnk_data.line.y1, lnk_data.line.x2, lnk_data.line.y2,COLOR_R8_G8_B8_TO_RGB565(0x00, 0xff, 0x00), 1);
+
+#endif
+        // py_line_obj_t *o = m_new_obj(py_line_obj_t);
+        // o->base.type = &py_line_type;
+        // o->x1 = mp_obj_new_int(lnk_data.line.x1);
+        // o->y1 = mp_obj_new_int(lnk_data.line.y1);
+        // o->x2 = mp_obj_new_int(lnk_data.line.x2);
+        // o->y2 = mp_obj_new_int(lnk_data.line.y2);
+        // int x_diff = lnk_data.line.x2 - lnk_data.line.x1;
+        // int y_diff = lnk_data.line.y2 - lnk_data.line.y1;
+        // o->length = mp_obj_new_int(fast_roundf(fast_sqrtf((x_diff * x_diff) + (y_diff * y_diff))));
+        // o->magnitude = mp_obj_new_int(lnk_data.magnitude);
+        // o->theta = mp_obj_new_int(lnk_data.theta);
+        // o->rho = mp_obj_new_int(lnk_data.rho);
+
+        // objects_list->items[i] = o;
+    }
+}
 
 
 
@@ -141,6 +173,89 @@ int main()
 
 
 
+
+void find_cricle(image_t *img_ts)
+{
+    image_t *arg_img = img_ts;
+
+    rectangle_t roi;
+    roi.x = 0;
+    roi.y = 0;
+    roi.w = 240;
+    roi.h = 240;
+
+    unsigned int x_stride = 2;
+
+    unsigned int y_stride = 1;
+
+    uint32_t threshold = 3000;
+    unsigned int x_margin = 10;
+    unsigned int y_margin = 10;
+    unsigned int r_margin = 10;
+    unsigned int r_min = 15;
+    unsigned int r_max = 25;
+    unsigned int r_step =2;
+
+    list_t out;
+    fb_alloc_mark();
+    imlib_find_circles(&out, arg_img, &roi, x_stride, y_stride, threshold, x_margin, y_margin, r_margin,
+                       r_min, r_max, r_step);
+    fb_alloc_free_till_mark();
+
+
+    for (size_t i = 0; list_size(&out); i++) {
+        find_circles_list_lnk_data_t lnk_data;
+        list_pop_front(&out, &lnk_data);
+        printf("find_cricles!\n");
+#ifdef _888_e
+        imlib_draw_circle(img_ts, 70, 30, 20,           COLOR_R8_G8_B8_TO_RGB888(0x00, 0xff, 0x00), 1, false);
+#else
+        imlib_draw_circle(img_ts, lnk_data.p.x, lnk_data.p.y, lnk_data.r,           COLOR_R8_G8_B8_TO_RGB565(0x00, 0xff, 0x00), 1, false);
+#endif
+
+    }
+
+}
+
+
+
+
+
+
+
+
+
+int main()
+{
+    image_t *img_ts = imlib_image_create(240, 240, PIXFORMAT_BINARY, 0, NULL, false);
+    imlib_init_all();
+#ifdef _888_e
+                                    bmp_read(img_ts, "../../assets/image/888.bmp");
+    imlib_draw_line(img_ts, 10, 10, 10, 100,        COLOR_R8_G8_B8_TO_RGB888(0xff, 0x00, 0x00), 4);
+    imlib_draw_line(img_ts, 20, 10, 20, 100,        COLOR_R8_G8_B8_TO_RGB888(0x00, 0xff, 0x00), 4);
+    imlib_draw_line(img_ts, 30, 10, 30, 100,        COLOR_R8_G8_B8_TO_RGB888(0x00, 0x00, 0xff), 4);
+    imlib_draw_rectangle(img_ts, 10, 120, 14, 100,  COLOR_R8_G8_B8_TO_RGB888(0xff, 0x00, 0x00), 2, 0);
+    imlib_draw_rectangle(img_ts, 26, 120, 14, 100,  COLOR_R8_G8_B8_TO_RGB888(0x00, 0x00, 0xff), 1, 1);
+    imlib_draw_circle(img_ts, 70, 30, 20,           COLOR_R8_G8_B8_TO_RGB888(0x00, 0x00, 0xff), 2, false);
+    imlib_draw_circle(img_ts, 70, 100, 20,          COLOR_R8_G8_B8_TO_RGB888(0x00, 0x00, 0xff), 2, true);
+    imlib_draw_string(img_ts, 70, 150, "nihao",     COLOR_R8_G8_B8_TO_RGB888(0x00, 0x00, 0xff), 3.0, 0, 0, 1, 0, 0, 0, 0, 0, 0);
+#else
+                                    bmp_read(img_ts, "../../assets/image/565.bmp");
+    imlib_draw_line(img_ts, 10, 10, 10, 100,        COLOR_R8_G8_B8_TO_RGB565(0xff, 0x00, 0x00), 4);
+    imlib_draw_line(img_ts, 20, 10, 20, 100,        COLOR_R8_G8_B8_TO_RGB565(0x00, 0xff, 0x00), 4);
+    imlib_draw_line(img_ts, 30, 10, 30, 100,        COLOR_R8_G8_B8_TO_RGB565(0x00, 0x00, 0xff), 4);
+    imlib_draw_rectangle(img_ts, 10, 120, 14, 100,  COLOR_R8_G8_B8_TO_RGB565(0xff, 0x00, 0x00), 2, 0);
+    imlib_draw_rectangle(img_ts, 26, 120, 14, 100,  COLOR_R8_G8_B8_TO_RGB565(0x00, 0x00, 0xff), 1, 1);
+    imlib_draw_circle(img_ts, 70, 30, 20,           COLOR_R8_G8_B8_TO_RGB565(0x00, 0x00, 0xff), 2, false);
+    imlib_draw_circle(img_ts, 70, 100, 20,          COLOR_R8_G8_B8_TO_RGB565(0x00, 0x00, 0xff), 2, true);
+    imlib_draw_string(img_ts, 70, 150, "nihao",     COLOR_R8_G8_B8_TO_RGB565(0x00, 0x00, 0xff), 3.0, 0, 0, 1, 0, 0, 0, 0, 0, 0);
+#endif
+// (44, 80, 10, 110, -49, 115)
+    find_blobs(img_ts);
+
+    find_lines(img_ts);
+
+    find_cricle(img_ts);
     
     bmp_write_subimg(img_ts, "./tmp.bmp",NULL);
     imlib_image_destroy(&img_ts);
