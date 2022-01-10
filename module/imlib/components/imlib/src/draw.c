@@ -683,7 +683,6 @@ void imlib_draw_row(int x_start, int x_end, int y_row, imlib_draw_row_data_t *da
         int g_out = ((_src_pixel & 0x7e0) * _smuad_alpha) >> 5; \
         (rb_out & 0xf81f) | (g_out & 0x7e0); \
     })
-    //暂时将图像数据转成RGB565然后混合后再转回RGB888
     #define BLEND_RGB888(src_pixel, dst_pixel, smuad_alpha) \
     ({ \
         __typeof__ (src_pixel) _src_pixel = (src_pixel); \
@@ -693,9 +692,9 @@ void imlib_draw_row(int x_start, int x_end, int y_row, imlib_draw_row_data_t *da
         uint8_t *_rgb_s = (uint8_t)&_src_pixel;\
         uint8_t *_rgb_d = (uint8_t)&_dst_pixel;\
         uint8_t *_rgb_o = (uint8_t)&rgb_out;\
-        _rgb_o[0] = ((_rgb_s[0] * smuad_alpha + _rgb_d[0] * smuad_alpha) / 256);\
-        _rgb_o[1] = ((_rgb_s[1] * smuad_alpha + _rgb_d[1] * smuad_alpha) / 256);\
-        _rgb_o[2] = ((_rgb_s[2] * smuad_alpha + _rgb_d[2] * smuad_alpha) / 256);\
+        _rgb_o[0] = ((_rgb_s[0] * smuad_alpha + _rgb_d[0] * smuad_alpha) >> 8);\
+        _rgb_o[1] = ((_rgb_s[1] * smuad_alpha + _rgb_d[1] * smuad_alpha) >> 8);\
+        _rgb_o[2] = ((_rgb_s[2] * smuad_alpha + _rgb_d[2] * smuad_alpha) >> 8);\
         rgb_out;\
     })
 
@@ -706,9 +705,9 @@ void imlib_draw_row(int x_start, int x_end, int y_row, imlib_draw_row_data_t *da
         int rgb_out = 0;\
         uint8_t *_rgb_s = (uint8_t)&_src_pixel;\
         uint8_t *_rgb_o = (uint8_t)&rgb_out;\
-        _rgb_o[0] = ((_rgb_s[0] * smuad_alpha) / 256);\
-        _rgb_o[1] = ((_rgb_s[1] * smuad_alpha) / 256);\
-        _rgb_o[2] = ((_rgb_s[2] * smuad_alpha) / 256);\
+        _rgb_o[0] = ((_rgb_s[0] * smuad_alpha) >> 256);\
+        _rgb_o[1] = ((_rgb_s[1] * smuad_alpha) >> 256);\
+        _rgb_o[2] = ((_rgb_s[2] * smuad_alpha) >> 256);\
         rgb_out;\
     })
 
@@ -5378,7 +5377,7 @@ void imlib_draw_image(image_t *dst_img, image_t *src_img, int dst_x_start, int d
                             long b_smlad_x_weight = smlad_x_weight * b_y_weight;
                             long t_b_smlad_x_weight_sum = __QADD16(t_smlad_x_weight, b_smlad_x_weight);
 
-                            uint32_t area = __SMUAD(t_b_smlad_x_weight_sum, 0x10001);
+                            uint32_t area = __SMUAD(t_b_smlad_x_weight_sum, 0x0010001);
                             uint32_t r_acc = 0, g_acc = 0, b_acc = 0;
 
                             // sum corners
@@ -5521,17 +5520,17 @@ void imlib_draw_image(image_t *dst_img, image_t *src_img, int dst_x_start, int d
                         int src_y_index = next_src_y_index, src_y_index_p_1 = src_y_index + 1;
                         int src_y_index_end = src_y_index + src_y_frac_size - 1; // inclusive end
 
-                        int t_y_weight = 128 - ((src_y_accum >> 9) & 0x7F);
-                        int b_y_weight = ((src_y_accum + src_y_frac) >> 9) & 0x7F;
+                        int t_y_weight = 256 - ((src_y_accum >> 8) & 0xFF);
+                        int b_y_weight = ((src_y_accum + src_y_frac) >> 8) & 0xFF;
                         // Since src_y_index_end is inclusive this should be 128 when there's perfect overlap.
-                        if (!b_y_weight) b_y_weight = 128;
+                        if (!b_y_weight) b_y_weight = 256;
 
                         // Handle end being off the edge.
                         if (src_y_index_end > h_limit) {
                             src_y_index_end = h_limit;
                             // Either we don't need end of we chopped off the last part.
                             if (src_y_index_end == src_y_index) b_y_weight = 0;
-                            else b_y_weight = 128; // max out if we chopped off
+                            else b_y_weight = 256; // max out if we chopped off
                         }
 
                         int y_height_m_2 = src_y_index_end - src_y_index - 1;
@@ -5554,36 +5553,35 @@ void imlib_draw_image(image_t *dst_img, image_t *src_img, int dst_x_start, int d
                             int src_x_index = next_src_x_index, src_x_index_p_1 = src_x_index + 1;
                             int src_x_index_end = src_x_index + src_x_frac_size - 1; // inclusive end
 
-                            int l_x_weight = 128 - ((src_x_accum >> 9) & 0x7F);
-                            int r_x_weight = ((src_x_accum + src_x_frac) >> 9) & 0x7F;
+                            int l_x_weight = 256 - ((src_x_accum >> 8) & 0xFF);
+                            int r_x_weight = ((src_x_accum + src_x_frac) >> 8) & 0xFF;
                             // Since src_x_index_end is inclusive this should be 128 when there's perfect overlap.
-                            if (!r_x_weight) r_x_weight = 128;
+                            if (!r_x_weight) r_x_weight = 256;
 
                             // Handle end being off the edge.
                             if (src_x_index_end > w_limit) {
                                 src_x_index_end = w_limit;
                                 // Either we don't need end of we chopped off the last part.
                                 if (src_x_index_end == src_x_index) r_x_weight = 0;
-                                else r_x_weight = 128; // max out if we chopped off
+                                else r_x_weight = 256; // max out if we chopped off
                             }
 
                             int x_width_m_2 = src_x_index_end - src_x_index - 1;
+                            long smlad_x_weight0 = l_x_weight;
+                            long smlad_x_weight1 = r_x_weight;
                             // long smlad_x_weight = (l_x_weight << 16) | r_x_weight;
-                            long t_smlad_x_weight0 = l_x_weight * t_y_weight;
-                            long t_smlad_x_weight1 = r_x_weight * t_y_weight;
-                            long b_smlad_x_weight0 = l_x_weight * b_y_weight;
-                            long b_smlad_x_weight1 = r_x_weight * b_y_weight;
-                            long t_b_smlad_x_weight_sum0 = t_smlad_x_weight0 + b_smlad_x_weight0;
-                            long t_b_smlad_x_weight_sum1 = t_smlad_x_weight1 + b_smlad_x_weight1;
+
+                            long t_smlad_x_weight0 = smlad_x_weight0 * t_y_weight;
+                            long t_smlad_x_weight1 = smlad_x_weight1 * t_y_weight;
+
+                            long b_smlad_x_weight0 = smlad_x_weight0 * b_y_weight;
+                            long b_smlad_x_weight1 = smlad_x_weight1 * b_y_weight;
+
+                            long t_b_smlad_x_weight_sum0 = t_smlad_x_weight0 +  b_smlad_x_weight0;
+                            long t_b_smlad_x_weight_sum1 = t_smlad_x_weight1 +  b_smlad_x_weight1;
 
                             uint32_t area = t_b_smlad_x_weight_sum0 + t_b_smlad_x_weight_sum1;
 
-
-                            // long t_smlad_x_weight = smlad_x_weight * t_y_weight;
-                            // long b_smlad_x_weight = smlad_x_weight * b_y_weight;
-                            // long t_b_smlad_x_weight_sum = __QADD16(t_smlad_x_weight, b_smlad_x_weight);
-
-                            // uint32_t area = __SMUAD(t_b_smlad_x_weight_sum, 0x10001);
                             uint32_t r_acc = 0, g_acc = 0, b_acc = 0;
 
                             // sum corners
@@ -6854,19 +6852,19 @@ void imlib_draw_image(image_t *dst_img, image_t *src_img, int dst_x_start, int d
                                 // long r_pixel = __SMLAD(smuad_dx_dx2, smuad_r_a0_r_a1, (dx3 * r_a2) + r_d1_avg);
 
                                 // clamp output
-                                r_pixel = __USAT_ASR(r_pixel, 5, 16);
+                                r_pixel = __USAT_ASR(r_pixel, 8, 16);
 
                                 long g_pixel = dx * g_a0 + dx2 * g_a1 + (dx3 * g_a2) + g_d1_avg;
                                 // long g_pixel = __SMLAD(smuad_dx_dx2, smuad_g_a0_g_a1, (dx3 * g_a2) + g_d1_avg);
 
                                 // clamp output
-                                g_pixel = __USAT_ASR(g_pixel, 6, 16);
+                                g_pixel = __USAT_ASR(g_pixel, 8, 16);
 
                                 long b_pixel = dx * b_a0 + dx2 * b_a1 + (dx3 * b_a2) + b_d1_avg;
                                 // long b_pixel = __SMLAD(smuad_dx_dx2, smuad_b_a0_b_a1, (dx3 * b_a2) + b_d1_avg);
 
                                 // clamp output
-                                b_pixel = __USAT_ASR(b_pixel, 5, 16);
+                                b_pixel = __USAT_ASR(b_pixel, 8, 16);
 
                                 int pixel = COLOR_R8_G8_B8_TO_RGB888(r_pixel, g_pixel, b_pixel);
 
@@ -7458,9 +7456,9 @@ void imlib_draw_image(image_t *dst_img, image_t *src_img, int dst_x_start, int d
                 } // while y
                 break;
             }
-            case PIXFORMAT_RGB888: {
+            case PIXFORMAT_RGB888: {        //add success!
                 while (y_not_done) {
-#if 0
+#if 1
                     int src_y_index = next_src_y_index;
                     pixel24_t *src_row_ptr_0, *src_row_ptr_1;
 
@@ -7477,9 +7475,8 @@ void imlib_draw_image(image_t *dst_img, image_t *src_img, int dst_x_start, int d
 
                     do { // Cache the results of getting the source rows
                         // used to mix pixels vertically
-                        long smuad_y1 = (src_y_accum >> 16) & 0xff;
+                        long smuad_y1 = (src_y_accum >> 8) & 0xff;
                         long smuad_y0 = (256 - smuad_y1);
-                        // smuad_y |= (32 - smuad_y) << 16;
 
                         // Must be called per loop to get the address of the temp buffer to blend with
                         pixel24_t *dst_row_ptr = (pixel24_t *) imlib_draw_row_get_row_buffer(&imlib_draw_row_data);
@@ -7491,7 +7488,7 @@ void imlib_draw_image(image_t *dst_img, image_t *src_img, int dst_x_start, int d
                         int x = dst_x_start;
                         bool x_not_done = x < dst_x_end;
 
-                        while (x_not_done) {
+                        while (x_not_done) {        //先对y方向进行插值，然后再对x方向插值请                                                                                                                                  
                             int src_x_index = next_src_x_index;
                             int pixel_00, pixel_10, pixel_01, pixel_11;
 
@@ -7508,38 +7505,36 @@ void imlib_draw_image(image_t *dst_img, image_t *src_img, int dst_x_start, int d
                                 pixel_01 = pixel24232(src_row_ptr_1[src_x_index]); pixel_11 = pixel24232(src_row_ptr_1[src_x_index_p_1]);
                             }
 
-                            const long mask_r = 0x0000ff00, mask_g = 0x00ff0000, mask_b = 0xff000000;
-                            const long avg_rb = 0x4010, avg_g = 0x200;
+                            const long avg_r = 128, avg_g = 128, avg_b = 128;
 
-                            uint32_t rgb_l = (pixel_00 << 16) | pixel_01;
-                            long rb_l = ((rgb_l >> 1) & mask_r) | (rgb_l & mask_b);
-                            long g_l = rgb_l & mask_g;
+                            uint8_t l_piex_r_tmp0 = COLOR_RGB888_TO_R8(pixel_00), l_piex_r_tmp1 = COLOR_RGB888_TO_R8(pixel_01);
+                            uint8_t l_piex_g_tmp0 = COLOR_RGB888_TO_G8(pixel_00), l_piex_g_tmp1 = COLOR_RGB888_TO_G8(pixel_01);
+                            uint8_t l_piex_b_tmp0 = COLOR_RGB888_TO_B8(pixel_00), l_piex_b_tmp1 = COLOR_RGB888_TO_B8(pixel_01);
 
-                            int rb_out_l = COLOR_R8_G8_B8_TO_RGB888(smuad_y0 * COLOR_RGB888_TO_R8(pixel_00) + 0x04, 0, smuad_y1 * COLOR_RGB888_TO_B8(pixel_00) + 0x10);
 
-/***********************************************************************************************************************/
-                            // int rb_out_l = (__SMLAD(smuad_y, rb_l, avg_rb) >> 5) & 0x7c1f;
-                            int g_out_l = (__SMLAD(smuad_y, g_l, avg_g) >> 5) & 0x07e0;
+                            uint8_t l_piex_r_tmp2 = ((smuad_y0 * l_piex_r_tmp0 + smuad_y1 * l_piex_r_tmp1 + avg_r) >> 8);
+                            uint8_t l_piex_g_tmp2 = ((smuad_y0 * l_piex_g_tmp0 + smuad_y1 * l_piex_g_tmp1 + avg_g) >> 8);
+                            uint8_t l_piex_b_tmp2 = ((smuad_y0 * l_piex_b_tmp0 + smuad_y1 * l_piex_b_tmp1 + avg_b) >> 8);
 
-                            uint32_t rgb_r = (pixel_10 << 16) | pixel_11;
-                            long rb_r = ((rgb_r >> 1) & mask_r) | (rgb_r & mask_b);
-                            long g_r = rgb_r & mask_g;
-                            int rb_out_r = (__SMLAD(smuad_y, rb_r, avg_rb) >> 5) & 0x7c1f;
-                            int g_out_r = (__SMLAD(smuad_y, g_r, avg_g) >> 5) & 0x07e0;
+                            uint8_t r_piex_r_tmp0 = COLOR_RGB888_TO_R8(pixel_10), r_piex_r_tmp1 = COLOR_RGB888_TO_R8(pixel_11);
+                            uint8_t r_piex_g_tmp0 = COLOR_RGB888_TO_G8(pixel_10), r_piex_g_tmp1 = COLOR_RGB888_TO_G8(pixel_11);
+                            uint8_t r_piex_b_tmp0 = COLOR_RGB888_TO_B8(pixel_10), r_piex_b_tmp1 = COLOR_RGB888_TO_B8(pixel_11);
 
-                            long rb = (rb_out_l << 16) | rb_out_r;
-                            long g = (g_out_l << 16) | g_out_r;
+                            uint8_t r_piex_r_tmp2 = ((smuad_y0 * r_piex_r_tmp0 + smuad_y1 * r_piex_r_tmp1 + avg_r) >> 8);
+                            uint8_t r_piex_g_tmp2 = ((smuad_y0 * r_piex_g_tmp0 + smuad_y1 * r_piex_g_tmp1 + avg_g) >> 8);
+                            uint8_t r_piex_b_tmp2 = ((smuad_y0 * r_piex_b_tmp0 + smuad_y1 * r_piex_b_tmp1 + avg_b) >> 8);
+
 
                             do { // Cache the results of getting the source pixels
                                 // used to mix pixels horizontally
-                                long smuad_x = (src_x_accum >> 11) & 0x1f;
-                                smuad_x |= (32 - smuad_x) << 16;
+                                long smuad_x1 = (src_x_accum >> 8) & 0xff;
+                                long smuad_x0 = 256 - smuad_x0;
 
-                                int rb_out = __SMLAD(smuad_x, rb, avg_rb) >> 5;
-                                int g_out = __SMLAD(smuad_x, g, avg_g) >> 5;
-                                int pixel = ((rb_out << 1) & 0xf800) | (g_out & 0x07e0) | (rb_out & 0x001f);
+                                uint8_t _piex_r_tmp3 = ((smuad_x0 * l_piex_r_tmp2 + smuad_x1 * r_piex_r_tmp2 + avg_r) >> 8);
+                                uint8_t _piex_g_tmp3 = ((smuad_x0 * l_piex_g_tmp2 + smuad_x1 * r_piex_g_tmp2 + avg_g) >> 8);
+                                uint8_t _piex_b_tmp3 = ((smuad_x0 * l_piex_b_tmp2 + smuad_x1 * r_piex_b_tmp2 + avg_b) >> 8);
 
-                                IMAGE_PUT_RGB888_PIXEL_FAST(dst_row_ptr, dst_x, pixel);
+                                IMAGE_PUT_RGB888_PIXEL_FAST(dst_row_ptr, dst_x, COLOR_R8_G8_B8_TO_RGB888(_piex_r_tmp3, _piex_g_tmp3, _piex_b_tmp3));
 
                                 // Increment offsets
                                 dst_x += dst_delta_x;
@@ -7547,7 +7542,7 @@ void imlib_draw_image(image_t *dst_img, image_t *src_img, int dst_x_start, int d
                                 next_src_x_index = src_x_accum >> 16;
                                 x_not_done = ++x < dst_x_end;
                             } while (x_not_done && (src_x_index == next_src_x_index));
-                        } // while x
+                        } // while x            结束完行
 
                         imlib_draw_row(dst_x_start, dst_x_end, dst_y, &imlib_draw_row_data);
 
@@ -7607,13 +7602,13 @@ void imlib_draw_image(image_t *dst_img, image_t *src_img, int dst_x_start, int d
                             const long mask_r = 0x0000ff00, mask_g = 0x00ff0000, mask_b = 0xff000000;
                             const long avg_rb = 0x4010, avg_g = 0x200;
 
-                            uint32_t rgb_l = (pixel_00 << 16) | pixel_01;
+                            uint32_t rgb_l = (pixel_00 << 16) | pixel_01;           //左像素
                             long rb_l = ((rgb_l >> 1) & mask_r) | (rgb_l & mask_b);
                             long g_l = rgb_l & mask_g;
                             int rb_out_l = (__SMLAD(smuad_y, rb_l, avg_rb) >> 5) & 0x7c1f;
                             int g_out_l = (__SMLAD(smuad_y, g_l, avg_g) >> 5) & 0x07e0;
 
-                            uint32_t rgb_r = (pixel_10 << 16) | pixel_11;
+                            uint32_t rgb_r = (pixel_10 << 16) | pixel_11;           //右像素
                             long rb_r = ((rgb_r >> 1) & mask_r) | (rgb_r & mask_b);
                             long g_r = rgb_r & mask_g;
                             int rb_out_r = (__SMLAD(smuad_y, rb_r, avg_rb) >> 5) & 0x7c1f;

@@ -48,3 +48,24 @@ long smlad_x_weight = (l_x_weight << 16) | r_x_weight;
 long t_smlad_x_weight = smlad_x_weight * t_y_weight;
 long b_smlad_x_weight = smlad_x_weight * b_y_weight;
 long t_b_smlad_x_weight_sum = __QADD16(t_smlad_x_weight, b_smlad_x_weight);
+
+
+__STATIC_FORCEINLINE uint32_t __SMLAD (uint32_t op1, uint32_t op2, uint32_t op3)
+{
+  uint32_t result;
+  uint16_t *op1_s = (uint16_t *) &op1, *op2_s = (uint16_t *) &op2;
+  
+  result = op1_s[0] * op2_s[0];
+  result += op1_s[1] * op2_s[1];
+  result += op3;
+  
+  return result;
+}
+
+  smuad_y0 * rb_l0 +   smuad_y1 * rb_l1
+  avg_rb0          +    avg_rb1
+
+
+int rb_out_l = (__SMLAD(smuad_y, rb_l, avg_rb) >> 5) & 0x7c1f;
+
+
