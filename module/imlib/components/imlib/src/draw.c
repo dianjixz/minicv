@@ -689,12 +689,13 @@ void imlib_draw_row(int x_start, int x_end, int y_row, imlib_draw_row_data_t *da
         __typeof__ (dst_pixel) _dst_pixel = (dst_pixel); \
         __typeof__ (smuad_alpha) _smuad_alpha = (smuad_alpha); \
         int rgb_out = 0;\
-        uint8_t *_rgb_s = (uint8_t)&_src_pixel;\
-        uint8_t *_rgb_d = (uint8_t)&_dst_pixel;\
-        uint8_t *_rgb_o = (uint8_t)&rgb_out;\
-        _rgb_o[0] = ((_rgb_s[0] * smuad_alpha + _rgb_d[0] * smuad_alpha) >> 8);\
-        _rgb_o[1] = ((_rgb_s[1] * smuad_alpha + _rgb_d[1] * smuad_alpha) >> 8);\
-        _rgb_o[2] = ((_rgb_s[2] * smuad_alpha + _rgb_d[2] * smuad_alpha) >> 8);\
+        uint8_t *_rgb_s = (uint8_t*)&_src_pixel;\
+        uint8_t *_rgb_d = (uint8_t*)&_dst_pixel;\
+        uint8_t *_rgb_o = (uint8_t*)&rgb_out;\
+        uint16_t *_smuad_alpha_tmp = (uint16_t*)&_smuad_alpha;\
+        _rgb_o[0] = ((_rgb_s[0] * _smuad_alpha_tmp[0] + _rgb_d[0] * _smuad_alpha_tmp[1]) >> 8);\
+        _rgb_o[1] = ((_rgb_s[1] * _smuad_alpha_tmp[0] + _rgb_d[1] * _smuad_alpha_tmp[1]) >> 8);\
+        _rgb_o[2] = ((_rgb_s[2] * _smuad_alpha_tmp[0] + _rgb_d[2] * _smuad_alpha_tmp[1]) >> 8);\
         rgb_out;\
     })
 
@@ -703,11 +704,12 @@ void imlib_draw_row(int x_start, int x_end, int y_row, imlib_draw_row_data_t *da
         __typeof__ (src_pixel) _src_pixel = (src_pixel); \
         __typeof__ (smuad_alpha) _smuad_alpha = (smuad_alpha); \
         int rgb_out = 0;\
-        uint8_t *_rgb_s = (uint8_t)&_src_pixel;\
-        uint8_t *_rgb_o = (uint8_t)&rgb_out;\
-        _rgb_o[0] = ((_rgb_s[0] * smuad_alpha) >> 256);\
-        _rgb_o[1] = ((_rgb_s[1] * smuad_alpha) >> 256);\
-        _rgb_o[2] = ((_rgb_s[2] * smuad_alpha) >> 256);\
+        uint8_t *_rgb_s = (uint8_t*)&_src_pixel;\
+        uint8_t *_rgb_o = (uint8_t*)&rgb_out;\
+        uint16_t *_smuad_alpha_tmp = (uint16_t*)&_smuad_alpha;\
+        _rgb_o[0] = ((_rgb_s[0] * _smuad_alpha_tmp[0]) >> 8);\
+        _rgb_o[1] = ((_rgb_s[1] * _smuad_alpha_tmp[0]) >> 8);\
+        _rgb_o[2] = ((_rgb_s[2] * _smuad_alpha_tmp[0]) >> 8);\
         rgb_out;\
     })
 
@@ -3364,7 +3366,7 @@ void imlib_draw_row(int x_start, int x_end, int y_row, imlib_draw_row_data_t *da
                                 for (int x = x_start; x < x_end; x++) {
                                     int src_pixel = *src8++;
                                     long smuad_alpha = smuad_alpha_palette[src_pixel];
-                                    src_pixel = COLOR_Y_TO_RGB565(src_pixel);
+                                    src_pixel = COLOR_Y_TO_RGB888(src_pixel);
                                     int dst_pixel = pixel24232(*dst24);
                                     *dst24++ = pixel32224(BLEND_RGB888(src_pixel, dst_pixel, smuad_alpha));
                                 }
@@ -3372,7 +3374,7 @@ void imlib_draw_row(int x_start, int x_end, int y_row, imlib_draw_row_data_t *da
                                 for (int x = x_start; x < x_end; x++) {
                                     int src_pixel = *src8++;
                                     long smuad_alpha = smuad_alpha_palette[src_pixel];
-                                    src_pixel = COLOR_Y_TO_RGB565(src_pixel);
+                                    src_pixel = COLOR_Y_TO_RGB888(src_pixel);
                                     *dst24++ = pixel32224(BLEND_RGB888_0(src_pixel, smuad_alpha));
                                 }
                             }
@@ -3413,14 +3415,14 @@ void imlib_draw_row(int x_start, int x_end, int y_row, imlib_draw_row_data_t *da
                             if (!data->black_background) {
                                 for (int x = x_start; x < x_end; x++) {
                                     int src_pixel = *src8++;
-                                    src_pixel = COLOR_Y_TO_RGB565(src_pixel);
+                                    src_pixel = COLOR_Y_TO_RGB888(src_pixel);
                                     int dst_pixel = pixel24232(*dst24);
                                     *dst24++ = pixel32224(BLEND_RGB888(src_pixel, dst_pixel, smuad_alpha));
                                 }
                             } else {
                                 for (int x = x_start; x < x_end; x++) {
                                     int src_pixel = *src8++;
-                                    src_pixel = COLOR_Y_TO_RGB565(src_pixel);
+                                    src_pixel = COLOR_Y_TO_RGB888(src_pixel);
                                     *dst24++ = pixel32224(BLEND_RGB888_0(src_pixel, smuad_alpha));
                                 }
                             }
