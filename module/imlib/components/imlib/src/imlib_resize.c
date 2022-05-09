@@ -1,6 +1,41 @@
+#include <stdint.h>
+// *********************************************************************
+// * 函数名称: BspDouToFix
+// * 功能描述: 将指定的浮点数 转化为 定点数
+// * 算法描述: 无
+// * 输入参数:  ucType 0表示无符号 1表示有符号
+// *           ucInteger 表示整数占几个bit
+// *           ucdecimal 表示小数占几个bit
+// *           dbDou 为待转化的浮点数
+// * 输出参数: 无
+// * 返 回 值: 转化后的定点数
+// *********************************************************************
 
+#define VOID void
+#define UCHAR int
+#define DOUBLE double
+#define UINT64 uint64_t
 
+VOID BspDouToFix(UCHAR ucType, UCHAR ucInteger, UCHAR ucdecimal, DOUBLE dbDou, UINT64 *pllfix)
+{
+    UINT64 lltemp = 0;
+    DOUBLE dbtemp = 0;
 
+    dbtemp = dbDou;
+    if (dbtemp < 0) /* 有符号正数 或者 无符号数 */
+    {
+        lltemp = (UINT64)(-dbDou * (1 << ucdecimal));
+        *pllfix = (UINT64)((UINT64)(1) << (ucType + ucInteger + ucdecimal)) - lltemp;
+    }
+    else if (dbtemp > 0) /* 有符号负数 */
+    {
+        *pllfix = (UINT64)(dbDou * (1 << ucdecimal));
+    }
+    else
+    {
+        *pllfix = 0;
+    }
+}
 
 /*
 
